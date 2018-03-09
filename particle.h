@@ -4,6 +4,7 @@ class Particle{
         double d;
         int q;
         double *pos;
+        char name[3];
     //    Particle();
     //    ~Particle();
         void hello();
