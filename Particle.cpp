@@ -1,7 +1,6 @@
 #include "particle.h"
 #include <iostream>
 #include <math.h>
-//#include "mc.cpp"
 
 //Constructor
 Particle::Particle(){
@@ -47,10 +46,28 @@ void Particle::pbc_xy(){
     }
 }
 
-void Particle::randomMove(){
-    this->pos[0] += (double) rand()/RAND_MAX*0.5 - 0.25;
-    this->pos[1] += (double) rand()/RAND_MAX*0.5 - 0.25;
-    this->pos[2] += (double) rand()/RAND_MAX*0.5 - 0.25;
+// void Particle::randomMove(){
+//     this->pos[0] += (double) rand()/RAND_MAX*0.5 - 0.25;
+//     this->pos[1] += (double) rand()/RAND_MAX*0.5 - 0.25;
+//     this->pos[2] += (double) rand()/RAND_MAX*0.5 - 0.25;
+//     this->pbc();
+// }
+
+void Particle::randomMove_xy(double stepSize){
+    this->pos[0] += ((double)rand()/RAND_MAX * 2 - 1.0) * stepSize;
+    this->pos[1] += ((double)rand()/RAND_MAX * 2 - 1.0) * stepSize;
+    //printf("%lf\n", ((double)rand()/RAND_MAX * 2 - 1.0) * stepSize);
+    if(this->pos[2] < zL - (this->d/2 + stepSize) && this->pos[2] > this->d/2 + stepSize){
+        this->pos[2] += ((double)rand()/RAND_MAX * 2 - 1.0) * stepSize;
+    }
+    this->pbc_xy();
+}
+
+void Particle::randomMove(double stepSize){
+    this->pos[0] += ((double)rand()/RAND_MAX * 2 - 1.0) * stepSize;
+    this->pos[1] += ((double)rand()/RAND_MAX * 2 - 1.0) * stepSize;
+    this->pos[2] += ((double)rand()/RAND_MAX * 2 - 1.0) * stepSize;
+
     this->pbc();
 }
 

@@ -19,7 +19,8 @@ class Particle: public Base{
 
         void pbc();
         void pbc_xy();
-        void randomMove();
+        void randomMove(double stepSize);
+        void randomMove_xy(double stepSize);
         double distance(Particle *p);
         double distance_xy(Particle *p);
         int hardSphere(Particle **particles);

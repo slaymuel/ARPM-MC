@@ -10,39 +10,30 @@
 #include <string.h>
 #include "particle.h"
 #include "constants.h"
+#include "analysis.h"
+#include "ran2_lib.cpp"
+#include "mc.h"
 
-//Fortran ran2
-//extern float ran2_();
-extern "C"
-{
-    float ran2_(int*);
-}
+//#include "base.cpp"
 
 //Initializers
 int Particle::numOfParticles = 0;
 
-double Base::xL= 14;
-double Base::yL= 14;
-double Base::zL= 14;
+double Base::xL= 35;
+double Base::yL= 35;
+double Base::zL= 35;
+double Base::T = 300;
+double Base::eCummulative = 0;
+int Base::acceptedMoves = 0;
 
-//Globals
-double xL = 14;
-double yL = 14;
-double zL = 14;
 int numOfParticles = 1000;
 int totalMoves = 0;
 int acceptedMoves = 0;
 int numberOfSamples = 0;
 double kb = KB;
-double T = 1;
-double beta = 1/(1*T);
+double T = Base::T;
+double beta = 1;
 double eCum = 0;
-
-double get_random(){
-    int ran_input = -1*(int) time(NULL)*100*rand();
-    float ran2_var = ran2_(&ran_input);
-    return (double)ran2_var;
-}
 
 double getEnergy(Particle **particles){
     int i = 0;
@@ -95,14 +86,13 @@ double getParticleEnergy(int pInd, Particle *p, Particle **particles){
     return energy;
 }
 
-int mcmove(Particle **particles){
+int mcmove(Particle **particles, double dr){
     int i = 0;
     double eOld = 0;
     double eNew = 0;
     double dist = 0;
     double acceptProp = 0;
-    double random = get_random();
-    double dr = 0.5;
+    double random = ran2::get_random();
     double dE = 0;
     int accepted= 0;
 
@@ -113,9 +103,9 @@ int mcmove(Particle **particles){
 
     //Generate new trial coordinates
     double oldPos[3] = {particles[p]->pos[0], particles[p]->pos[1], particles[p]->pos[2]};
-    particles[p]->pos[0] = particles[p]->pos[0] + (get_random()*2 - 1) * dr;
-    particles[p]->pos[1] = particles[p]->pos[1] + (get_random()*2 - 1) * dr;
-    particles[p]->pos[2] = particles[p]->pos[2] + (get_random()*2 - 1) * dr;
+    particles[p]->pos[0] = particles[p]->pos[0] + (ran2::get_random()*2 - 1) * dr;
+    particles[p]->pos[1] = particles[p]->pos[1] + (ran2::get_random()*2 - 1) * dr;
+    particles[p]->pos[2] = particles[p]->pos[2] + (ran2::get_random()*2 - 1) * dr;
 
     //Appy PBC
     particles[p]->pbc_xy();
@@ -131,9 +121,11 @@ int mcmove(Particle **particles){
             acceptProp = 1;
         }
 
-        double rand = get_random();
+        double rand = ran2::get_random();
+
+        //Accept move
         if(rand < acceptProp){
-            eCum += dE;
+            eCum += dE; //Cummulative energy
             accepted = 1;
             acceptedMoves++;
         }
@@ -152,11 +144,11 @@ int mcmove(Particle **particles){
     return accepted;
 }
 
-void sampleHisto(Particle **particles, int *histo, double binWidth){
+void sampleRDF(Particle **particles, int *histo, double binWidth){
     int i = 0;
     int j = 0;
     double dist = 0;
-    double xL2 = (xL * xL)/4;
+    double xL2 = (Base::xL * Base::xL)/4;
 
     for(i = 0; i < Particle::numOfParticles; i++){
         j = i + 1;
@@ -186,7 +178,7 @@ void saveRDF(int *histo, int bins, double binWidth){
     //Number of particles in ideal gas with same density
     for(i = 0; i < bins; i++){
         dv = (double)4/3 * PI * (pow(i + 1, 3) - pow(i, 3)) * pow(binWidth, 3);
-        idealDen = dv * Particle::numOfParticles/(xL*yL*zL);
+        idealDen = dv * Particle::numOfParticles/(Base::xL*Base::yL*Base::zL);
         fprintf(f, "%lf     %lf\n", i * binWidth, histo[i]/(Particle::numOfParticles * numberOfSamples * idealDen));
     }
     fclose(f);
@@ -221,16 +213,16 @@ int main(int argc, char *argv[])
     int k = 0;
     int Digs = DECIMAL_DIG;
     int bins = 100;
-    double binWidth = (xL/2)/bins;
+    double binWidth = (Base::xL/2)/bins;
     double dist = 0;
     int *histo;
     histo = (int*)malloc(bins * sizeof(int));
-
+    Analysis *hist = new Analysis(0.1);
     //Particle variables
-    double diameter = 1;
+    double diameter = 5;
     double diameter2 = pow(diameter, 2);
     int overlaps = 0;
-    double density = (double)numOfParticles/(xL*yL*zL)*pow(diameter, 2);
+    double density = (double)numOfParticles/(Base::xL*Base::yL*Base::zL)*pow(diameter, 2);
     int overlap = 1;
     //Seed
     srand(time(NULL));
@@ -244,9 +236,15 @@ int main(int argc, char *argv[])
     for(i = 0; i < numOfParticles; i++){
         particles[i] = new Particle();
         particles[i]->pos = (double*)malloc(3*sizeof(double));
-        particles[i]->pos[0] = (double) rand()/RAND_MAX * xL;
-        particles[i]->pos[1] = (double) rand()/RAND_MAX * yL;
-        particles[i]->pos[2] = (double) rand()/RAND_MAX * zL;
+        particles[i]->pos[0] = (double) rand()/RAND_MAX * Base::xL;
+        particles[i]->pos[1] = (double) rand()/RAND_MAX * Base::yL;
+        particles[i]->pos[2] = (double) rand()/RAND_MAX * (Base::zL - 2 * diameter) + diameter;
+
+        if(particles[i]->pos[2] < 1 || particles[i]->pos[2] > Base::zL){
+            printf("\n");
+            exit(1);
+        }
+
         particles[i]->d = diameter;
         particles[i]->index = i;
 
@@ -259,7 +257,7 @@ int main(int argc, char *argv[])
             strcpy(particles[i]->name, "Na\0");
         }
         //pbc(particles[i]);
-        particles[i]->pbc();
+        //particles[i]->pbc_xy();
     }
     
     //Calculate all distances
@@ -277,33 +275,15 @@ int main(int argc, char *argv[])
 
     printf("Overlaps before moves: %d\n", overlaps);
 
-    //Move particles to prevent overlap
-    while(k < 100000){
-        overlaps = 0;
-        for(i = 0; i < Particle::numOfParticles; i++){
-            j = i + 1;
-            while(j < Particle::numOfParticles){
-                if(i != j){
-                    if(particles[i]->distance(particles[j]) < diameter2){
-                        //randomMove(particles[i]);
-                        particles[i]->randomMove();
-                        overlaps += 1;
-                    }
-                }
-                j++;
-            }
-        }
-        if(overlaps == 0){
-            break;
-        }
-        k += 1;   
-    }
+    //Update cumulative energy
+    eCum = getEnergy(particles);
+    int eq = 1;
+    // ///////////////////////////////         Main MC-loop          ////////////////////////////////////////
 
-    if(overlaps != 0){
-        printf("%d overlaps persisted after random moves...\n", overlaps);
-        exit(1);
-    }
-    printf("It took %d iterations to remove overlaps\n", k);
+    int prevAccepted = 0;
+    MC mc = MC();
+    printf("Equilibrating system....\n");
+    mc.equilibrate(particles);
 
     //Write coordinates to file
     FILE *fi = fopen("output_before.xyz", "w");
@@ -317,20 +297,16 @@ int main(int argc, char *argv[])
     }
     fclose(fi);
 
-    //Update cumulative energy
-    eCum = getEnergy(particles);
 
-    // ///////////////////////////////         Main MC-loop          ////////////////////////////////////////
     printf("\nRunning main MC-loop at temperature: %lf\n", T);
-    int prevAccepted = 0;
     for(i = 0; i < 1000000; i++){
-
         if(i % 10000 == 0 && i > 100000){
-            sampleHisto(particles, histo, binWidth);
+            //sampleRDF(particles, histo, binWidth);
+            hist->sampleHisto(particles, 2);
         }
 
-        if(mcmove(particles)){
-           prevAccepted++; 
+        if(mcmove(particles, 2)){
+            prevAccepted++; 
         }
         totalMoves++;
         
@@ -347,13 +323,15 @@ int main(int argc, char *argv[])
             }
             prevAccepted = 0;
         }
+        
     }
     //////////////////////////////////////////////////////////////////////////////////////////////////////
 
     printf("Accepted moves: %d\n", acceptedMoves);
     printf("Rejected moves: %d\n", totalMoves - acceptedMoves);
 
-    saveRDF(histo, bins, binWidth);
+    //saveRDF(histo, bins, binWidth);
+    hist->saveHisto();
 
     //Write coordinates to file
     FILE *f = fopen("output.xyz", "w");

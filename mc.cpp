@@ -1,26 +1,149 @@
-#include "particle.h"
-#include "base.cpp"
+#include "mc.h"
 
-Particle* pbc(Particle *p){
-    //Translate particles according to periodic boundary conditions
-    if(p->pos[0] > Base::box[0]){
-        p->pos[0] = p->pos[0] - Base::box[0];
+double getEnergy(Particle **particles){
+    int i = 0;
+    int j = 0;
+    double dist = 0;
+    double energy = 0;
+    double r6 = 0;
+    double sigma = 1;
+    double epsilon = 1;
+
+    for(i = 0; i < Particle::numOfParticles; i++){
+        j = i + 1;
+        while(j < Particle::numOfParticles){
+            //LJ
+            dist = particles[j]->distance_xy(particles[i]);
+            //r6 = pow(dist, 3);
+            //energy += 4 * (1/(r6*r6) - 1/r6);
+            //Coloumb
+            dist = sqrt(dist);
+            energy += pow(EC, 2)/(4 * VP * PI * 2 * KB * Base::T * 1e-10) * (particles[i]->q * particles[j]->q)/dist;
+            j++;
+        }
     }
-    if(p->pos[0] < 0){
-        p->pos[0] = p->pos[0] + Base::box[0];
+    return energy;
+}
+
+double getParticleEnergy(int pInd, Particle *p, Particle **particles){
+    int i = 0;
+    double energy = 0;
+    double dist = 0;
+    double r6 = 0;
+    double sigma = 1;
+    double epsilon = 1;
+
+    for(i = 0; i < Particle::numOfParticles; i++){
+        if(i != pInd){
+            //LJ
+            dist = p->distance_xy(particles[i]);
+            r6 = pow(dist, 3);
+            //energy += 1/kb*(4 * (1/(r6*r6) - 1/r6));
+            //printf("Lennard%lf\n", 1/kb*(4 * (1/(r6*r6) - 1/r6)));
+            //printf("Lennard: %lf\n", energy);
+            //Coloumb
+            dist = sqrt(dist);
+            //printf("Coloumb %lf\n", pow(EC, 2)/(4 * VP * PI * 2 * kb * T  * 1e-10) * (p->q * particles[i]->q)/dist);
+            energy += pow(EC, 2)/(4 * VP * PI * 2 * KB * Base::T * 1e-10) * (p->q * particles[i]->q)/dist;
+            //printf("Coloumb: %lf\n", energy);
+        }
     }
-    if(p->pos[1] > Base::box[1]){
-        p->pos[1] = p->pos[1] - Base::box[1];
-    }
-    if(p->pos[1] < 0){
-        p->pos[1] = p->pos[1] + Base::box[1];
-    }
-    if(p->pos[2] < 0){
-        p->pos[2] = p->pos[2] + Base::box[2];
-    }
-    if(p->pos[2] > Base::box[2]){
-        p->pos[2] = p->pos[2] - Base::box[2];
+    return energy;
+}
+
+int MC::mcmove(Particle **particles, double dr){
+    int i = 0;
+    double eOld = 0;
+    double eNew = 0;
+    double dist = 0;
+    double acceptProp = 0;
+    double random = ran2::get_random();
+    double dE = 0;
+    int accepted= 0;
+
+    int p =  random * Particle::numOfParticles;
+
+    //Calculate old energy
+    eOld = getParticleEnergy(p, particles[p], particles);
+
+    //Generate new trial coordinates
+    double oldPos[3] = {particles[p]->pos[0], particles[p]->pos[1], particles[p]->pos[2]};
+    particles[p]->pos[0] = particles[p]->pos[0] + (ran2::get_random()*2 - 1) * dr;
+    particles[p]->pos[1] = particles[p]->pos[1] + (ran2::get_random()*2 - 1) * dr;
+    particles[p]->pos[2] = particles[p]->pos[2] + (ran2::get_random()*2 - 1) * dr;
+
+    //Appy PBC
+    particles[p]->pbc_xy();
+    if(particles[p]->hardSphere(particles) && particles[p]->pos[2] > particles[p]->d/2 && particles[p]->pos[2] < Base::zL - particles[p]->d/2 ){
+        //Get new energy
+        eNew = getParticleEnergy(p, particles[p], particles);
+
+        //Accept move?
+        dE = eNew - eOld;
+        acceptProp = exp(-1*dE);
+
+        if(acceptProp > 1 || eNew < eOld){
+            acceptProp = 1;
+        }
+
+        double rand = ran2::get_random();
+
+        //Accept move
+        if(rand < acceptProp){
+            eCummulative += dE; //Cummulative energy
+            accepted = 1;
+            acceptedMoves++;
+        }
+        else{
+            particles[p]->pos[0] = oldPos[0];
+            particles[p]->pos[1] = oldPos[1];
+            particles[p]->pos[2] = oldPos[2];
+        }
     }
 
-    return p;
+    else{
+        particles[p]->pos[0] = oldPos[0];
+        particles[p]->pos[1] = oldPos[1];
+        particles[p]->pos[2] = oldPos[2];
+    }
+    return accepted;
+}
+
+void MC::equilibrate(Particle **particles){
+    int overlaps = 0;
+    int i = 0;
+    int j = 0;
+    int k = 0;
+    double diameter2 = pow(particles[0]->d, 2);
+    float random;
+    int p;
+
+    //Move particles to prevent overlap
+    while(k < 100000){
+        overlaps = 0;
+        for(i = 0; i < Particle::numOfParticles; i++){
+            j = i + 1;
+            while(j < Particle::numOfParticles){
+                if(i != j){
+                    if(particles[i]->distance_xy(particles[j]) < diameter2){
+                        particles[i]->randomMove_xy(1);
+
+                        if(particles[i]->pos[2] < particles[i]->d/2 || particles[i]->pos[2] > Base::zL - particles[i]->d/2){
+                            printf("Particle found in forbidden zone!\n");
+                            exit(1);
+                        }
+
+                        overlaps += 1;
+                    }
+                }
+                j++;
+            }
+        }
+        printf("%d\n", overlaps);
+
+        if(overlaps == 0){
+            break;
+        }
+        k += 1;   
+    }
 }
