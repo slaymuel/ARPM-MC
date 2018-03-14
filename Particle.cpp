@@ -56,10 +56,8 @@ void Particle::pbc_xy(){
 void Particle::randomMove_xy(double stepSize){
     this->pos[0] += ((double)rand()/RAND_MAX * 2 - 1.0) * stepSize;
     this->pos[1] += ((double)rand()/RAND_MAX * 2 - 1.0) * stepSize;
-    //printf("%lf\n", ((double)rand()/RAND_MAX * 2 - 1.0) * stepSize);
-    if(this->pos[2] < zL - (this->d/2 + stepSize) && this->pos[2] > this->d/2 + stepSize){
-        this->pos[2] += ((double)rand()/RAND_MAX * 2 - 1.0) * stepSize;
-    }
+    this->pos[2] += ((double)rand()/RAND_MAX * 2 - 1.0) * stepSize;
+
     this->pbc_xy();
 }
 
@@ -131,7 +129,7 @@ int Particle::hardSphere(Particle **particles){
 
     for(i = 0; i < Particle::numOfParticles; i++){
         if(i != this->index){
-            if(this->distance(particles[i]) < (this->d+particles[i]->d)/2){
+            if(this->distance_xy(particles[i]) < (this->d+particles[i]->d)/2*(this->d+particles[i]->d)/2){
                 return 0;
             }
         }

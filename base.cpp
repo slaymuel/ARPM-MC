@@ -8,7 +8,7 @@ class Base{
         static double zL;
         static double eCummulative;
         static int acceptedMoves;
-        int totalMoves;
+        static int totalMoves;
         static double T;
         double lB;
 

@@ -15,6 +15,8 @@ class Analysis: public Base{
         double binWidth;
         int bins;
         int numberOfSamples;
+        int num;
+        static int numOfHisto;
 
     public:
         Analysis(double binWidth);
