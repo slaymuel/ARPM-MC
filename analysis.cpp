@@ -71,3 +71,44 @@ void Analysis::saveHisto(){
     }
     fclose(f);
 }
+
+
+// void sampleRDF(Particle **particles, int *histo, double binWidth){
+//     int i = 0;
+//     int j = 0;
+//     double dist = 0;
+//     double xL2 = (Base::xL * Base::xL)/4;
+
+//     for(i = 0; i < Particle::numOfParticles; i++){
+//         j = i + 1;
+//         while(j < Particle::numOfParticles){
+//             dist = particles[i]->distance(particles[j]);
+//             if(dist < xL2){
+//                 dist = sqrt(dist);
+//                 histo[(int)(dist/binWidth)] = histo[(int)(dist/binWidth)] + 2;
+//             }
+//             j++;
+//         }
+//     }
+//     numberOfSamples++;
+// }
+
+// void saveRDF(int *histo, int bins, double binWidth){
+//     int i = 0;
+//     double dv = 0;
+//     double idealDen = 0;
+
+//     FILE *f = fopen("histo.txt", "w");
+//     if(f == NULL){
+//         printf("Can't open file!\n");
+//         exit(1);
+//     }
+
+//     //Number of particles in ideal gas with same density
+//     for(i = 0; i < bins; i++){
+//         dv = (double)4/3 * PI * (pow(i + 1, 3) - pow(i, 3)) * pow(binWidth, 3);
+//         idealDen = dv * Particle::numOfParticles/(Base::xL*Base::yL*Base::zL);
+//         fprintf(f, "%lf     %lf\n", i * binWidth, histo[i]/(Particle::numOfParticles * numberOfSamples * idealDen));
+//     }
+//     fclose(f);
+// }

@@ -1,0 +1,3 @@
+#!/bin/sh
+
+gcc -c main.cpp particle.cpp base.cpp analysis.cpp ran2_lib.cpp mc.cpp

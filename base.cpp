@@ -1,5 +1,13 @@
 #ifndef BASE_H
 #define BASE_H
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <time.h>
+#include <math.h>
+#include <float.h>
+#include "Eigen/Dense"
 
 class Base{
     public:

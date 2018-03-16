@@ -2,6 +2,8 @@
 #define PARTICLE_H
 
 #include "base.cpp"
+#include <fstream>
+#include <sstream>
 
 class Particle: public Base{
     public:
@@ -13,8 +15,6 @@ class Particle: public Base{
         char name[3];
 
         static int numOfParticles;
-    //    Particle();
-    //    ~Particle();
         Particle();
 
         void pbc();
@@ -24,6 +24,12 @@ class Particle: public Base{
         double distance(Particle *p);
         double distance_xy(Particle *p);
         int hardSphere(Particle **particles);
+
+        static int get_overlaps(Particle ** particles);
+        static void place_particles(Particle **particles);
+        static Particle** create_particles(int num);
+        static void write_coordinates(char name[], Particle **particles);
+        static Particle** read_coordinates(char *name);
 };
 
 #endif

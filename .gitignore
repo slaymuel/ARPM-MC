@@ -3,7 +3,8 @@
 *.png
 *.dms
 # Created by https://www.gitignore.io/api/c,osx,c++,fortran
-
+*.json
+.vscode*
 ### C ###
 # Prerequisites
 *.d

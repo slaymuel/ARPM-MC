@@ -3,9 +3,6 @@
 
 #include "base.cpp"
 #include "particle.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <iostream>
 
 class Analysis: public Base{
     protected:
