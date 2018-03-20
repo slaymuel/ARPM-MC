@@ -3,9 +3,9 @@
 
 #include "base.cpp"
 #include "particle.h"
-#include "math.h"
 #include "ran2_lib.cpp"
-#include "constants.h"
+#include "ewald3D.h"
+#include "direct.h"
 
 class MC: public Base{
     public:
@@ -14,6 +14,8 @@ class MC: public Base{
         static double getParticleEnergy(int pInd, Particle *p, Particle **particles);
         double getEnergy(Particle **particles);
         void disperse(Particle **particles);
+        static Ewald3D ewald;
+        static Direct direct;
 };
 
 #endif

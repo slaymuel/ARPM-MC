@@ -16,7 +16,7 @@ class Analysis: public Base{
         static int numOfHisto;
 
     public:
-        Analysis(double binWidth);
+        Analysis(double binWidth, double dLength);
         void sampleHisto(Particle **particles, int d);
         void saveHisto();
 };

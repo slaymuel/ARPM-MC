@@ -51,95 +51,6 @@ double MC::getParticleEnergy(int pInd, Particle *p, Particle **particles){
     }
     return energy;
 }
- /**
-   * @brief Approximation of erfc-function
-   * @param x Value for which erfc should be calculated 
-   * @details Reference for this approximation is found in Abramowitz and Stegun, 
-   *          Handbook of mathematical functions, eq. 7.1.26
-   *
-   * @f[
-   *     \erf(x) = 1 - (a_1t + a_2t^2 + a_3t^3 + a_4t^4 + a_5t^5)e^{-x^2} + \epsilon(x)
-   * @f]
-   * @f[
-   *     t = \frac{1}{1 + px}
-   * @f]
-   * @f[
-   *     |\epsilon(x)| \le 1.5\times 10^{-7}
-   * @f]
-   * 
-   * @warning Needs testing for x < 0.
-   */
-  template<typename T>
-  T erfc_x( T x )
-  {
-    static_assert(std::is_floating_point<T>::value, "type must be floating point");
-    if(x < 0)
-    return ( 2.0 - erfc_x(-x) );
-    T t = 1.0 / (1.0 + 0.3275911 * x);
-    const T a1 = 0.254829592;
-    const T a2 = -0.284496736;
-    const T a3 = 1.421413741;
-    const T a4 = -1.453152027;
-    const T a5 = 1.061405429;
-    return t * (a1 + t * (a2 + t * (a3 + t * (a4 + t * a5)))) * exp(-x * x);
-}
-
-/**
- * @brief Approximate 1 - erfc_x
- * @param x Value for which erf should be calculated 
- */
-template<typename T>
-T erf_x( T x ) { 
-    return (1 - erfc_x(x)); 
-}
-
-template<typename T>
-T ewald_F(T x){
-
-}
-
-double ewald(Particle *p, Particle **particles){
-    int i = 0;
-    double energy = 0;
-    double alpha = 5/Base::xL;
-    double r = 0;
-    double qq = 0;
-    int kx = 0;
-    double kx2;
-    int ky = 0;
-    double ky2;
-    int kz = 0;
-    double kz2;
-    double k2 = 0;
-    int kNumMax = 400;
-    int kNum= 0;
-    double kMax = 8*PI/Base::xL;
-    std::vector< std::vector<double> > kVec;
-
-    for(kx = 0; kx < kMax; kx++){
-        for(int ky = -kMax + 1; ky < kNumMax; ky++){
-            kx2 = kx*kx;
-            ky2 = ky*ky;
-            k2 = kx2 + ky2;
-            if(k2 != 0 && k2 < kMax){
-                std::vector<double> vec;
-                vec.push_back(2*PI*kx/Base::xL);
-                vec.push_back(2*PI*ky/Base::yL);
-                vec.push_back(0);
-                kVec.push_back(vec);
-                //kVec[kNum] = exp(-k2/());
-                kNum++;
-            }
-        }
-    }
-    for(i = 0; i < Particle::numOfParticles; i++){
-        qq = p->q * particles[i]->q;
-        r = p->distance_xy(particles[i]);
-        energy += erfc_x(alpha*r)/r;
-    }
-
-    return energy;
-}
 
 int MC::mcmove(Particle **particles, double dr){
     double eOld = 0;
@@ -149,9 +60,15 @@ int MC::mcmove(Particle **particles, double dr){
     double random = ran2::get_random();
     double dE = 0;
     int accepted= 0;
+    double ewaldEnergy = 0;
+    double directEnergy = 0;
 
     int p =  random * Particle::numOfParticles;
-
+    ewaldEnergy = MC::ewald.get_energy(particles);
+    printf("Ewald: %lf\n", ewaldEnergy);
+    directEnergy = MC::direct.get_energy(particles[p], particles);
+    printf("Direct: %lf\n", directEnergy);
+    exit(1);
     //Calculate old energy
     eOld = MC::getParticleEnergy(p, particles[p], particles);
 
@@ -224,8 +141,8 @@ void MC::equilibrate(Particle **particles){
             overlaps = Particle::get_overlaps(particles);
             //stepSize = log(abs(prevOverlaps - overlaps) + 3.0);
             //prevOverlaps = overlaps;
-            printf("Overlaps: %d\r", overlaps);
-            fflush(stdout);
+            printf("Overlaps: %d\n", overlaps);
+            //fflush(stdout);
         }
         i++;
     }

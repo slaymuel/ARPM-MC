@@ -6,19 +6,23 @@
 #include "analysis.h"
 #include "ran2_lib.cpp"
 #include "mc.h"
-
+#include "ewald3D.h"
 //Initializers
+
+Ewald3D MC::ewald;
+Direct MC::direct;
+
 int Particle::numOfParticles = 0;
 int Analysis::numOfHisto = 0;
-double Base::xL= 172;
-double Base::yL= 172;
-double Base::zL= 45;
+double Base::xL= 10;
+double Base::yL= 10;
+double Base::zL= 10;
 double Base::T = 2000;
 double Base::eCummulative = 0;
 int Base::acceptedMoves = 0;
 int Base::totalMoves = 0;
 
-int numOfParticles = 6728;
+int numOfParticles = 2;//6728;
 int totalMoves = 0;
 int acceptedMoves = 0;
 int numberOfSamples = 0;
@@ -48,9 +52,9 @@ int main(int argc, char *argv[])
     int *histo;
     histo = (int*)malloc(bins * sizeof(int));
 
-    Analysis *xHist = new Analysis(0.1);
-    Analysis *yHist = new Analysis(0.1);
-    Analysis *zHist = new Analysis(0.1);
+    Analysis *xHist = new Analysis(0.1, Base::xL);
+    Analysis *yHist = new Analysis(0.1, Base::yL);
+    Analysis *zHist = new Analysis(0.1, Base::zL);
 
     //Particle variables
     double diameter = 5;
@@ -66,29 +70,53 @@ int main(int argc, char *argv[])
     printf("Density is: %lf\n", density);
 
     Particle **particles;
-    //char filename[] = "output_new.xyz";
+    particles = (Particle**) malloc(numOfParticles * sizeof(Particle*));
+    particles[0] = new Particle();
+    particles[1] = new Particle();
+    particles[0]->pos = (double*)malloc(3*sizeof(double));
+    particles[1]->pos = (double*)malloc(3*sizeof(double));
+
+    particles[0]->pos[0] = 0;
+    particles[0]->pos[1] = 0;
+    particles[0]->pos[2] = 0;
+    particles[1]->pos[0] = 1;
+    particles[1]->pos[1] = 0;
+    particles[1]->pos[2] = 0;
+
+    particles[0]->d = 5;
+    particles[0]->index = 0;
+    particles[0]->q = -1.0;
+    strcpy(particles[0]->name, "Cl\0");
+    particles[1]->d = 5;
+    particles[1]->index = 1;
+    particles[1]->q = 1.0;
+    strcpy(particles[1]->name, "Na\0");
+    //char filename[] = "output_sim_newest.xyz";
     //particles = Particle::read_coordinates(filename);
-    particles = Particle::create_particles(numOfParticles);
+    //particles = Particle::create_particles(numOfParticles);
     //printf("Outside: %lf\n", particles[0]->d);
+
     MC mc;
-    mc.equilibrate(particles);
+    MC::ewald.initialize();
+    //mc.equilibrate(particles);
+    printf("Initialized k-vectors.\n");
     overlaps = Particle::get_overlaps(particles);
     printf("Overlaps: %d\n", overlaps);
-    char name[] = "output_equilibrate_newest.xyz";
-    Particle::write_coordinates(name , particles);
+    // char name[] = "output_equilibrate_newest.xyz";
+    // Particle::write_coordinates(name , particles);
 
 
     //Update cumulative energy
     Base::eCummulative = mc.getEnergy(particles);
     // ///////////////////////////////         Main MC-loop          ////////////////////////////////////////
     printf("\nRunning main MC-loop at temperature: %lf\n", T);
-    for(i = 0; i < 10000000; i++){
-        if(i % 1000 == 0 && i > 100000){
+    for(i = 0; i < 1000000; i++){
+        if(i % 1000 == 0 && i > 100){
             //sampleRDF(particles, zHisto, binWidth);
             //printf("Sampling...\n");
-            xHist->sampleHisto(particles, 0);
-            yHist->sampleHisto(particles, 1);
-            zHist->sampleHisto(particles, 2);
+            // xHist->sampleHisto(particles, 0);
+            // yHist->sampleHisto(particles, 1);
+            // zHist->sampleHisto(particles, 2);
         }
         if(i % 100 == 0){
             if(mc.mcmove(particles, Base::zL)){
@@ -125,23 +153,23 @@ int main(int argc, char *argv[])
     printf("Rejected moves: %d\n", Base::totalMoves - Base::acceptedMoves);
 
     //saveRDF(histo, bins, binWidth);
-    xHist->saveHisto();
-    yHist->saveHisto();
-    zHist->saveHisto();
+    // xHist->saveHisto();
+    // yHist->saveHisto();
+    // zHist->saveHisto();
 
     //Write coordinates to file
-    FILE *f = fopen("output_sim_newest.xyz", "w");
-    if(f == NULL){
-        printf("Can't open file!\n");
-        exit(1);
-    }
+    // FILE *f = fopen("output_sim_newest.xyz", "w");
+    // if(f == NULL){
+    //     printf("Can't open file!\n");
+    //     exit(1);
+    // }
 
-    fprintf(f, "%d\n", numOfParticles);
-    fprintf(f, "\n");
-    for(i = 0; i < Particle::numOfParticles; i++){
-        fprintf(f, "%s     %lf    %lf     %lf\n", particles[i]->name, particles[i]->pos[0], particles[i]->pos[1], particles[i]->pos[2]);
-    }
-    fclose(f);
+    // fprintf(f, "%d\n", numOfParticles);
+    // fprintf(f, "\n");
+    // for(i = 0; i < Particle::numOfParticles; i++){
+    //     fprintf(f, "%s     %lf    %lf     %lf\n", particles[i]->name, particles[i]->pos[0], particles[i]->pos[1], particles[i]->pos[2]);
+    // }
+    // fclose(f);
 
     //Clean up allocated memory
     printf("Cleaning up...\n");

@@ -116,6 +116,17 @@ double Particle::distance_xy(Particle *p){
     return (pow((xP1 - xP2), 2) + pow((yP1 - yP2), 2) + pow((zP1 - zP2), 2));
 }
 
+double Particle::distance_z(Particle *p){
+    //Calculate distance between particles
+    double distance = 0;
+    distance = this->pos[2] - p->pos[2];
+
+    if(distance < 0){
+        distance = -1 * distance;
+    }
+    return distance;
+}
+
 int Particle::hardSphere(Particle **particles){
     int i = 0;
     int j = 0;

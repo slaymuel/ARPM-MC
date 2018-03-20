@@ -23,6 +23,7 @@ class Particle: public Base{
         void randomMove_xy(double stepSize);
         double distance(Particle *p);
         double distance_xy(Particle *p);
+        double distance_z(Particle *p);
         int hardSphere(Particle **particles);
 
         static int get_overlaps(Particle ** particles);

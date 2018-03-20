@@ -12,6 +12,11 @@
         "exception": "cpp",
         "initializer_list": "cpp",
         "new": "cpp",
-        "stdexcept": "cpp"
+        "stdexcept": "cpp",
+        "algorithm": "cpp",
+        "string": "cpp",
+        "__split_buffer": "cpp",
+        "__bit_reference": "cpp",
+        "string_view": "cpp"
     }
 }

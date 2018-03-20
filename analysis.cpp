@@ -1,15 +1,16 @@
 #include "analysis.h"
 
-Analysis::Analysis(double binWidth){
+Analysis::Analysis(double binWidth, double dLength){
     numberOfSamples = 0;
     this->binWidth = binWidth;
-    bins = zL/binWidth;
-    histo = (int*)malloc(bins*sizeof(int));
-    pHisto = (int*)malloc(bins*sizeof(int));
-    nHisto = (int*)malloc(bins*sizeof(int));
+    this->bins = dLength/binWidth;//zL/binWidth;
+    histo = (int*)malloc(this->bins*sizeof(int));
+    pHisto = (int*)malloc(this->bins*sizeof(int));
+    nHisto = (int*)malloc(this->bins*sizeof(int));
     num = numOfHisto;
     numOfHisto++;
 }
+
 void Analysis::sampleHisto(Particle **particles, int d){
     int i = 0;
     double dist = 0;

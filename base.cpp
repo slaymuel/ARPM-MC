@@ -7,7 +7,9 @@
 #include <time.h>
 #include <math.h>
 #include <float.h>
-#include "Eigen/Dense"
+#include "constants.h"
+
+//#include "Eigen/Dense"
 
 class Base{
     public:
