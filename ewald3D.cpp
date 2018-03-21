@@ -1,7 +1,7 @@
 #include "ewald3D.h"
 
 Ewald3D::Ewald3D(){
-    alpha = 8/(Base::xL);
+    alpha = 5/(Base::xL);
     kNumMax = 10000;
     kNum = 0;
 }
@@ -48,11 +48,6 @@ T Ewald3D::erf_x( T x ) {
 }
 
 template<typename T>
-T Ewald3D::Ewald3D_F(T x){
-
-}
-
-template<typename T>
 double Ewald3D::norm(T x){
     double norm = 0;
 
@@ -77,7 +72,7 @@ void Ewald3D::initialize(){
     double kz2;
     double k2 = 0;
     resFac = (double*) malloc(kNumMax * sizeof(double));
-    int kMax = 11;//8/Base::xL;
+    int kMax = 5;//8/Base::xL;
     //get k-vectors
     double factor = 1;
     std::vector<double> vec(3);
@@ -89,10 +84,6 @@ void Ewald3D::initialize(){
                 if(kx > 0){
                     factor *= 2;
                 }
-                // kx2 = kx * kx;
-                // ky2 = ky * ky;
-                // kz2 = kz * kz;
-                // k2 = kx2 + ky2 + kz2;
                 vec[0] = (2.0*PI*kx/Base::xL);
                 vec[1] = (2.0*PI*ky/Base::yL);
                 vec[2] = (2.0*PI*kz/Base::zL);
@@ -100,7 +91,7 @@ void Ewald3D::initialize(){
 
                 if(k2 != 0){
                     kVec.push_back(vec);
-                    resFac[kNum] = factor * exp(-k2/(4.0 * alpha * alpha))/k2;;
+                    resFac[kNum] = factor * exp(-k2/(4.0 * alpha * alpha))/k2;
                     kNum++;
                 }
             }
@@ -121,44 +112,7 @@ double Ewald3D::get_self_correction(Particle *p){
     return self;
 }
 
-double Ewald3D::get_reciprocal(Particle *p1, Particle *p2){
-    int i = 0;
-    double energy = 0;
-    std::complex<double> rk;
-    std::vector<double> dispVec(3);
-    dispVec[0] = p1->pos[0] - p2->pos[0];
-    dispVec[1] = p1->pos[1] - p2->pos[1];
-    dispVec[2] = p1->pos[2] - p2->pos[2];
-
-    for(i = 0; i < kNum; i++){
-        rk.imag(sin(dot(dispVec, kVec[i])));
-        rk.real(cos(dot(dispVec, kVec[i])));
-        energy += std::norm(rk) * resFac[i];
-        //energy += cos(kNorm[i] * p1->distance_xy(p2)) * f(kNorm[i], p1->distance_z(p2));
-        //printf("dot: %lf norm: %lf resfac: %lf\n", sin(dot(dispVec, kVec[i])) + cos(dot(dispVec, kVec[i])), std::norm(rk), resFac[i]);
-        //printf("k-vector x: %lf y: %lf z: %lf\n", kVec[i][0], kVec[i][1], kVec[i][2]);
-    }
-    return p1->q * p2->q * energy;
-}
-
-double Ewald3D::get_reciprocal2(Particle *p){
-    int i = 0;
-    double energy = 0;
-    std::complex<double> rk;
-
-    for(i = 0; i < kNum; i++){
-        rk.imag(sin(dot(p->pos, kVec[i])));
-        rk.real(cos(dot(p->pos, kVec[i])));
-        rk = rk * rk;
-        energy += std::norm(rk) * resFac[i];
-        //energy += cos(kNorm[i] * p1->distance_xy(p2)) * f(kNorm[i], p1->distance_z(p2));
-        //printf("dot: %lf norm: %lf resfac: %lf\n", sin(dot(dispVec, kVec[i])) + cos(dot(dispVec, kVec[i])), std::norm(rk), resFac[i]);
-        //printf("k-vector x: %lf y: %lf z: %lf\n", kVec[i][0], kVec[i][1], kVec[i][2]);
-    }
-    return energy;
-}
-
-double Ewald3D::p(Particle **p){
+double Ewald3D::get_reciprocal(Particle **p){
     double energy = 0;
     std::complex<double> rho;
     std::complex<double> rk;
@@ -193,23 +147,25 @@ double Ewald3D::get_energy(Particle **particles){
     double real;
     double self;
     double reciprocal;
-
-    reciprocal = p(particles);
+    int j = 0;
+    reciprocal = get_reciprocal(particles);
 
     for(int i = 0; i < Particle::numOfParticles; i++){
-        for(int j = 0; j < Particle::numOfParticles; j++){
+        j = i + 1;
+        while(j < Particle::numOfParticles){
             if(j != i){
                 real += get_real(particles[i], particles[j]);
                 //reciprocal += get_reciprocal(particles[i], particles[j]);
             }
+            j++;
         }
         //reciprocal += get_reciprocal2(particles[i]);
         self += get_self_correction(particles[i]);
     }
-    real = 1.0/2.0 * real;
+    real = real;
     reciprocal = 1.0/(Base::xL * Base::yL * Base::zL) * reciprocal;
     self = alpha/sqrt(PI) * self;
 
-    printf("Real: %lf, self: %lf, reciprocal: %lf\n", real, self, reciprocal);
-    return real + reciprocal - self;
+    //printf("Real: %lf, self: %lf, reciprocal: %lf\n", real, self, reciprocal);
+    return (real + reciprocal - self);
 }

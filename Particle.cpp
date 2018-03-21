@@ -217,11 +217,12 @@ Particle** Particle::create_particles(int num){
 
     for(i = 0; i < num; i++){
         particles[i] = new Particle();
+        particles[i]->d = 5;
         particles[i]->pos = (double*)malloc(3*sizeof(double));
         particles[i]->pos[0] = (double) rand()/RAND_MAX * Base::xL;
         particles[i]->pos[1] = (double) rand()/RAND_MAX * Base::yL;
         particles[i]->pos[2] = (double) rand()/RAND_MAX * (Base::zL - 5) + 5.0/2.0;
-        particles[i]->d = 5;
+        
         particles[i]->index = i;
 
         if(particles[i]->pos[2] < particles[i]->d/2 || particles[i]->pos[2] > Base::zL - particles[i]->d/2){
@@ -261,7 +262,7 @@ int Particle::get_overlaps(Particle **particles){
     return overlaps;
 }
 
-Particle** Particle::read_coordinates(char *name){
+Particle** Particle::read_coordinates(std::string name){
     int i = 0;
     int j = 0;
     double x, y, z;

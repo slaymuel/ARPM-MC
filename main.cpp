@@ -6,111 +6,127 @@
 #include "analysis.h"
 #include "ran2_lib.cpp"
 #include "mc.h"
-#include "ewald3D.h"
-//Initializers
+#include "boost/program_options.hpp"
+#include <iterator>
 
-Ewald3D MC::ewald;
+//Initializers
+Ewald3D MC::ewald3D;
+Ewald2D MC::ewald2D;
 Direct MC::direct;
 
 int Particle::numOfParticles = 0;
 int Analysis::numOfHisto = 0;
-double Base::xL= 10;
-double Base::yL= 10;
+double Base::xL= 30;
+double Base::yL= 30;
 double Base::zL= 10;
-double Base::T = 2000;
+double Base::T = 500;
+double Base::lB;
 double Base::eCummulative = 0;
 int Base::acceptedMoves = 0;
 int Base::totalMoves = 0;
 
-int numOfParticles = 2;//6728;
-int totalMoves = 0;
-int acceptedMoves = 0;
-int numberOfSamples = 0;
-double kb = KB;
-double T = Base::T;
-double beta = 1;
+namespace po = boost::program_options;
+
 
 int main(int argc, char *argv[])
 {
-    if( argc == 2 ) {
-        printf("input: %s\n", argv[1]);
-      if(!strcmp(argv[1], "rdf")){
-          //readCoo();
-          exit(1);
-      }
-    }
+    printf("\n");
 
-    int i = 0;
-    int j = 0;
-    int k = 0;
-    int l = 0;
-    int prevAccepted = 0;
-    int Digs = 14;
-    int bins = 100;
-    double binWidth = (Base::xL/2)/bins;
-    double dist = 0;
-    int *histo;
-    histo = (int*)malloc(bins * sizeof(int));
-
-    Analysis *xHist = new Analysis(0.1, Base::xL);
-    Analysis *yHist = new Analysis(0.1, Base::yL);
-    Analysis *zHist = new Analysis(0.1, Base::zL);
-
+    // if( argc == 2 ) {
+    //     printf("input: %s\n", argv[1]);
+    //   if(!strcmp(argv[1], "rdf")){
+    //       //readCoo();
+    //       exit(1);
+    //   }
+    // }
+    
     //Particle variables
+    Particle **particles;
+    int numOfParticles;//6728;
     double diameter = 5;
     double diameter2 = pow(diameter, 2);
     int overlaps = 0;
     double density = (double)numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(diameter, 3);
     int overlap = 1;
     double energy = 0;
+    
+    //Simulation variables
+    int totalMoves = 0;
+    int acceptedMoves = 0;
+    int numberOfSamples = 0;
+    double kb = KB;
+    double T = Base::T;
+    double beta = 1;
+    int prevAccepted = 0;
+    Base::set_lB();
 
+    int Digs = 14;
+
+    //Analysis
+    int bins = 100;
+    double binWidth = (Base::xL/2)/bins;
+    double dist = 0;
+    int *histo;
+    histo = (int*)malloc(bins * sizeof(int));
+    Analysis *xHist = new Analysis(0.1, Base::xL);
+    Analysis *yHist = new Analysis(0.1, Base::yL);
+    Analysis *zHist = new Analysis(0.1, Base::zL);
+
+    //Simulation parameters
+    MC mc;
+    MC::ewald3D.initialize();
+    //MC::ewald2D.initialize();
+
+    //Command line parser
+    po::options_description desc("Command line options:");
+    desc.add_options()
+        ("help", "show this message")
+        ("compression", po::value<int>(), "set compression level")
+        ("np", po::value<int>(), "Number of particles")
+        ("f", po::value<std::string>(), "Coordinates in xyz format");
+    
+    po::variables_map vm;        
+    po::store(po::parse_command_line(argc, argv, desc), vm);
+    po::notify(vm);    
+
+    if (vm.count("help")) {
+        std::cout << desc << "\n";
+        return 0;
+    }
+    if(vm.count("f")){
+        std::cout << "Opening " << vm["f"].as<std::string>() << std::endl;
+        std::string filename = vm["f"].as<std::string>().c_str();
+        particles = Particle::read_coordinates(filename);
+        return 0;
+    }
+    if(vm.count("np")){
+        numOfParticles = vm["np"].as<int>();
+        printf("%d particles will be created\n", numOfParticles);
+        particles = Particle::create_particles(numOfParticles);
+        mc.equilibrate(particles);
+        return 0;
+    }
+    
     //Seed
     srand(time(NULL));
 
     printf("Density is: %lf\n", density);
 
-    Particle **particles;
-    particles = (Particle**) malloc(numOfParticles * sizeof(Particle*));
-    particles[0] = new Particle();
-    particles[1] = new Particle();
-    particles[0]->pos = (double*)malloc(3*sizeof(double));
-    particles[1]->pos = (double*)malloc(3*sizeof(double));
-
-    particles[0]->pos[0] = 0;
-    particles[0]->pos[1] = 0;
-    particles[0]->pos[2] = 0;
-    particles[1]->pos[0] = 1;
-    particles[1]->pos[1] = 0;
-    particles[1]->pos[2] = 0;
-
-    particles[0]->d = 5;
-    particles[0]->index = 0;
-    particles[0]->q = -1.0;
-    strcpy(particles[0]->name, "Cl\0");
-    particles[1]->d = 5;
-    particles[1]->index = 1;
-    particles[1]->q = 1.0;
-    strcpy(particles[1]->name, "Na\0");
-    //char filename[] = "output_sim_newest.xyz";
-    //particles = Particle::read_coordinates(filename);
-    //particles = Particle::create_particles(numOfParticles);
-    //printf("Outside: %lf\n", particles[0]->d);
-
-    MC mc;
-    MC::ewald.initialize();
-    //mc.equilibrate(particles);
-    printf("Initialized k-vectors.\n");
     overlaps = Particle::get_overlaps(particles);
-    printf("Overlaps: %d\n", overlaps);
+    if(overlaps > 0){
+        printf("System contains overlaps!\n");
+        exit(0);
+    }
+
     // char name[] = "output_equilibrate_newest.xyz";
     // Particle::write_coordinates(name , particles);
 
-
     //Update cumulative energy
-    Base::eCummulative = mc.getEnergy(particles);
+    Base::eCummulative = mc.get_energy(particles);
+
     // ///////////////////////////////         Main MC-loop          ////////////////////////////////////////
     printf("\nRunning main MC-loop at temperature: %lf\n", T);
-    for(i = 0; i < 1000000; i++){
+    for(int i = 0; i < 5000; i++){
         if(i % 1000 == 0 && i > 100){
             //sampleRDF(particles, zHisto, binWidth);
             //printf("Sampling...\n");
@@ -131,18 +147,18 @@ int main(int argc, char *argv[])
 
         Base::totalMoves++;
         
-        if(i % 100000 == 0 && i != 0){
-            energy = mc.getEnergy(particles);
+        if(i % 100 == 0 && i != 0){
+            energy = mc.get_energy(particles);
             printf("Iteration: %d\n", i);
             printf("Energy: %lf\n", energy);
-            printf("Error: ");
-            printf("%.*e\n", Digs, fabs(energy - Base::eCummulative)/fabs(Base::eCummulative));
+            //printf("Error: ");
+            //printf("%.*e\n", Digs, fabs(energy - Base::eCummulative)/fabs(Base::eCummulative));
             printf("Acceptance ratio: %lf\n", (double)Base::acceptedMoves/Base::totalMoves);
             printf("Acceptance ratio for the last 100000 steps: %lf\n\n", (double)prevAccepted/100000.0);
-            if(fabs(energy - Base::eCummulative)/fabs(energy) > pow(10, -12)){
-                printf("Error is too large!\n");
-                exit(1);
-            }
+            //if(fabs(energy - Base::eCummulative)/fabs(energy) > pow(10, -12)){
+            //    printf("Error is too large!\n");
+            //    exit(1);
+            //}
             prevAccepted = 0;
         }
         
@@ -158,22 +174,22 @@ int main(int argc, char *argv[])
     // zHist->saveHisto();
 
     //Write coordinates to file
-    // FILE *f = fopen("output_sim_newest.xyz", "w");
-    // if(f == NULL){
-    //     printf("Can't open file!\n");
-    //     exit(1);
-    // }
+    FILE *f = fopen("output_ewald.xyz", "w");
+    if(f == NULL){
+        printf("Can't open file!\n");
+        exit(1);
+    }
 
-    // fprintf(f, "%d\n", numOfParticles);
-    // fprintf(f, "\n");
-    // for(i = 0; i < Particle::numOfParticles; i++){
-    //     fprintf(f, "%s     %lf    %lf     %lf\n", particles[i]->name, particles[i]->pos[0], particles[i]->pos[1], particles[i]->pos[2]);
-    // }
-    // fclose(f);
+    fprintf(f, "%d\n", numOfParticles);
+    fprintf(f, "\n");
+    for(int i = 0; i < Particle::numOfParticles; i++){
+        fprintf(f, "%s     %lf    %lf     %lf\n", particles[i]->name, particles[i]->pos[0], particles[i]->pos[1], particles[i]->pos[2]);
+    }
+    fclose(f);
 
     //Clean up allocated memory
     printf("Cleaning up...\n");
-    for(i = 0; i < Particle::numOfParticles; i++){
+    for(int i = 0; i < Particle::numOfParticles; i++){
         free(particles[i]->pos);
         free(particles[i]);
     }

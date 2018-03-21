@@ -1,7 +1,7 @@
 #include "mc.h"
 #include <vector>
 
-double MC::getEnergy(Particle **particles){
+double MC::get_energy(Particle **particles){
     int i = 0;
     int j = 0;
     double dist = 0;
@@ -26,7 +26,7 @@ double MC::getEnergy(Particle **particles){
     return energy;
 }
 
-double MC::getParticleEnergy(int pInd, Particle *p, Particle **particles){
+double MC::get_particle_energy(int pInd, Particle *p, Particle **particles){
     int i = 0;
     double energy = 0;
     double dist = 0;
@@ -60,17 +60,24 @@ int MC::mcmove(Particle **particles, double dr){
     double random = ran2::get_random();
     double dE = 0;
     int accepted= 0;
-    double ewaldEnergy = 0;
+    double ewald3DEnergy = 0;
+    double ewald2DEnergy = 0;
     double directEnergy = 0;
 
     int p =  random * Particle::numOfParticles;
-    ewaldEnergy = MC::ewald.get_energy(particles);
-    printf("Ewald: %lf\n", ewaldEnergy);
-    directEnergy = MC::direct.get_energy(particles[p], particles);
-    printf("Direct: %lf\n", directEnergy);
-    exit(1);
+    //ewald3DEnergy = MC::ewald3D.get_energy(particles);
+    //printf("Ewald3D: %lf\n", ewald3DEnergy);
+    
+    //ewald2DEnergy = MC::ewald2D.get_energy(particles);
+    //printf("Ewald2D: %lf\n", ewald2DEnergy);
+
+    //directEnergy = MC::direct.get_energy(particles);
+    //printf("Direct: %lf\n", directEnergy);
+    //exit(1);
     //Calculate old energy
-    eOld = MC::getParticleEnergy(p, particles[p], particles);
+    //eOld = MC::get_particle_energy(p, particles[p], particles);
+    eOld = MC::ewald3D.get_energy(particles);
+    //printf("PBC: %lf\n", eOld);
 
     //Generate new trial coordinates
     double oldPos[3] = {particles[p]->pos[0], particles[p]->pos[1], particles[p]->pos[2]};
@@ -79,13 +86,13 @@ int MC::mcmove(Particle **particles, double dr){
     particles[p]->pos[2] = particles[p]->pos[2] + (ran2::get_random()*2 - 1) * dr;
 
     //Appy PBC
-    particles[p]->pbc_xy();
+    particles[p]->pbc();
 
     //If there is no overlap in new position and it's inside the box
-    if(particles[p]->hardSphere(particles) && particles[p]->pos[2] > particles[p]->d/2 && particles[p]->pos[2] < Base::zL - particles[p]->d/2 ){
+    if(particles[p]->hardSphere(particles)){// && particles[p]->pos[2] > particles[p]->d/2 && particles[p]->pos[2] < Base::zL - particles[p]->d/2 ){
         //Get new energy
-        eNew = MC::getParticleEnergy(p, particles[p], particles);
-
+        //eNew = MC::get_particle_energy(p, particles[p], particles);
+        eNew = MC::ewald3D.get_energy(particles);
         //Accept move?
         dE = eNew - eOld;
         acceptProp = exp(-1*dE);

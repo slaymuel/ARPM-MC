@@ -20,7 +20,11 @@ class Base{
         static int acceptedMoves;
         static int totalMoves;
         static double T;
-        double lB;
+        static double lB;
+
+        static void set_lB(){
+            lB = EC*EC/(4 * PI * VP * 2 * 1e-10 * KB * T);
+        }
 
 };
 

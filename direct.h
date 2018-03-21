@@ -7,7 +7,7 @@
 class Direct{
     public:
         Direct();
-        double get_energy(Particle *p, Particle **particles);
+        double get_energy(Particle **particles);
         template<typename T>
         double norm(T vec);
 };

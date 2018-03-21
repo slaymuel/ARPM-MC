@@ -30,7 +30,7 @@ class Particle: public Base{
         static void place_particles(Particle **particles);
         static Particle** create_particles(int num);
         static void write_coordinates(char name[], Particle **particles);
-        static Particle** read_coordinates(char *name);
+        static Particle** read_coordinates(std::string name);
 };
 
 #endif

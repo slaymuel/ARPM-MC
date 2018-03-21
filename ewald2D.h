@@ -1,11 +1,15 @@
+#ifndef Ewald2D_H
+#define Ewald2D_H
+
 #include "base.cpp"
-#include "Particle.h"
+#include "particle.h"
 #include <vector>
 
-class Ewald{
+class Ewald2D{
     public:
-        Ewald();
-        double get_energy(Particle *p, Particle **particles);
+        Ewald2D();
+        double get_energy(Particle **particles);
+        void initialize();
 
     private:
         template<typename T>
@@ -15,12 +19,7 @@ class Ewald{
         T erf_x( T x );
 
         template<typename T>
-        T ewald_F(T x);
-
-        template<typename T>
         double norm(T x);
-
-        void initialize();
         double get_self_correction(Particle *p);
         double f(double norm, double zDist);
         double g(Particle *p1, Particle *p2);
@@ -28,6 +27,8 @@ class Ewald{
         double get_real(Particle *p1, Particle *p2);
         std::vector< std::vector<double> > kVec;
         double *kNorm;
-        static int kNum;
+        int kNum;
         double alpha;
 };
+
+#endif
