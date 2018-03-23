@@ -121,10 +121,7 @@ double Particle::distance_z(Particle *p){
     double distance = 0;
     distance = this->pos[2] - p->pos[2];
 
-    if(distance < 0){
-        distance = -1 * distance;
-    }
-    return distance;
+    return distance * distance;
 }
 
 int Particle::hardSphere(Particle **particles){
@@ -221,7 +218,7 @@ Particle** Particle::create_particles(int num){
         particles[i]->pos = (double*)malloc(3*sizeof(double));
         particles[i]->pos[0] = (double) rand()/RAND_MAX * Base::xL;
         particles[i]->pos[1] = (double) rand()/RAND_MAX * Base::yL;
-        particles[i]->pos[2] = (double) rand()/RAND_MAX * (Base::zL - 5) + 5.0/2.0;
+        particles[i]->pos[2] = (double) rand()/RAND_MAX * (Base::zL - 5 - 2 * Base::wall) + 5.0/2.0 + Base::wall;
         
         particles[i]->index = i;
 
@@ -315,10 +312,11 @@ void Particle::write_coordinates(char name[], Particle **particles){
         printf("Can't open file!\n");
         exit(1);
     }
+    fprintf(f, "File created by .....\n");
     fprintf(f, "%d\n", Particle::numOfParticles);
-    fprintf(f, "\n");
     for(i = 0; i < Particle::numOfParticles; i++){
-        fprintf(f, "%s     %lf    %lf     %lf\n", particles[i]->name, particles[i]->pos[0], particles[i]->pos[1], particles[i]->pos[2]);
+        fprintf(f, "%5d%-5s%5s%5d%8.3f%8.3f%8.3f\n", 1, "liq", particles[i]->name, i, particles[i]->pos[0], particles[i]->pos[1], particles[i]->pos[2]);
     }
+    fprintf(f, "%lf    %lf     %lf\n", Base::xL, Base::yL, Base::zL);
     fclose(f);
 }

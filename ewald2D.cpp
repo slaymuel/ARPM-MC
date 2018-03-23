@@ -26,14 +26,14 @@ T Ewald2D::erf_x( T x ) {
 
 template<typename T, typename G>
 double dot(T vec1, G vec2){
-    return vec1[0]*vec2[0] + vec1[1]*vec2[1] + vec1[2]*vec2[2];
+    return vec1[0] * vec2[0] + vec1[1] * vec2[1];
 }
 
 template<typename T>
 double Ewald2D::norm(T x){
     double norm = 0;
 
-    norm = x[0]*x[0] + x[1]*x[1] + x[2]*x[2];
+    norm = x[0]*x[0] + x[1]*x[1];
     return sqrt(norm);
 }
 
@@ -61,7 +61,6 @@ void Ewald2D::initialize(){
             }
             vec[0] = (2.0*PI*kx/Base::xL);
             vec[1] = (2.0*PI*ky/Base::yL);
-            vec[2] = 0;
             k2 = dot(vec, vec);
             
             if(k2 != 0){
@@ -90,34 +89,36 @@ double Ewald2D::f(double norm, double zDist){
     f = exp(norm * zDist) * erfc_x(alpha * zDist + norm/(2 * alpha)) +
         exp(-norm * zDist) * erfc(-alpha * zDist + norm/(2 * alpha));
 
-    return f/(2 * norm);
+    return f;
 }
 
 double Ewald2D::g(Particle *p1, Particle *p2){
-    double zDist = p1->distance_z(p2);
+    double zDist = sqrt(p1->distance_z(p2));
     double g = 0;
-    g = zDist * erf_x(alpha * zDist) + exp(-(zDist*alpha*zDist*alpha))/(alpha * sqrt(PI));
+    g = zDist * erf_x(alpha * zDist) + exp(-(zDist*zDist*alpha*alpha))/(alpha * sqrt(PI));
 
     return g;
 }
 
 double Ewald2D::get_reciprocal(Particle *p1, Particle *p2){
     double energy = 0;
-    std::vector<double> dispVec(3);
-    dispVec[0] = p1->pos[0] - p2->pos[0];
-    dispVec[1] = p1->pos[1] - p2->pos[1];
-    dispVec[2] = p1->pos[2] - p2->pos[2];
-
+    std::vector<double> dispVec(2);
+    std::complex<double> rk;
+    dispVec[0] = std::norm(p1->pos[0] - p2->pos[0]);
+    dispVec[1] = std::norm(p1->pos[1] - p2->pos[1]);
+    
     for(int i = 0; i < kNum; i++){
-        energy += cos(dot(kVec[i], dispVec)) * f(kNorm[i], p1->distance_z(p2));
+        rk.imag(std::sin(dot(dispVec, kVec[i])));
+        rk.real(std::cos(dot(dispVec, kVec[i])));
+        rk = rk/kNorm[i];
+        energy += rk.real() * f(kNorm[i], sqrt(p1->distance_z(p2)));
     }
     return energy * PI/(Base::xL * Base::xL);
 }
 
 double Ewald2D::get_real(Particle *p1, Particle *p2){
     double energy = 0;
-    double distance = p1->distance_xy(p2);
-
+    double distance = sqrt(p1->distance(p2));
     energy = p1->q * p2->q * erfc_x(alpha * distance)/distance;
     return energy;
 }
@@ -133,12 +134,14 @@ double Ewald2D::get_energy(Particle **particles){
             if(i != j){
                 real += get_real(particles[i], particles[j]);
             }
-            reciprocal += get_reciprocal(particles[i], particles[j]) - g(particles[i], particles[j]);
+            reciprocal += PI/(Base::xL * Base::xL) * get_reciprocal(particles[i], particles[j]) - 2*sqrt(PI)/(Base::xL * Base::xL) * g(particles[i], particles[j]);
         }
         self += get_self_correction(particles[i]);
     }
     self = alpha/sqrt(PI) * self;
+    real = 1.0/2.0 * real;
+    reciprocal = 1.0/2.0 * reciprocal;
     energy = real + reciprocal - self;
     printf("Real: %lf, self: %lf, reciprocal: %lf\n", real, self, reciprocal);
-    return 1.0/2.0 * energy;
+    return energy;
 }

@@ -65,12 +65,13 @@ int MC::mcmove(Particle **particles, double dr){
     double directEnergy = 0;
 
     int p =  random * Particle::numOfParticles;
-    //ewald3DEnergy = MC::ewald3D.get_energy(particles);
-    //printf("Ewald3D: %lf\n", ewald3DEnergy);
+    ewald3DEnergy = MC::ewald3D.get_energy(particles);
+    printf("Ewald3D: %lf\n", ewald3DEnergy);
     
-    //ewald2DEnergy = MC::ewald2D.get_energy(particles);
-    //printf("Ewald2D: %lf\n", ewald2DEnergy);
-
+    ewald2DEnergy = MC::ewald2D.get_energy(particles);
+    printf("Ewald2D: %lf\n", ewald2DEnergy);
+    exit(1);
+    
     //directEnergy = MC::direct.get_energy(particles);
     //printf("Direct: %lf\n", directEnergy);
     //exit(1);
@@ -89,7 +90,8 @@ int MC::mcmove(Particle **particles, double dr){
     particles[p]->pbc();
 
     //If there is no overlap in new position and it's inside the box
-    if(particles[p]->hardSphere(particles)){// && particles[p]->pos[2] > particles[p]->d/2 && particles[p]->pos[2] < Base::zL - particles[p]->d/2 ){
+    if(particles[p]->hardSphere(particles) && particles[p]->pos[2] > particles[p]->d/2 + Base::wall && 
+                                              particles[p]->pos[2] < Base::zL - Base::wall - particles[p]->d/2 ){
         //Get new energy
         //eNew = MC::get_particle_energy(p, particles[p], particles);
         eNew = MC::ewald3D.get_energy(particles);
@@ -139,7 +141,7 @@ void MC::equilibrate(Particle **particles){
         oldPos[1] = particles[p]->pos[1];
         oldPos[2] = particles[p]->pos[2];
         particles[p]->randomMove(5);
-        if(!particles[p]->hardSphere(particles) || particles[p]->pos[2] < particles[p]->d/2 || particles[p]->pos[2] > Base::zL - particles[p]->d/2){
+        if(!particles[p]->hardSphere(particles) || particles[p]->pos[2] < particles[p]->d/2 + Base::wall || particles[p]->pos[2] > Base::zL - Base::wall - particles[p]->d/2){
             particles[p]->pos[0] = oldPos[0];
             particles[p]->pos[1] = oldPos[1];
             particles[p]->pos[2] = oldPos[2];

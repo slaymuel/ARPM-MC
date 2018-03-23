@@ -16,12 +16,13 @@ Direct MC::direct;
 
 int Particle::numOfParticles = 0;
 int Analysis::numOfHisto = 0;
-double Base::xL= 30;
-double Base::yL= 30;
-double Base::zL= 10;
+double Base::xL= 10;
+double Base::yL= 10;
+double Base::zL= 50;
 double Base::T = 500;
 double Base::lB;
 double Base::eCummulative = 0;
+double Base::wall = 0;
 int Base::acceptedMoves = 0;
 int Base::totalMoves = 0;
 
@@ -46,7 +47,7 @@ int main(int argc, char *argv[])
     double diameter = 5;
     double diameter2 = pow(diameter, 2);
     int overlaps = 0;
-    double density = (double)numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(diameter, 3);
+    double density = 0;
     int overlap = 1;
     double energy = 0;
     
@@ -75,7 +76,7 @@ int main(int argc, char *argv[])
     //Simulation parameters
     MC mc;
     MC::ewald3D.initialize();
-    //MC::ewald2D.initialize();
+    MC::ewald2D.initialize();
 
     //Command line parser
     po::options_description desc("Command line options:");
@@ -83,7 +84,9 @@ int main(int argc, char *argv[])
         ("help", "show this message")
         ("compression", po::value<int>(), "set compression level")
         ("np", po::value<int>(), "Number of particles")
-        ("f", po::value<std::string>(), "Coordinates in xyz format");
+        ("f", po::value<std::string>(), "Coordinates in xyz format")
+        ("density", po::value<double>(), "Specify density of the system.")
+        ("wall", po::value<double>(), "Insert walls in the z-dimension.");
     
     po::variables_map vm;        
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -91,35 +94,53 @@ int main(int argc, char *argv[])
 
     if (vm.count("help")) {
         std::cout << desc << "\n";
-        return 0;
     }
     if(vm.count("f")){
         std::cout << "Opening " << vm["f"].as<std::string>() << std::endl;
         std::string filename = vm["f"].as<std::string>().c_str();
         particles = Particle::read_coordinates(filename);
-        return 0;
     }
     if(vm.count("np")){
         numOfParticles = vm["np"].as<int>();
         printf("%d particles will be created\n", numOfParticles);
         particles = Particle::create_particles(numOfParticles);
         mc.equilibrate(particles);
-        return 0;
+        density = (double)numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(diameter, 3);
     }
-    
+    if(vm.count("wall") && vm.count("density")){
+        density = vm["density"].as<double>();
+        Base::wall = vm["wall"].as<double>();
+        numOfParticles = density/pow(diameter, 3) * (Base::xL * Base::yL * (Base::zL - 2 * Base::wall));
+        density = (double)numOfParticles/(Base::xL * Base::yL * (Base::zL - 2 * Base::wall)) * pow(diameter, 3);
+        //numOfParticles = vm["density"].as<double>()/pow(diameter, 3)*(Base::xL * Base::yL * Base::zL);
+        printf("%d particles will be created\n", numOfParticles);
+        printf("Density is: %lf\n", density);
+        particles = Particle::create_particles(numOfParticles);
+        mc.equilibrate(particles);
+    }
+    else{
+        if(vm.count("density")){
+            numOfParticles = vm["density"].as<double>()/pow(diameter, 3)*(Base::xL * Base::yL * Base::zL);
+            printf("%d particles will be created\n", numOfParticles);
+            particles = Particle::create_particles(numOfParticles);
+            mc.equilibrate(particles);
+            density = (double)numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(diameter, 3);
+        }
+    }
+
     //Seed
     srand(time(NULL));
 
-    printf("Density is: %lf\n", density);
 
-    overlaps = Particle::get_overlaps(particles);
-    if(overlaps > 0){
-        printf("System contains overlaps!\n");
-        exit(0);
-    }
 
-    // char name[] = "output_equilibrate_newest.xyz";
-    // Particle::write_coordinates(name , particles);
+    // overlaps = Particle::get_overlaps(particles);
+    // if(overlaps > 0){
+    //     printf("System contains overlaps!\n");
+    //     exit(0);
+    // }
+
+    char name[] = "output_equilibrate.gro";
+    Particle::write_coordinates(name , particles);
 
     //Update cumulative energy
     Base::eCummulative = mc.get_energy(particles);

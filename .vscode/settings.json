@@ -18,6 +18,8 @@
         "__split_buffer": "cpp",
         "__bit_reference": "cpp",
         "string_view": "cpp",
-        "bitset": "cpp"
+        "bitset": "cpp",
+        "chrono": "cpp",
+        "complex": "cpp"
     }
 }

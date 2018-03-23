@@ -21,7 +21,7 @@ class Base{
         static int totalMoves;
         static double T;
         static double lB;
-
+        static double wall;
         static void set_lB(){
             lB = EC*EC/(4 * PI * VP * 2 * 1e-10 * KB * T);
         }

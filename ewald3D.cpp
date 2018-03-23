@@ -1,7 +1,7 @@
 #include "ewald3D.h"
 
 Ewald3D::Ewald3D(){
-    alpha = 5/(Base::xL);
+    alpha = 8/(Base::xL);
     kNumMax = 10000;
     kNum = 0;
 }
@@ -72,7 +72,7 @@ void Ewald3D::initialize(){
     double kz2;
     double k2 = 0;
     resFac = (double*) malloc(kNumMax * sizeof(double));
-    int kMax = 5;//8/Base::xL;
+    int kMax = 11;//8/Base::xL;
     //get k-vectors
     double factor = 1;
     std::vector<double> vec(3);
@@ -125,7 +125,6 @@ double Ewald3D::get_reciprocal(Particle **p){
             charge = p[i]->q;
             rk = rk * charge;
             rho += rk;
-
         }
         energy += std::norm(rho) * resFac[k];
         //printf("resfac: %lf norm: %lf kvec: %lf %lf %lf\n", resFac[k], std::norm(rho) * std::norm(rho), kVec[k][0], kVec[k][1], kVec[k][2]);
@@ -166,6 +165,6 @@ double Ewald3D::get_energy(Particle **particles){
     reciprocal = 1.0/(Base::xL * Base::yL * Base::zL) * reciprocal;
     self = alpha/sqrt(PI) * self;
 
-    //printf("Real: %lf, self: %lf, reciprocal: %lf\n", real, self, reciprocal);
+    printf("Real: %lf, self: %lf, reciprocal: %lf\n", real, self, reciprocal);
     return (real + reciprocal - self);
 }

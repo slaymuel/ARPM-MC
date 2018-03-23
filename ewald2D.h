@@ -4,6 +4,7 @@
 #include "base.cpp"
 #include "particle.h"
 #include <vector>
+#include <complex>
 
 class Ewald2D{
     public:
