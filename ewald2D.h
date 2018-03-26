@@ -26,6 +26,7 @@ class Ewald2D{
         double g(Particle *p1, Particle *p2);
         double get_reciprocal(Particle *p1, Particle *p2);
         double get_real(Particle *p1, Particle *p2);
+        double dipole_correction(Particle *p);
         std::vector< std::vector<double> > kVec;
         double *kNorm;
         int kNum;

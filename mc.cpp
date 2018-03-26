@@ -70,10 +70,11 @@ int MC::mcmove(Particle **particles, double dr){
     
     ewald2DEnergy = MC::ewald2D.get_energy(particles);
     printf("Ewald2D: %lf\n", ewald2DEnergy);
+
+    directEnergy = MC::direct.get_energy(particles);
+    printf("Direct: %lf\n", directEnergy);
+
     exit(1);
-    
-    //directEnergy = MC::direct.get_energy(particles);
-    //printf("Direct: %lf\n", directEnergy);
     //exit(1);
     //Calculate old energy
     //eOld = MC::get_particle_energy(p, particles[p], particles);

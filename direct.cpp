@@ -11,8 +11,7 @@ double Direct::norm(T vec){
 
 double Direct::get_energy(Particle **particles){
     double energy;
-    int mc = 4;
-    int m = 0;
+    int mc = 0;
 
     for(int i = -mc; i <= mc; i++){
         for(int j = -mc; j <= mc; j++){

@@ -240,6 +240,27 @@ Particle** Particle::create_particles(int num){
     return particles;
 }
 
+Particle **Particle::create_dummies(Particle **particles){
+    Particle **dummies;
+    dummies = (Particle**) malloc(2 * Particle::numOfParticles * (sizeof(Particle*)));
+
+    for(int i = 0; i < Particle::numOfParticles; i++){
+        dummies[i] = new Particle();
+        dummies[i]->pos[0] = particles[i]->pos[0];
+        dummies[i]->pos[1] = particles[i]->pos[1];
+        dummies[i]->pos[2] = particles[i]->pos[2] + Base::zL;
+        strcpy(dummies[i]->name, "DUM\0");
+
+        dummies[i + 1] = new Particle();
+        dummies[i + 1]->pos[0] = particles[i]->pos[0];
+        dummies[i + 1]->pos[1] = particles[i]->pos[1];
+        dummies[i + 1]->pos[2] = particles[i]->pos[2] - Base::zL;
+        strcpy(dummies[i + 1]->name, "DUM\0");
+    }
+
+    return dummies;
+}
+
 int Particle::get_overlaps(Particle **particles){
     int overlaps = 0;
     int i = 0;
@@ -259,7 +280,7 @@ int Particle::get_overlaps(Particle **particles){
     return overlaps;
 }
 
-Particle** Particle::read_coordinates(std::string name){
+Particle** Particle::read_coordinates(std::string name, bool relative = false){
     int i = 0;
     int j = 0;
     double x, y, z;
@@ -283,9 +304,18 @@ Particle** Particle::read_coordinates(std::string name){
             } // error
             particles[j] = new Particle();
             particles[j]->pos = (double*) malloc(3 * sizeof(double));
-            particles[j]->pos[0] = x;
-            particles[j]->pos[1] = y;
-            particles[j]->pos[2] = z;
+
+            if(relative){
+                particles[j]->pos[0] = Base::xL * x;
+                particles[j]->pos[1] = Base::yL * y;
+                particles[j]->pos[2] = Base::zL * z;
+            }
+            else{
+                particles[j]->pos[0] = x;
+                particles[j]->pos[1] = y;
+                particles[j]->pos[2] = z;    
+            }
+
             particles[j]->d = 5;
             particles[j]->index = j;
             

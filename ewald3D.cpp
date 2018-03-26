@@ -1,8 +1,8 @@
 #include "ewald3D.h"
 
 Ewald3D::Ewald3D(){
-    alpha = 8/(Base::xL);
-    kNumMax = 10000;
+    alpha = 8/(Base::zL);
+    kNumMax = 1000000;
     kNum = 0;
 }
 /**
@@ -64,11 +64,8 @@ void Ewald3D::initialize(){
     int i = 0;
     double r = 0;
     double qq = 0;
-    int kx = 0;
     double kx2;
-    int ky = 0;
     double ky2;
-    int kz = 0;
     double kz2;
     double k2 = 0;
     resFac = (double*) malloc(kNumMax * sizeof(double));
@@ -77,9 +74,9 @@ void Ewald3D::initialize(){
     double factor = 1;
     std::vector<double> vec(3);
 
-    for(kx = 0; kx <= kMax; kx++){
-        for(ky = -kMax; ky <= kMax; ky++){
-            for(kz = -kMax; kz <= kMax; kz++){
+    for(int kx = 0; kx <= kMax; kx++){
+        for(int ky = -kMax; ky <= kMax; ky++){
+            for(int kz = -kMax; kz <= kMax; kz++){
                 factor = 1.0;
                 if(kx > 0){
                     factor *= 2;
@@ -136,9 +133,10 @@ double Ewald3D::get_real(Particle *p1, Particle *p2){
     int i = 0;
     double energy = 0;
     double distance = sqrt(p1->distance(p2));
-
+    printf("real dist: %lf\n", distance);
     energy = erfc_x(distance * alpha)/
-                distance;
+               distance;
+
     return p1->q * p2->q * energy;
 }
 

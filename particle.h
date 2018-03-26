@@ -29,8 +29,9 @@ class Particle: public Base{
         static int get_overlaps(Particle ** particles);
         static void place_particles(Particle **particles);
         static Particle** create_particles(int num);
+        static Particle** create_dummies(Particle **particles);
         static void write_coordinates(char name[], Particle **particles);
-        static Particle** read_coordinates(std::string name);
+        static Particle** read_coordinates(std::string name, bool relative);
 };
 
 #endif

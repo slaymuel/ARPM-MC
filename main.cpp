@@ -18,7 +18,7 @@ int Particle::numOfParticles = 0;
 int Analysis::numOfHisto = 0;
 double Base::xL= 10;
 double Base::yL= 10;
-double Base::zL= 50;
+double Base::zL= 10;
 double Base::T = 500;
 double Base::lB;
 double Base::eCummulative = 0;
@@ -86,7 +86,9 @@ int main(int argc, char *argv[])
         ("np", po::value<int>(), "Number of particles")
         ("f", po::value<std::string>(), "Coordinates in xyz format")
         ("density", po::value<double>(), "Specify density of the system.")
-        ("wall", po::value<double>(), "Insert walls in the z-dimension.");
+        ("wall", po::value<double>(), "Insert walls in the z-dimension.")
+        ("box", po::value<std::vector<double> >()->multitoken(), "Box dimensions")
+        ("rc", po::value<int>(), "Relative coordinates");
     
     po::variables_map vm;        
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -95,10 +97,22 @@ int main(int argc, char *argv[])
     if (vm.count("help")) {
         std::cout << desc << "\n";
     }
+    if(vm.count("box")){
+        std::vector<double> box(3);
+        box = vm["box"].as<std::vector<double> >();
+        Base::xL = box[0];
+        Base::yL = box[1];
+        Base::zL = box[2];
+        printf("Set box dimensions to: %lf %lf %lf\n", Base::xL, Base::yL, Base::zL);
+    }
     if(vm.count("f")){
+        bool relative = false;
+        if(vm.count("rc")){
+            relative = true;
+        }
         std::cout << "Opening " << vm["f"].as<std::string>() << std::endl;
         std::string filename = vm["f"].as<std::string>().c_str();
-        particles = Particle::read_coordinates(filename);
+        particles = Particle::read_coordinates(filename, relative);
     }
     if(vm.count("np")){
         numOfParticles = vm["np"].as<int>();
@@ -131,8 +145,6 @@ int main(int argc, char *argv[])
     //Seed
     srand(time(NULL));
 
-
-
     // overlaps = Particle::get_overlaps(particles);
     // if(overlaps > 0){
     //     printf("System contains overlaps!\n");
@@ -146,7 +158,7 @@ int main(int argc, char *argv[])
     Base::eCummulative = mc.get_energy(particles);
 
     // ///////////////////////////////         Main MC-loop          ////////////////////////////////////////
-    printf("\nRunning main MC-loop at temperature: %lf\n", T);
+    printf("\nRunning main MC-loop at temperature: %lf\n\n", T);
     for(int i = 0; i < 5000; i++){
         if(i % 1000 == 0 && i > 100){
             //sampleRDF(particles, zHisto, binWidth);
