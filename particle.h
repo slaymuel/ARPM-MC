@@ -11,8 +11,10 @@ class Particle: public Base{
         double d;
         int q;
         int index;
-        double *pos;
+        double *pos;    //Coordinates of the charge
         char name[3];
+        double chargeDisp[3];   //Charge displacement vector
+        double com[3];  //Center of mass
 
         static int numOfParticles;
         Particle();

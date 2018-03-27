@@ -146,7 +146,7 @@ double Ewald2D::get_energy(Particle **particles){
             }
             reciprocal += particles[i]->q * particles[j]->q * get_reciprocal(particles[i], particles[j]);
             reciprocal += -1 * particles[i]->q * particles[j]->q * g(particles[i], particles[j]);
-            printf("%lf\n", -1 * particles[i]->q * particles[j]->q * g(particles[i], particles[j]));
+            //printf("%lf\n", -1 * particles[i]->q * particles[j]->q * g(particles[i], particles[j]));
         }
         dipCorr += dipole_correction(particles[i]);
         self += get_self_correction(particles[i]);

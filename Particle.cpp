@@ -209,19 +209,39 @@ void Particle::place_particles(Particle **particles){
 Particle** Particle::create_particles(int num){
 
     int i = 0;
+    double norm = 0;
     Particle **particles;
     particles = (Particle**) malloc(num * sizeof(Particle*));
 
     for(i = 0; i < num; i++){
         particles[i] = new Particle();
-        particles[i]->d = 5;
-        particles[i]->pos = (double*)malloc(3*sizeof(double));
-        particles[i]->pos[0] = (double) rand()/RAND_MAX * Base::xL;
-        particles[i]->pos[1] = (double) rand()/RAND_MAX * Base::yL;
-        particles[i]->pos[2] = (double) rand()/RAND_MAX * (Base::zL - 5 - 2 * Base::wall) + 5.0/2.0 + Base::wall;
-        
         particles[i]->index = i;
+        particles[i]->d = 5;
+        particles[i]->b = 0;
+        particles[i]->pos = (double*)malloc(3 * sizeof(double));
 
+        //Get random center of mass coordinates
+        particles[i]->com[0] = (double) rand()/RAND_MAX * Base::xL;
+        particles[i]->com[1] = (double) rand()/RAND_MAX * Base::yL;
+        particles[i]->com[2] = (double) rand()/RAND_MAX * (Base::zL - particles[i]->d - 2 * Base::wall) + particles[i]->d/2.0 + Base::wall;
+
+        //Get random charge displacement vector
+        particles[i]->chargeDisp[0] = (double) rand()/RAND_MAX * 2 - 1;
+        particles[i]->chargeDisp[1] = (double) rand()/RAND_MAX * 2 - 1;
+        particles[i]->chargeDisp[2] = (double) rand()/RAND_MAX * 2 - 1;
+        //Normalize charge displacement vector and set length to b
+        norm = sqrt(particles[i]->chargeDisp[0] * particles[i]->chargeDisp[0] +
+                    particles[i]->chargeDisp[1] * particles[i]->chargeDisp[1] +
+                    particles[i]->chargeDisp[2] * particles[i]->chargeDisp[2]);
+        particles[i]->chargeDisp[0] = particles[i]->b * particles[i]->chargeDisp[0]/norm;
+        particles[i]->chargeDisp[1] = particles[i]->b * particles[i]->chargeDisp[1]/norm;
+        particles[i]->chargeDisp[2] = particles[i]->b * particles[i]->chargeDisp[2]/norm;
+
+        //Calculate position of the charge
+        particles[i]->pos[0] = particles[i]->com[0] + particles[i]->chargeDisp[0];
+        particles[i]->pos[1] = particles[i]->com[1] + particles[i]->chargeDisp[1];
+        particles[i]->pos[2] = particles[i]->com[2] + particles[i]->chargeDisp[2];
+        
         if(particles[i]->pos[2] < particles[i]->d/2 || particles[i]->pos[2] > Base::zL - particles[i]->d/2){
             printf("%lf %lf %lf Particle in forbidden area...\n", particles[i]->pos[0], particles[i]->pos[1], particles[i]->pos[2]);
             exit(1);
