@@ -11,8 +11,8 @@ class Ewald3D{
     public:
         Ewald3D();
         double get_energy(Particle **particles);
-        void initialize();
-
+        void initialize(Particle **p);
+        void update_reciprocal(Particle *_old, Particle *_new);
     private:
         template<typename T>
         T erfc_x( T x );
@@ -25,9 +25,10 @@ class Ewald3D{
         
         int kNumMax;
         double get_self_correction(Particle *p);
-        double get_reciprocal(Particle **p);
+        double get_reciprocal();
         double get_real(Particle *p1, Particle *p2);
         std::vector< std::vector<double> > kVec;
+        std::complex<double> *rkVec;
         double *kNorm;
         double *resFac;
         double alpha;

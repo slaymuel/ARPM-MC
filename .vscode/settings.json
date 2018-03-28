@@ -20,6 +20,9 @@
         "string_view": "cpp",
         "bitset": "cpp",
         "chrono": "cpp",
-        "complex": "cpp"
+        "complex": "cpp",
+        "__string": "cpp",
+        "memory": "cpp",
+        "type_traits": "cpp"
     }
 }

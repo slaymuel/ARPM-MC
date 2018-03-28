@@ -17,8 +17,8 @@ class Particle: public Base{
         double com[3];  //Center of mass
 
         static int numOfParticles;
+        Particle(bool dummie);
         Particle();
-
         void pbc();
         void pbc_xy();
         void randomMove(double stepSize);

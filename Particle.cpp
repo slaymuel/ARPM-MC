@@ -4,11 +4,16 @@
 #include "ran2_lib.cpp"
 
 //Constructor
+Particle::Particle(bool dummie){
+    //Keep track of the number of particles
+    if(!dummie){
+        numOfParticles++;
+    }
+}
 Particle::Particle(){
     //Keep track of the number of particles
     numOfParticles++;
 }
-
 void Particle::pbc(){
     //Translate particles according to periodic boundary conditions
     if(this->pos[0] > xL){
@@ -130,7 +135,7 @@ int Particle::hardSphere(Particle **particles){
 
     for(i = 0; i < Particle::numOfParticles; i++){
         if(i != this->index){
-            if(this->distance_xy(particles[i]) < (this->d+particles[i]->d)/2*(this->d+particles[i]->d)/2){
+            if(this->distance(particles[i]) < (this->d+particles[i]->d)/2*(this->d+particles[i]->d)/2){
                 return 0;
             }
         }
@@ -313,7 +318,8 @@ Particle** Particle::read_coordinates(std::string name, bool relative = false){
         if(i < 1){
             std::istringstream iss(line);
             if (!(iss >> c)) {
-                break; 
+                printf("Error reading file...\n");
+                exit(1); 
             } // error
             particles = (Particle**) malloc(c * sizeof(Particle*));
         }
@@ -365,8 +371,8 @@ void Particle::write_coordinates(char name[], Particle **particles){
     fprintf(f, "File created by .....\n");
     fprintf(f, "%d\n", Particle::numOfParticles);
     for(i = 0; i < Particle::numOfParticles; i++){
-        fprintf(f, "%5d%-5s%5s%5d%8.3f%8.3f%8.3f\n", 1, "liq", particles[i]->name, i, particles[i]->pos[0], particles[i]->pos[1], particles[i]->pos[2]);
+        fprintf(f, "%5d%-5s%5s%5d%8.3f%8.3f%8.3f\n", 1, "liq", particles[i]->name, i, particles[i]->pos[0]/10, particles[i]->pos[1]/10, particles[i]->pos[2]/10);
     }
-    fprintf(f, "%lf    %lf     %lf\n", Base::xL, Base::yL, Base::zL);
+    fprintf(f, "%lf    %lf     %lf\n", Base::xL/10, Base::yL/10, Base::zL/10);
     fclose(f);
 }

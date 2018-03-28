@@ -19,7 +19,7 @@ int Analysis::numOfHisto = 0;
 double Base::xL= 10;
 double Base::yL= 10;
 double Base::zL= 10;
-double Base::T = 500;
+double Base::T = 1000;
 double Base::lB;
 double Base::eCummulative = 0;
 double Base::wall = 0;
@@ -75,20 +75,18 @@ int main(int argc, char *argv[])
 
     //Simulation parameters
     MC mc;
-    MC::ewald3D.initialize();
-    MC::ewald2D.initialize();
 
     //Command line parser
     po::options_description desc("Command line options:");
     desc.add_options()
         ("help", "show this message")
-        ("compression", po::value<int>(), "set compression level")
         ("np", po::value<int>(), "Number of particles")
         ("f", po::value<std::string>(), "Coordinates in xyz format")
         ("density", po::value<double>(), "Specify density of the system.")
         ("wall", po::value<double>(), "Insert walls in the z-dimension.")
         ("box", po::value<std::vector<double> >()->multitoken(), "Box dimensions")
-        ("rc", po::value<int>(), "Relative coordinates");
+        ("rc", po::value<int>(), "Relative coordinates")
+        ("T", po::value<double>(), "Temperature");
     
     po::variables_map vm;        
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -96,6 +94,7 @@ int main(int argc, char *argv[])
 
     if (vm.count("help")) {
         std::cout << desc << "\n";
+        exit(1);
     }
     if(vm.count("box")){
         std::vector<double> box(3);
@@ -121,6 +120,10 @@ int main(int argc, char *argv[])
         mc.equilibrate(particles);
         density = (double)numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(diameter, 3);
     }
+    if(vm.count("T")){
+        Base::T = vm["T"].as<double>();
+        T = Base::T;
+    }
     if(vm.count("wall") && vm.count("density")){
         density = vm["density"].as<double>();
         Base::wall = vm["wall"].as<double>();
@@ -142,6 +145,8 @@ int main(int argc, char *argv[])
         }
     }
 
+    MC::ewald3D.initialize(particles);
+    //MC::ewald2D.initialize();
     //Seed
     srand(time(NULL));
 
@@ -159,7 +164,7 @@ int main(int argc, char *argv[])
 
     // ///////////////////////////////         Main MC-loop          ////////////////////////////////////////
     printf("\nRunning main MC-loop at temperature: %lf\n\n", T);
-    for(int i = 0; i < 5000; i++){
+    for(int i = 0; i < 50000; i++){
         if(i % 1000 == 0 && i > 100){
             //sampleRDF(particles, zHisto, binWidth);
             //printf("Sampling...\n");
@@ -187,7 +192,7 @@ int main(int argc, char *argv[])
             //printf("Error: ");
             //printf("%.*e\n", Digs, fabs(energy - Base::eCummulative)/fabs(Base::eCummulative));
             printf("Acceptance ratio: %lf\n", (double)Base::acceptedMoves/Base::totalMoves);
-            printf("Acceptance ratio for the last 100000 steps: %lf\n\n", (double)prevAccepted/100000.0);
+            //printf("Acceptance ratio for the last 100000 steps: %lf\n\n", (double)prevAccepted/100000.0);
             //if(fabs(energy - Base::eCummulative)/fabs(energy) > pow(10, -12)){
             //    printf("Error is too large!\n");
             //    exit(1);
@@ -207,18 +212,20 @@ int main(int argc, char *argv[])
     // zHist->saveHisto();
 
     //Write coordinates to file
-    FILE *f = fopen("output_ewald.xyz", "w");
-    if(f == NULL){
-        printf("Can't open file!\n");
-        exit(1);
-    }
+    char outName[] = "output_ewald.gro";
+    Particle::write_coordinates(outName , particles);
+    // FILE *f = fopen("output_ewald.gro", "w");
+    // if(f == NULL){
+    //     printf("Can't open file!\n");
+    //     exit(1);
+    // }
 
-    fprintf(f, "%d\n", numOfParticles);
-    fprintf(f, "\n");
-    for(int i = 0; i < Particle::numOfParticles; i++){
-        fprintf(f, "%s     %lf    %lf     %lf\n", particles[i]->name, particles[i]->pos[0], particles[i]->pos[1], particles[i]->pos[2]);
-    }
-    fclose(f);
+    // fprintf(f, "%d\n", numOfParticles);
+    // fprintf(f, "\n");
+    // for(int i = 0; i < Particle::numOfParticles; i++){
+    //     fprintf(f, "%s     %lf    %lf     %lf\n", particles[i]->name, particles[i]->pos[0], particles[i]->pos[1], particles[i]->pos[2]);
+    // }
+    // fclose(f);
 
     //Clean up allocated memory
     printf("Cleaning up...\n");

@@ -14,7 +14,7 @@ double MC::get_energy(Particle **particles){
         j = i + 1;
         while(j < Particle::numOfParticles){
             //LJ
-            dist = particles[j]->distance_xy(particles[i]);
+            dist = particles[j]->distance(particles[i]);
             //r6 = pow(dist, 3);
             //energy += 4 * (1/(r6*r6) - 1/r6);
             //Coloumb
@@ -63,39 +63,49 @@ int MC::mcmove(Particle **particles, double dr){
     double ewald3DEnergy = 0;
     double ewald2DEnergy = 0;
     double directEnergy = 0;
+    double pbc = 0;
+    Particle *_old = new Particle(true);
 
     int p =  random * Particle::numOfParticles;
-    ewald3DEnergy = MC::ewald3D.get_energy(particles);
-    printf("Ewald3D: %lf\n", ewald3DEnergy);
-    
-    ewald2DEnergy = MC::ewald2D.get_energy(particles);
-    printf("Ewald2D: %lf\n", ewald2DEnergy);
+    //ewald3DEnergy = MC::ewald3D.get_energy(particles);
+    //printf("Ewald3D: %lf\n", ewald3DEnergy);
+    //ewald2DEnergy = MC::ewald2D.get_energy(particles);
+    //printf("Ewald2D: %lf\n", ewald2DEnergy);
 
-    directEnergy = MC::direct.get_energy(particles);
-    printf("Direct: %lf\n", directEnergy);
+    //directEnergy = MC::direct.get_energy(particles);
+    //printf("Direct: %lf\n", directEnergy);
 
-    exit(1);
     //exit(1);
+
     //Calculate old energy
     //eOld = MC::get_particle_energy(p, particles[p], particles);
-    eOld = MC::ewald3D.get_energy(particles);
-    //printf("PBC: %lf\n", eOld);
+    eOld = Base::lB * MC::ewald3D.get_energy(particles);
 
+    //Save old particle state
+    _old->pos = (double*)malloc(3 * sizeof(double));
+    _old->pos[0] = particles[p]->pos[0];
+    _old->pos[1] = particles[p]->pos[1];
+    _old->pos[2] = particles[p]->pos[2];
+    _old->q = particles[p]->q;
+    _old->index = particles[p]->index;
+    //printf("oldpos: %lf %lf %lf\n", particles[p]->pos[0], particles[p]->pos[1], particles[p]->pos[2]);
     //Generate new trial coordinates
-    double oldPos[3] = {particles[p]->pos[0], particles[p]->pos[1], particles[p]->pos[2]};
     particles[p]->pos[0] = particles[p]->pos[0] + (ran2::get_random()*2 - 1) * dr;
     particles[p]->pos[1] = particles[p]->pos[1] + (ran2::get_random()*2 - 1) * dr;
     particles[p]->pos[2] = particles[p]->pos[2] + (ran2::get_random()*2 - 1) * dr;
 
+    //printf("newpos: %lf %lf %lf\n", particles[p]->pos[0], particles[p]->pos[1], particles[p]->pos[2]);
     //Appy PBC
     particles[p]->pbc();
 
     //If there is no overlap in new position and it's inside the box
-    if(particles[p]->hardSphere(particles) && particles[p]->pos[2] > particles[p]->d/2 + Base::wall && 
-                                              particles[p]->pos[2] < Base::zL - Base::wall - particles[p]->d/2 ){
+    if(particles[p]->hardSphere(particles)){// && particles[p]->pos[2] > particles[p]->d/2 + Base::wall && 
+                                            //  particles[p]->pos[2] < Base::zL - Base::wall - particles[p]->d/2 ){
         //Get new energy
         //eNew = MC::get_particle_energy(p, particles[p], particles);
-        eNew = MC::ewald3D.get_energy(particles);
+        MC::ewald3D.update_reciprocal(_old, particles[p]);
+        eNew = Base::lB * MC::ewald3D.get_energy(particles);
+
         //Accept move?
         dE = eNew - eOld;
         acceptProp = exp(-1*dE);
@@ -104,22 +114,35 @@ int MC::mcmove(Particle **particles, double dr){
         }
         double rand = ran2::get_random();
         if(rand < acceptProp){  //Accept move
-            Base::eCummulative += dE; //Cummulative energy
+            Base::eCummulative += dE; //Update cummulative energy
             accepted = 1;
             Base::acceptedMoves++;
+            //printf("Accept\n");
         }
         else{   //Reject move
-            particles[p]->pos[0] = oldPos[0];
-            particles[p]->pos[1] = oldPos[1];
-            particles[p]->pos[2] = oldPos[2];
+            MC::ewald3D.update_reciprocal(particles[p], _old);
+            particles[p]->pos[0] = _old->pos[0];
+            particles[p]->pos[1] = _old->pos[1];
+            particles[p]->pos[2] = _old->pos[2];
+            //if(fabs(Base::lB * MC::ewald3D.get_energy(particles) - eOld) > 1e-4){
+            //    printf("oldpos: %lf %lf %lf\n", particles[p]->pos[0], particles[p]->pos[1], particles[p]->pos[2]);
+            //    printf("New energy: %lf\n", Base::lB * MC::ewald3D.get_energy(particles));
+            //    printf("Old energy: %lf\n", eOld);
+            //    printf("Energy failed..\n");
+            //    exit(1);
+            //}
         }
     }
 
     else{   //Reject move
-        particles[p]->pos[0] = oldPos[0];
-        particles[p]->pos[1] = oldPos[1];
-        particles[p]->pos[2] = oldPos[2];
+        particles[p]->pos[0] = _old->pos[0];
+        particles[p]->pos[1] = _old->pos[1];
+        particles[p]->pos[2] = _old->pos[2];
     }
+
+    free(_old->pos);
+    delete _old;
+    //exit(1);
     return accepted;
 }
 

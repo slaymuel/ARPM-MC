@@ -1,7 +1,7 @@
 #include "ewald3D.h"
 
 Ewald3D::Ewald3D(){
-    alpha = 8/(Base::zL);
+    alpha = 3/(Base::zL);
     kNumMax = 1000000;
     kNum = 0;
 }
@@ -60,7 +60,7 @@ double dot(T vec1, G vec2){
     return vec1[0]*vec2[0] + vec1[1]*vec2[1] + vec1[2]*vec2[2];
 }
 
-void Ewald3D::initialize(){
+void Ewald3D::initialize(Particle **p){
     int i = 0;
     double r = 0;
     double qq = 0;
@@ -69,7 +69,7 @@ void Ewald3D::initialize(){
     double kz2;
     double k2 = 0;
     resFac = (double*) malloc(kNumMax * sizeof(double));
-    int kMax = 11;//8/Base::xL;
+    int kMax = 5;//8/Base::xL;
     //get k-vectors
     double factor = 1;
     std::vector<double> vec(3);
@@ -86,7 +86,7 @@ void Ewald3D::initialize(){
                 vec[2] = (2.0*PI*kz/Base::zL);
                 k2 = dot(vec, vec);
 
-                if(k2 != 0){
+                if(fabs(k2) > 1e-5 && fabs(k2) < kMax) {
                     kVec.push_back(vec);
                     resFac[kNum] = factor * exp(-k2/(4.0 * alpha * alpha))/k2;
                     kNum++;
@@ -101,16 +101,8 @@ void Ewald3D::initialize(){
     for(i = 0; i < kNum; i++){
         kNorm[i] = norm(kVec[i]);
     }
-}
 
-double Ewald3D::get_self_correction(Particle *p){
-    double self = 0;
-    self = p->q * p->q;
-    return self;
-}
-
-double Ewald3D::get_reciprocal(Particle **p){
-    double energy = 0;
+    rkVec = (std::complex<double>*) malloc(kNum * sizeof(std::complex<double>));
     std::complex<double> rho;
     std::complex<double> rk;
     std::complex<double> charge;
@@ -123,20 +115,78 @@ double Ewald3D::get_reciprocal(Particle **p){
             rk = rk * charge;
             rho += rk;
         }
-        energy += std::norm(rho) * resFac[k];
+        rkVec[k] = rho;
+    }
+}
+
+double Ewald3D::get_self_correction(Particle *p){
+    double self = 0;
+    self = p->q * p->q;
+    return self;
+}
+
+// double Ewald3D::get_reciprocal(Particle **p){
+//     double energy = 0;
+//     std::complex<double> rho;
+//     std::complex<double> rk;
+//     std::complex<double> charge;
+//     for(int k = 0; k < kNum; k++){
+//         rho = 0;
+//         for(int i = 0; i < Particle::numOfParticles; i++){
+//             rk.imag(std::sin(dot(p[i]->pos, kVec[k])));
+//             rk.real(std::cos(dot(p[i]->pos, kVec[k])));
+//             charge = p[i]->q;
+//             rk = rk * charge;
+//             rho += rk;
+//         }
+//         energy += std::norm(rho) * resFac[k];
+//         //printf("resfac: %lf norm: %lf kvec: %lf %lf %lf\n", resFac[k], std::norm(rho) * std::norm(rho), kVec[k][0], kVec[k][1], kVec[k][2]);
+//     }
+//     return 2 * PI * energy;    
+// }
+
+double Ewald3D::get_reciprocal(){
+    double energy = 0;
+
+    for(int k = 0; k < kNum; k++){
+        energy += std::norm(rkVec[k]) * resFac[k];
         //printf("resfac: %lf norm: %lf kvec: %lf %lf %lf\n", resFac[k], std::norm(rho) * std::norm(rho), kVec[k][0], kVec[k][1], kVec[k][2]);
     }
     return 2 * PI * energy;    
+}
+
+void Ewald3D::update_reciprocal(Particle *_old, Particle *_new){
+    double energy = 0;
+    std::complex<double> rk_new;
+    std::complex<double> rk_old;
+    std::complex<double> charge = _new->q;
+    
+    for(int k = 0; k < kNum; k++){
+        rk_new.imag(std::sin(dot(_new->pos, kVec[k])));
+        rk_new.real(std::cos(dot(_new->pos, kVec[k])));
+
+        rk_old.imag(std::sin(dot(_old->pos, kVec[k])));
+        rk_old.real(std::cos(dot(_old->pos, kVec[k])));   
+
+        rkVec[k] -= rk_old * charge;
+        rkVec[k] += rk_new * charge;
+    }
+    //printf("rk: %f\n", rkVec[kNum - 1].real() + rkVec[kNum - 1].imag());
 }
 
 double Ewald3D::get_real(Particle *p1, Particle *p2){
     int i = 0;
     double energy = 0;
     double distance = sqrt(p1->distance(p2));
-    printf("real dist: %lf\n", distance);
+    
+    //printf("real dist: %lf\n", distance);
     energy = erfc_x(distance * alpha)/
                distance;
-
+    if(distance < 1){
+        printf("Energy11: %lf\n", energy);
+        printf("Distance: %lf\n", distance);
+    }
+    
     return p1->q * p2->q * energy;
 }
 
@@ -145,8 +195,7 @@ double Ewald3D::get_energy(Particle **particles){
     double self;
     double reciprocal;
     int j = 0;
-    reciprocal = get_reciprocal(particles);
-
+    reciprocal = get_reciprocal();
     for(int i = 0; i < Particle::numOfParticles; i++){
         j = i + 1;
         while(j < Particle::numOfParticles){
@@ -163,6 +212,6 @@ double Ewald3D::get_energy(Particle **particles){
     reciprocal = 1.0/(Base::xL * Base::yL * Base::zL) * reciprocal;
     self = alpha/sqrt(PI) * self;
 
-    printf("Real: %lf, self: %lf, reciprocal: %lf\n", real, self, reciprocal);
+    //printf("Real: %lf, self: %lf, reciprocal: %lf\n", real, self, reciprocal);
     return (real + reciprocal - self);
 }
