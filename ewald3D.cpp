@@ -150,7 +150,6 @@ double Ewald3D::get_reciprocal(){
 
     for(int k = 0; k < kNum; k++){
         energy += std::norm(rkVec[k]) * resFac[k];
-        //printf("resfac: %lf norm: %lf kvec: %lf %lf %lf\n", resFac[k], std::norm(rho) * std::norm(rho), kVec[k][0], kVec[k][1], kVec[k][2]);
     }
     return 2 * PI * energy;    
 }
@@ -183,10 +182,10 @@ double Ewald3D::get_real(Particle *p1, Particle *p2){
     energy = erfc_x(distance * alpha)/
                distance;
     if(distance < 1){
-        printf("Energy11: %lf\n", energy);
-        printf("Distance: %lf\n", distance);
+        //printf("Energy: %lf\n", energy);
+        //printf("Distance: %lf\n", distance);
+
     }
-    
     return p1->q * p2->q * energy;
 }
 
@@ -212,6 +211,6 @@ double Ewald3D::get_energy(Particle **particles){
     reciprocal = 1.0/(Base::xL * Base::yL * Base::zL) * reciprocal;
     self = alpha/sqrt(PI) * self;
 
-    //printf("Real: %lf, self: %lf, reciprocal: %lf\n", real, self, reciprocal);
-    return (real + reciprocal - self);
+    printf("Real: %lf, self: %lf, reciprocal: %lf\n", real, self, reciprocal);
+    return (real + reciprocal - self) * Base::lB;
 }

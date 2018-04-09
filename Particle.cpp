@@ -361,6 +361,80 @@ Particle** Particle::read_coordinates(std::string name, bool relative = false){
     return particles;
 }
 
+Particle** Particle::read_jan(std::string pName, std::string nName){
+    int i = 0;
+    int j = 0;
+    double x, y, z;
+    int c;
+    std::string line;
+    std::ifstream infileP(pName);
+    Particle** particles;
+
+    //Read positive particles
+    while (std::getline(infileP, line)){
+        if(i < 1){
+            std::istringstream iss(line);
+            if (!(iss >> c)) {
+                printf("Error reading file...\n");
+                exit(1); 
+            } // error
+            particles = (Particle**) malloc(2 * c * sizeof(Particle*));
+        }
+        if(i >= 1){
+            
+            std::istringstream iss(line);
+            if (!(iss >> x >> y >> z)) {
+                break; 
+            } // error
+            particles[j] = new Particle();
+            particles[j]->pos = (double*) malloc(3 * sizeof(double));
+
+            particles[j]->pos[0] = x + 86;
+            particles[j]->pos[1] = y + 86;
+            particles[j]->pos[2] = z + Base::wall - 2.5;    
+
+            particles[j]->d = 5;
+            particles[j]->index = j;
+            
+            strcpy(particles[j]->name, "Na\0");
+            particles[j]->q = 1.0;
+
+            j++;
+        }
+        i++;
+    }
+
+    //Read negative particles
+    i = 0;
+    std::ifstream infileN(nName);
+    while (std::getline(infileN, line)){
+        if(i >= 0){
+            std::istringstream iss(line);
+            if (!(iss >> x >> y >> z)) {
+                break; 
+            } // error
+            particles[j] = new Particle();
+            particles[j]->pos = (double*) malloc(3 * sizeof(double));
+
+            particles[j]->pos[0] = x + 86;
+            particles[j]->pos[1] = y + 86;
+            particles[j]->pos[2] = z + Base::wall - 2.5;    
+
+            particles[j]->d = 5;
+            particles[j]->index = j;
+            
+            strcpy(particles[j]->name, "Cl\0");
+            particles[j]->q = -1.0;
+
+            j++;
+        }
+        i++;
+    }
+
+    printf("%d particles read from file.\n", j);
+    return particles;
+}
+
 void Particle::write_coordinates(char name[], Particle **particles){
     int i = 0;
     FILE *f = fopen(name, "w");

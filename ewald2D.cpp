@@ -2,7 +2,7 @@
 
 Ewald2D::Ewald2D(){
     kNum = 0;
-    alpha = 8/Base::xL;
+    alpha = 5/Base::xL;
 }
 
 template<typename T>
@@ -39,26 +39,22 @@ double Ewald2D::norm(T x){
 
 void Ewald2D::initialize(){
     int i = 0;
-    double r = 0;
-    double qq = 0;
     int kx = 0;
-    double kx2;
     int ky = 0;
-    double ky2;
     int kz = 0;
-    double kz2;
     double k2 = 0;
-    int kMax = 11;//8/Base::xL;
+    int kMax = 15;//8/Base::xL;
+
     //get k-vectors
     std::vector<double> vec(3);
 
-    for(kx = 0; kx <= kMax; kx++){
+    for(kx = -kMax; kx <= kMax; kx++){
         for(ky = -kMax; ky <= kMax; ky++){
             vec[0] = (2.0 * PI * kx/Base::xL);
             vec[1] = (2.0 * PI * ky/Base::yL);
             vec[2] = 0;
             k2 = dot(vec, vec);
-            if(k2 > 0){
+            if(fabs(k2) > 1e-5){// && fabs(k2) < kMax){
                 kVec.push_back(vec);
                 kNum++;
             }
@@ -117,12 +113,12 @@ double Ewald2D::get_reciprocal(Particle *p1, Particle *p2){
         // printf("kVec: %lf %lf %lf\n", kVec[i][0], kVec[i][1], kVec[i][2]);
         // printf("dot: %lf\n", dot(dispVec, kVec[i]));
         // printf("real: %lf\n", rk.real());
-        rk = rk/kNorm[i];
+        //rk = rk/kNorm[i];
         energy += rk.real() * f(kNorm[i], sqrt(p1->distance_z(p2)));
         //printf("real after: %lf\n\n", rk.real());
         //energy += -1 * g(p1, p2);
     }
-    return energy * PI/(Base::xL * Base::xL);
+    return energy;
 }
 
 double Ewald2D::get_real(Particle *p1, Particle *p2){
@@ -138,25 +134,34 @@ double Ewald2D::get_energy(Particle **particles){
     double self = 0;
     double reciprocal = 0;
     double dipCorr = 0;
+    double done = 0;
+    double gE = 0;
+    int j = 0;
 
     for(int i = 0; i < Particle::numOfParticles; i++){
-        for(int j = 0; j < Particle::numOfParticles; j++){
+        j = i + 1;
+        while(j < Particle::numOfParticles){
+        //for(int j = 0; j < Particle::numOfParticles; j++){
             if(i != j){
                 real += particles[i]->q * particles[j]->q * get_real(particles[i], particles[j]);
             }
-            reciprocal += particles[i]->q * particles[j]->q * get_reciprocal(particles[i], particles[j]);
+            reciprocal += particles[i]->q * particles[j]->q * get_reciprocal(particles[i], particles[j]) * 1/2;
             reciprocal += -1 * particles[i]->q * particles[j]->q * g(particles[i], particles[j]);
+            gE += -1 * particles[i]->q * particles[j]->q * g(particles[i], particles[j]);
             //printf("%lf\n", -1 * particles[i]->q * particles[j]->q * g(particles[i], particles[j]));
+            j++;
         }
         dipCorr += dipole_correction(particles[i]);
         self += get_self_correction(particles[i]);
+        printf("Rec: %lf g: %lf Done: %lf\r", reciprocal, gE, (double)i/Particle::numOfParticles * 100);
+        fflush(stdout);
     }
 
+    printf("\n");
+    reciprocal = reciprocal * PI/(Base::xL * Base::yL);
     dipCorr = -2 * PI/(Base::xL * Base::yL * Base::zL) * dipCorr * dipCorr;
     self = alpha/sqrt(PI) * self;
-    real = 1.0/2.0 * real;
-    reciprocal = 1.0/2.0 * reciprocal;
-    energy = real + reciprocal - self + dipCorr;
+    energy = (real + reciprocal - self + dipCorr);
     printf("Real: %lf, self: %lf, reciprocal: %lf dipCorr: %lf\n", real, self, reciprocal, dipCorr);
-    return energy;
+    return energy * Base::lB;
 }

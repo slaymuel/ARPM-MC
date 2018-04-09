@@ -11,11 +11,13 @@ double Direct::norm(T vec){
 
 double Direct::get_energy(Particle **particles){
     double energy;
-    int mc = 0;
+    int mx = 30;
+    int my = 30;
+    int mz = 30;
 
-    for(int i = -mc; i <= mc; i++){
-        for(int j = -mc; j <= mc; j++){
-            for(int k = -mc; k <= mc; k++){
+    for(int i = -mx; i <= mx; i++){
+        for(int j = -my; j <= my; j++){
+            for(int k = -mz; k <= mz; k++){
                 for(int l = 0; l < Particle::numOfParticles; l++){
                     for(int m = 0; m < Particle::numOfParticles; m++){
                         if(i == 0 && j == 0 && k == 0 && m == l){}
@@ -33,5 +35,5 @@ double Direct::get_energy(Particle **particles){
             }
         }
     }
-    return 1.0/2.0 * energy;
+    return 1.0/2.0 * energy * Base::lB;
 }

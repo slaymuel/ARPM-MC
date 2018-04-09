@@ -35,11 +35,11 @@ void Analysis::saveHisto(){
     double dv = 0;
     double idealDen = 0;
     char pHisto_name[64];
-    sprintf(pHisto_name, "pHisto_%d.txt", num);
+    sprintf(pHisto_name, "pHisto_ewald_%d.txt", num);
     char nHisto_name[64];
-    sprintf(nHisto_name, "nHisto_%d.txt", num);
+    sprintf(nHisto_name, "nHisto_ewald_%d.txt", num);
     char histo_name[64];
-    sprintf(histo_name, "histo_%d.txt", num);
+    sprintf(histo_name, "histo_ewald_%d.txt", num);
 
     FILE *f = fopen(histo_name, "w");
     if(f == NULL){

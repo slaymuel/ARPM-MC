@@ -16,9 +16,9 @@ Direct MC::direct;
 
 int Particle::numOfParticles = 0;
 int Analysis::numOfHisto = 0;
-double Base::xL= 10;
-double Base::yL= 10;
-double Base::zL= 10;
+double Base::xL= 172;
+double Base::yL= 172;
+double Base::zL= 45;
 double Base::T = 1000;
 double Base::lB;
 double Base::eCummulative = 0;
@@ -64,14 +64,11 @@ int main(int argc, char *argv[])
     int Digs = 14;
 
     //Analysis
-    int bins = 100;
-    double binWidth = (Base::xL/2)/bins;
+    //int bins = 100;
+    //double binWidth = (Base::xL/2)/bins;
     double dist = 0;
-    int *histo;
-    histo = (int*)malloc(bins * sizeof(int));
-    Analysis *xHist = new Analysis(0.1, Base::xL);
-    Analysis *yHist = new Analysis(0.1, Base::yL);
-    Analysis *zHist = new Analysis(0.1, Base::zL);
+    // int *histo;
+    // histo = (int*)malloc(bins * sizeof(int));
 
     //Simulation parameters
     MC mc;
@@ -82,6 +79,7 @@ int main(int argc, char *argv[])
         ("help", "show this message")
         ("np", po::value<int>(), "Number of particles")
         ("f", po::value<std::string>(), "Coordinates in xyz format")
+        ("f_jan", po::value<std::string>(), "Coordinates in Jan-format")
         ("density", po::value<double>(), "Specify density of the system.")
         ("wall", po::value<double>(), "Insert walls in the z-dimension.")
         ("box", po::value<std::vector<double> >()->multitoken(), "Box dimensions")
@@ -112,6 +110,9 @@ int main(int argc, char *argv[])
         std::cout << "Opening " << vm["f"].as<std::string>() << std::endl;
         std::string filename = vm["f"].as<std::string>().c_str();
         particles = Particle::read_coordinates(filename, relative);
+    }
+    if(vm.count("f_jan")){
+        particles = Particle::read_jan("coordp_33.dms", "coordn_33.dms");
     }
     if(vm.count("np")){
         numOfParticles = vm["np"].as<int>();
@@ -144,9 +145,12 @@ int main(int argc, char *argv[])
             density = (double)numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(diameter, 3);
         }
     }
+    Analysis *xHist = new Analysis(0.1, Base::xL);
+    Analysis *yHist = new Analysis(0.1, Base::yL);
+    Analysis *zHist = new Analysis(0.1, Base::zL);
 
     MC::ewald3D.initialize(particles);
-    //MC::ewald2D.initialize();
+    MC::ewald2D.initialize();
     //Seed
     srand(time(NULL));
 
@@ -157,20 +161,20 @@ int main(int argc, char *argv[])
     // }
 
     char name[] = "output_equilibrate.gro";
-    Particle::write_coordinates(name , particles);
+    //Particle::write_coordinates(name , particles);
 
     //Update cumulative energy
-    Base::eCummulative = mc.get_energy(particles);
+    //Base::eCummulative = mc.get_energy(particles);
 
     // ///////////////////////////////         Main MC-loop          ////////////////////////////////////////
     printf("\nRunning main MC-loop at temperature: %lf\n\n", T);
-    for(int i = 0; i < 50000; i++){
+    for(int i = 0; i < 500000; i++){
         if(i % 1000 == 0 && i > 100){
             //sampleRDF(particles, zHisto, binWidth);
             //printf("Sampling...\n");
-            // xHist->sampleHisto(particles, 0);
-            // yHist->sampleHisto(particles, 1);
-            // zHist->sampleHisto(particles, 2);
+            xHist->sampleHisto(particles, 0);
+            yHist->sampleHisto(particles, 1);
+            zHist->sampleHisto(particles, 2);
         }
         if(i % 100 == 0){
             if(mc.mcmove(particles, Base::zL)){
@@ -207,9 +211,9 @@ int main(int argc, char *argv[])
     printf("Rejected moves: %d\n", Base::totalMoves - Base::acceptedMoves);
 
     //saveRDF(histo, bins, binWidth);
-    // xHist->saveHisto();
-    // yHist->saveHisto();
-    // zHist->saveHisto();
+    //xHist->saveHisto();
+    //yHist->saveHisto();
+    //zHist->saveHisto();
 
     //Write coordinates to file
     char outName[] = "output_ewald.gro";
@@ -238,6 +242,6 @@ int main(int argc, char *argv[])
     //}
     //free(grid);
     free(particles);
-    free(histo);
+    //free(histo);
    return 0;
 }

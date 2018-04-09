@@ -67,15 +67,15 @@ int MC::mcmove(Particle **particles, double dr){
     Particle *_old = new Particle(true);
 
     int p =  random * Particle::numOfParticles;
-    //ewald3DEnergy = MC::ewald3D.get_energy(particles);
-    //printf("Ewald3D: %lf\n", ewald3DEnergy);
-    //ewald2DEnergy = MC::ewald2D.get_energy(particles);
-    //printf("Ewald2D: %lf\n", ewald2DEnergy);
+    ewald3DEnergy = MC::ewald3D.get_energy(particles);
+    printf("Ewald3D: %lf\n", ewald3DEnergy);
+    ewald2DEnergy = MC::ewald2D.get_energy(particles);
+    printf("Ewald2D: %lf\n", ewald2DEnergy);
 
-    //directEnergy = MC::direct.get_energy(particles);
-    //printf("Direct: %lf\n", directEnergy);
+    directEnergy = MC::direct.get_energy(particles);
+    printf("Direct: %lf\n", directEnergy);
 
-    //exit(1);
+    exit(1);
 
     //Calculate old energy
     //eOld = MC::get_particle_energy(p, particles[p], particles);
@@ -99,8 +99,8 @@ int MC::mcmove(Particle **particles, double dr){
     particles[p]->pbc();
 
     //If there is no overlap in new position and it's inside the box
-    if(particles[p]->hardSphere(particles)){// && particles[p]->pos[2] > particles[p]->d/2 + Base::wall && 
-                                            //  particles[p]->pos[2] < Base::zL - Base::wall - particles[p]->d/2 ){
+    if(particles[p]->hardSphere(particles) && particles[p]->pos[2] > particles[p]->d/2 + Base::wall && 
+                                              particles[p]->pos[2] < Base::zL - Base::wall - particles[p]->d/2 ){
         //Get new energy
         //eNew = MC::get_particle_energy(p, particles[p], particles);
         MC::ewald3D.update_reciprocal(_old, particles[p]);
@@ -113,7 +113,7 @@ int MC::mcmove(Particle **particles, double dr){
             acceptProp = 1;
         }
         double rand = ran2::get_random();
-        if(rand < acceptProp){  //Accept move
+        if(rand <= acceptProp){  //Accept move
             Base::eCummulative += dE; //Update cummulative energy
             accepted = 1;
             Base::acceptedMoves++;

@@ -33,6 +33,7 @@ class Particle: public Base{
         static Particle** create_particles(int num);
         static Particle** create_dummies(Particle **particles);
         static void write_coordinates(char name[], Particle **particles);
+        static Particle** read_jan(std::string pName, std::string nName);
         static Particle** read_coordinates(std::string name, bool relative);
 };
 

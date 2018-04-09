@@ -23,6 +23,8 @@
         "complex": "cpp",
         "__string": "cpp",
         "memory": "cpp",
-        "type_traits": "cpp"
+        "type_traits": "cpp",
+        "cstddef": "cpp",
+        "*.ipp": "cpp"
     }
 }
