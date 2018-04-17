@@ -16,9 +16,9 @@ Direct MC::direct;
 
 int Particle::numOfParticles = 0;
 int Analysis::numOfHisto = 0;
-double Base::xL= 172;
-double Base::yL= 172;
-double Base::zL= 45;
+double Base::xL = 114.862525361502;
+double Base::yL = 114.862525361502;
+double Base::zL = 45;
 double Base::T = 1000;
 double Base::lB;
 double Base::eCummulative = 0;
@@ -102,6 +102,10 @@ int main(int argc, char *argv[])
         Base::zL = box[2];
         printf("Set box dimensions to: %lf %lf %lf\n", Base::xL, Base::yL, Base::zL);
     }
+    if(vm.count("wall")){
+        Base::wall = vm["wall"].as<double>();
+    }
+
     if(vm.count("f")){
         bool relative = false;
         if(vm.count("rc")){
@@ -112,7 +116,7 @@ int main(int argc, char *argv[])
         particles = Particle::read_coordinates(filename, relative);
     }
     if(vm.count("f_jan")){
-        particles = Particle::read_jan("coordp_33.dms", "coordn_33.dms");
+        particles = Particle::read_jan("coordp-2.dms", "coordn-2.dms");
     }
     if(vm.count("np")){
         numOfParticles = vm["np"].as<int>();
@@ -159,9 +163,9 @@ int main(int argc, char *argv[])
     //     printf("System contains overlaps!\n");
     //     exit(0);
     // }
-
+    printf("Box dimensions are x: %lf y: %lf z: %lf\n", Base::xL, Base::yL, Base::zL);
     char name[] = "output_equilibrate.gro";
-    //Particle::write_coordinates(name , particles);
+    Particle::write_coordinates(name , particles);
 
     //Update cumulative energy
     //Base::eCummulative = mc.get_energy(particles);

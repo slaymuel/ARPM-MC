@@ -126,7 +126,7 @@ double Particle::distance_z(Particle *p){
     double distance = 0;
     distance = this->pos[2] - p->pos[2];
 
-    return distance * distance;
+    return distance;
 }
 
 int Particle::hardSphere(Particle **particles){
@@ -389,8 +389,8 @@ Particle** Particle::read_jan(std::string pName, std::string nName){
             particles[j] = new Particle();
             particles[j]->pos = (double*) malloc(3 * sizeof(double));
 
-            particles[j]->pos[0] = x + 86;
-            particles[j]->pos[1] = y + 86;
+            particles[j]->pos[0] = x + Base::xL/2;
+            particles[j]->pos[1] = y + Base::yL/2;
             particles[j]->pos[2] = z + Base::wall - 2.5;    
 
             particles[j]->d = 5;
@@ -416,8 +416,8 @@ Particle** Particle::read_jan(std::string pName, std::string nName){
             particles[j] = new Particle();
             particles[j]->pos = (double*) malloc(3 * sizeof(double));
 
-            particles[j]->pos[0] = x + 86;
-            particles[j]->pos[1] = y + 86;
+            particles[j]->pos[0] = x + Base::xL/2;
+            particles[j]->pos[1] = y + Base::yL/2;
             particles[j]->pos[2] = z + Base::wall - 2.5;    
 
             particles[j]->d = 5;

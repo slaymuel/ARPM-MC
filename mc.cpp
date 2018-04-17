@@ -67,13 +67,13 @@ int MC::mcmove(Particle **particles, double dr){
     Particle *_old = new Particle(true);
 
     int p =  random * Particle::numOfParticles;
+
     ewald3DEnergy = MC::ewald3D.get_energy(particles);
     printf("Ewald3D: %lf\n", ewald3DEnergy);
-    ewald2DEnergy = MC::ewald2D.get_energy(particles);
-    printf("Ewald2D: %lf\n", ewald2DEnergy);
-
     directEnergy = MC::direct.get_energy(particles);
     printf("Direct: %lf\n", directEnergy);
+    //ewald2DEnergy = MC::ewald2D.get_energy(particles);
+    //printf("Ewald2D: %lf\n", ewald2DEnergy);
 
     exit(1);
 

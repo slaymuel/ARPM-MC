@@ -23,7 +23,8 @@ class Base{
         static double lB;
         static double wall;
         static void set_lB(){
-            lB = EC*EC/(4 * PI * VP * 2 * 1e-10 * KB * T);
+            //lB = EC*EC/(4 * PI * VP * 2 * 1e-10 * KB * T);
+            lB = 69.6094879234987;//EC*EC/(4 * PI * VP * 2 * 1e-10 * KB * T);
         }
 
 };

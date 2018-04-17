@@ -1,7 +1,7 @@
 #include "ewald3D.h"
 
 Ewald3D::Ewald3D(){
-    alpha = 3/(Base::zL);
+    alpha = 5/(Base::xL);
     kNumMax = 1000000;
     kNum = 0;
 }
@@ -86,7 +86,7 @@ void Ewald3D::initialize(Particle **p){
                 vec[2] = (2.0*PI*kz/Base::zL);
                 k2 = dot(vec, vec);
 
-                if(fabs(k2) > 1e-5 && fabs(k2) < kMax) {
+                if(fabs(k2) > 1e-5){// && fabs(k2) < kMax) {
                     kVec.push_back(vec);
                     resFac[kNum] = factor * exp(-k2/(4.0 * alpha * alpha))/k2;
                     kNum++;
@@ -151,7 +151,7 @@ double Ewald3D::get_reciprocal(){
     for(int k = 0; k < kNum; k++){
         energy += std::norm(rkVec[k]) * resFac[k];
     }
-    return 2 * PI * energy;    
+    return energy;    
 }
 
 void Ewald3D::update_reciprocal(Particle *_old, Particle *_new){
@@ -179,20 +179,20 @@ double Ewald3D::get_real(Particle *p1, Particle *p2){
     double distance = sqrt(p1->distance(p2));
     
     //printf("real dist: %lf\n", distance);
-    energy = erfc_x(distance * alpha)/
-               distance;
-    if(distance < 1){
-        //printf("Energy: %lf\n", energy);
+    energy = erfc_x(distance * alpha) / distance;
+    //energy = 1/distance;
+    //if(distance >= Base::xL/2 && fabs(energy) >= 1e-4){
+    //    printf("Energy is %lf at the boundary maybe you should increase alpha?\n", energy);
+    //    exit(1);
         //printf("Distance: %lf\n", distance);
-
-    }
+    //}
     return p1->q * p2->q * energy;
 }
 
 double Ewald3D::get_energy(Particle **particles){
-    double real;
-    double self;
-    double reciprocal;
+    double real = 0;
+    double self = 0;
+    double reciprocal = 0;
     int j = 0;
     reciprocal = get_reciprocal();
     for(int i = 0; i < Particle::numOfParticles; i++){
@@ -207,10 +207,10 @@ double Ewald3D::get_energy(Particle **particles){
         //reciprocal += get_reciprocal2(particles[i]);
         self += get_self_correction(particles[i]);
     }
-    real = real;
-    reciprocal = 1.0/(Base::xL * Base::yL * Base::zL) * reciprocal;
+
+    reciprocal = 2 * PI/(Base::xL * Base::yL * Base::zL) * reciprocal;
     self = alpha/sqrt(PI) * self;
 
     printf("Real: %lf, self: %lf, reciprocal: %lf\n", real, self, reciprocal);
-    return (real + reciprocal - self) * Base::lB;
+    return (real + reciprocal - self);
 }

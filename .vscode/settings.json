@@ -25,6 +25,17 @@
         "memory": "cpp",
         "type_traits": "cpp",
         "cstddef": "cpp",
-        "*.ipp": "cpp"
+        "*.ipp": "cpp",
+        "__hash_table": "cpp",
+        "__tree": "cpp",
+        "array": "cpp",
+        "deque": "cpp",
+        "list": "cpp",
+        "map": "cpp",
+        "queue": "cpp",
+        "set": "cpp",
+        "unordered_map": "cpp",
+        "utility": "cpp",
+        "valarray": "cpp"
     }
 }
