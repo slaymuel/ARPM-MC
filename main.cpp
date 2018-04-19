@@ -153,8 +153,11 @@ int main(int argc, char *argv[])
     Analysis *yHist = new Analysis(0.1, Base::yL);
     Analysis *zHist = new Analysis(0.1, Base::zL);
 
+    MC::ewald3D.set_alpha();
+    MC::ewald2D.set_alpha();
     MC::ewald3D.initialize(particles);
     MC::ewald2D.initialize();
+
     //Seed
     srand(time(NULL));
 

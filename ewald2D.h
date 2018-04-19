@@ -11,6 +11,7 @@ class Ewald2D{
         Ewald2D();
         double get_energy(Particle **particles);
         void initialize();
+        void set_alpha();
 
     private:
         template<typename T>

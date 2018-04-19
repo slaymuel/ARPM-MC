@@ -13,6 +13,7 @@ class Ewald3D{
         double get_energy(Particle **particles);
         void initialize(Particle **p);
         void update_reciprocal(Particle *_old, Particle *_new);
+        void set_alpha();
     private:
         template<typename T>
         T erfc_x( T x );
