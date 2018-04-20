@@ -305,11 +305,18 @@ int Particle::get_overlaps(Particle **particles){
     return overlaps;
 }
 
-Particle** Particle::read_coordinates(std::string name, bool relative = false){
+Particle** Particle::read_coordinates(std::string name, bool relative = false, bool nanometers = false){
     int i = 0;
     int j = 0;
     double x, y, z;
     int c;
+    double nano;
+    if(nanometers){
+        nano = 10;
+    }
+    else{
+        nano = 1;
+    }
     std::string line;
     std::ifstream infile(name);
     Particle** particles;
@@ -337,9 +344,9 @@ Particle** Particle::read_coordinates(std::string name, bool relative = false){
                 particles[j]->pos[2] = Base::zL * z;
             }
             else{
-                particles[j]->pos[0] = x;
-                particles[j]->pos[1] = y;
-                particles[j]->pos[2] = z;    
+                particles[j]->pos[0] = x * nano;
+                particles[j]->pos[1] = y * nano;
+                particles[j]->pos[2] = z * nano;    
             }
 
             particles[j]->d = 5;

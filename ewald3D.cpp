@@ -6,7 +6,7 @@ Ewald3D::Ewald3D(){
 }
 
 void Ewald3D::set_alpha(){
-    alpha = 5/Base::xL;
+    alpha = 5/Base::zL;
 }
 /**
  * @brief Approximation of erfc-function
@@ -73,11 +73,11 @@ void Ewald3D::initialize(Particle **p){
     double kz2;
     double k2 = 0;
     resFac = (double*) malloc(kNumMax * sizeof(double));
-    int kMax = 11;//8/Base::xL;
+    int kMax = 3;//8/Base::xL;
     //get k-vectors
     double factor = 1;
     std::vector<double> vec(3);
-
+    printf("Calculating k-vectors");
     for(int kx = 0; kx <= kMax; kx++){
         for(int ky = -kMax; ky <= kMax; ky++){
             for(int kz = -kMax; kz <= kMax; kz++){
@@ -98,7 +98,7 @@ void Ewald3D::initialize(Particle **p){
             }
         }
     }
-
+    printf("\n");
     printf("Found: %d k-vectors\n", kNum);
     //Calculate norms
     kNorm = (double*) malloc(kNum * sizeof(double));
@@ -200,7 +200,7 @@ double Ewald3D::get_energy(Particle **particles){
     int j = 0;
     double dipoleMoment[3] = {0, 0, 0};
     double corr= 0;
-    printf("alpha is: %lf\n", alpha);
+    //printf("alpha is: %lf\n", alpha);
     reciprocal = get_reciprocal();
     for(int i = 0; i < Particle::numOfParticles; i++){
         j = i + 1;
@@ -223,7 +223,7 @@ double Ewald3D::get_energy(Particle **particles){
     corr = 2 * PI * corr/(3 * Base::xL * Base::yL * Base::zL);
     reciprocal = 2 * PI/(Base::xL * Base::yL * Base::zL) * reciprocal;
     self = alpha/sqrt(PI) * self;
-    printf("Dipole moment: %lf\n", corr);
-    printf("Real: %lf, self: %lf, reciprocal: %lf\n", real, self, reciprocal);
-    return (real + reciprocal - self);
+    //printf("Dipole moment: %lf\n", corr);
+    //printf("Real: %lf, self: %lf, reciprocal: %lf\n", real, self, reciprocal);
+    return Base::lB * (real + reciprocal - self + corr);
 }

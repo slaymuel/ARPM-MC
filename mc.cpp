@@ -68,18 +68,18 @@ int MC::mcmove(Particle **particles, double dr){
 
     int p =  random * Particle::numOfParticles;
 
-    ewald3DEnergy = MC::ewald3D.get_energy(particles);
-    printf("Ewald3D: %lf\n", ewald3DEnergy);
-    directEnergy = MC::direct.get_energy(particles);
-    printf("Direct: %lf\n", directEnergy);
+    //ewald3DEnergy = MC::ewald3D.get_energy(particles);
+    //printf("Ewald3D: %lf\n", ewald3DEnergy);
+    //directEnergy = MC::direct.get_energy(particles);
+    //printf("Direct: %lf\n", directEnergy);
     //ewald2DEnergy = MC::ewald2D.get_energy(particles);
     //printf("Ewald2D: %lf\n", ewald2DEnergy);
 
-    exit(1);
+    //exit(1);
 
     //Calculate old energy
     //eOld = MC::get_particle_energy(p, particles[p], particles);
-    eOld = Base::lB * MC::ewald3D.get_energy(particles);
+    eOld = MC::ewald3D.get_energy(particles);
 
     //Save old particle state
     _old->pos = (double*)malloc(3 * sizeof(double));
@@ -104,7 +104,7 @@ int MC::mcmove(Particle **particles, double dr){
         //Get new energy
         //eNew = MC::get_particle_energy(p, particles[p], particles);
         MC::ewald3D.update_reciprocal(_old, particles[p]);
-        eNew = Base::lB * MC::ewald3D.get_energy(particles);
+        eNew = MC::ewald3D.get_energy(particles);
 
         //Accept move?
         dE = eNew - eOld;
