@@ -12,7 +12,7 @@ double Direct::norm(T vec){
 double Direct::get_energy(Particle **particles){
     double energy;
     double central = get_central(particles);
-    double replicates = get_replicates(particles);
+    double replicates = 1.0/2.0 * get_replicates(particles);
 
     printf("Central box: %lf Replicates: %lf\n", central, replicates);
     return replicates + central;
@@ -21,7 +21,7 @@ double Direct::get_energy(Particle **particles){
 double Direct::get_replicates(Particle **particles){
     double energy = 0;
     double dist = 0;
-    int rep = 8;
+    int rep = 20;
     int mx = rep;
     int my = rep;
     int mz = rep;
@@ -57,7 +57,7 @@ double Direct::get_replicates(Particle **particles){
         fflush(stdout);
     }
     printf("\n");
-    printf("Number of replicas: %d\n", numOfRep);
+    printf("Number of replicas: %d\n", numOfRep - 1);
     return energy;
 }
 

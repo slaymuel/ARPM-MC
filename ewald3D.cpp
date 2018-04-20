@@ -185,11 +185,11 @@ double Ewald3D::get_real(Particle *p1, Particle *p2){
     //printf("real dist: %lf\n", distance);
     energy = erfc_x(distance * alpha) / distance;
     //energy = 1/distance;
-    //if(distance >= Base::xL/2 && fabs(energy) >= 1e-3){
-    printf("Energy is %lf at the boundary maybe you should increase alpha?\n", energy);
+    if(distance >= Base::xL/2 && fabs(energy) >= 1e-3){
+        printf("Energy is %lf at the boundary maybe you should increase alpha?\n", energy);
     //    exit(1);
         //printf("Distance: %lf\n", distance);
-    //}
+    }
     return p1->q * p2->q * energy;
 }
 
@@ -217,6 +217,7 @@ double Ewald3D::get_energy(Particle **particles){
         //reciprocal += get_reciprocal2(particles[i]);
         self += get_self_correction(particles[i]);
     }
+
     corr = norm(dipoleMoment);
     corr *= corr;
     corr = 2 * PI * corr/(3 * Base::xL * Base::yL * Base::zL);

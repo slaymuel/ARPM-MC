@@ -5,7 +5,7 @@ Ewald2D::Ewald2D(){
 }
 
 void Ewald2D::set_alpha(){
-    alpha = 5/Base::xL;
+    alpha = 9/Base::xL;
 }
 
 template<typename T>
@@ -46,7 +46,7 @@ void Ewald2D::initialize(){
     int ky = 0;
     int kz = 0;
     double k2 = 0;
-    int kMax = 10;//8/Base::xL;
+    int kMax = 3;//8/Base::xL;
 
     //get k-vectors
     std::vector<double> vec(3);

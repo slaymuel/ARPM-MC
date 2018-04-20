@@ -104,6 +104,7 @@ int main(int argc, char *argv[])
     }
     if(vm.count("wall")){
         Base::wall = vm["wall"].as<double>();
+        Base::zL += Base::wall;
     }
 
     if(vm.count("f")){
