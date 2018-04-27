@@ -25,9 +25,10 @@ class Ewald3D{
         double norm(T x);
         
         int kNumMax;
+        double selfTerm;
         double get_self_correction(Particle *p);
         double get_reciprocal();
-        double get_real(Particle *p1, Particle *p2);
+        inline double get_real(Particle *p1, Particle *p2);
         std::vector< std::vector<double> > kVec;
         std::complex<double> *rkVec;
         double *kNorm;

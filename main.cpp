@@ -15,6 +15,7 @@ Ewald2D MC::ewald2D;
 Direct MC::direct;
 
 int Particle::numOfParticles = 0;
+double **Particle::distances;
 int Analysis::numOfHisto = 0;
 double Base::xL = 114.862525361502;
 double Base::yL = 114.862525361502;
@@ -87,7 +88,8 @@ int main(int argc, char *argv[])
         ("rc", po::value<int>(), "Relative coordinates")
         ("T", po::value<double>(), "Temperature")
         ("o", po::value<std::string>(), "Output filename")
-        ("nm", po::value<int>(), "If input file is in nanometers");
+        ("nm", po::value<int>(), "If input file is in nanometers")
+        ("overlap", po::value<int>(), "Remove Overlaps");
     
     po::variables_map vm;        
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -107,7 +109,7 @@ int main(int argc, char *argv[])
     }
     if(vm.count("wall")){
         Base::wall = vm["wall"].as<double>();
-        Base::zL += Base::wall;
+        Base::zL += 2 * Base::wall;
     }
     if(vm.count("nm")){
         nanometers = true;
@@ -154,10 +156,23 @@ int main(int argc, char *argv[])
             numOfParticles = vm["density"].as<double>()/pow(diameter, 3)*(Base::xL * Base::yL * Base::zL);
             printf("%d particles will be created\n", numOfParticles);
             particles = Particle::create_particles(numOfParticles);
-            mc.equilibrate(particles);
+            //mc.equilibrate(particles);
             density = (double)numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(diameter, 3);
         }
     }
+
+    Particle::distances = (double**) malloc(Particle::numOfParticles * sizeof(double*));
+    for(int i = 0; i < Particle::numOfParticles; i++){
+        Particle::distances[i] = (double*) malloc(Particle::numOfParticles * sizeof(double*));
+    }
+    Particle::update_distances(particles);
+    //Seed
+    srand(time(NULL));
+
+    if(vm.count("overlap")){
+        mc.equilibrate(particles);
+    }
+
     Analysis *xHist = new Analysis(0.1, Base::xL);
     Analysis *yHist = new Analysis(0.1, Base::yL);
     Analysis *zHist = new Analysis(0.1, Base::zL);
@@ -166,10 +181,6 @@ int main(int argc, char *argv[])
     MC::ewald2D.set_alpha();
     MC::ewald3D.initialize(particles);
     MC::ewald2D.initialize();
-
-    //Seed
-    srand(time(NULL));
-
     // overlaps = Particle::get_overlaps(particles);
     // if(overlaps > 0){
     //     printf("System contains overlaps!\n");
@@ -185,7 +196,7 @@ int main(int argc, char *argv[])
     Base::eCummulative = MC::ewald3D.get_energy(particles);
     // ///////////////////////////////         Main MC-loop          ////////////////////////////////////////
     printf("\nRunning main MC-loop at temperature: %lf\n\n", T);
-    for(int i = 0; i < 2000000; i++){
+    for(int i = 0; i < 5000000; i++){
         //if(i % 1000 == 0 && i > 100){
             //sampleRDF(particles, zHisto, binWidth);
             //printf("Sampling...\n");
@@ -206,7 +217,7 @@ int main(int argc, char *argv[])
 
         Base::totalMoves++;
         
-        if(i % 1000 == 0 && i != 0){
+        if(i % 1 == 10000 && i != 0){
             energy = MC::ewald3D.get_energy(particles);//mc.get_energy(particles);
             energies[energyOut] = energy;
             energyOut++;
@@ -216,9 +227,10 @@ int main(int argc, char *argv[])
             //printf("Error: ");
             //printf("%lf\n", fabs(energy - Base::eCummulative)/fabs(Base::eCummulative));
             printf("Acceptance ratio: %lf\n", (double)Base::acceptedMoves/Base::totalMoves);
-            //printf("Acceptance ratio for the last 100000 steps: %lf\n\n", (double)prevAccepted/100000.0);
+            printf("Acceptance ratio for the last 100000 steps: %lf\n\n", (double)prevAccepted/100000.0);
             if(fabs(energy - Base::eCummulative)/fabs(energy) > pow(10, -12)){
                 printf("Error is too large!\n");
+                printf("Error: %lf\n", fabs(energy - Base::eCummulative)/fabs(energy));
                 exit(1);
             }
             prevAccepted = 0;

@@ -15,7 +15,7 @@ class Particle: public Base{
         char name[3];
         double chargeDisp[3];   //Charge displacement vector
         double com[3];  //Center of mass
-
+        static double **distances;
         static int numOfParticles;
         Particle(bool dummie);
         Particle();
@@ -28,6 +28,8 @@ class Particle: public Base{
         double distance_z(Particle *p);
         int hardSphere(Particle **particles);
 
+        static void update_distances(Particle **particles);
+        static void update_distances(Particle *p, Particle **particles);
         static int get_overlaps(Particle ** particles);
         static void place_particles(Particle **particles);
         static Particle** create_particles(int num);

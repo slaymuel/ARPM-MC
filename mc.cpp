@@ -57,7 +57,9 @@ int MC::mcmove(Particle **particles, double dr){
     double eNew = 0;
     double dist = 0;
     double acceptProp = 0;
+
     double random = ran2::get_random();
+
     double dE = 0;
     int accepted= 0;
     double ewald3DEnergy = 0;
@@ -97,13 +99,14 @@ int MC::mcmove(Particle **particles, double dr){
     //printf("newpos: %lf %lf %lf\n", particles[p]->pos[0], particles[p]->pos[1], particles[p]->pos[2]);
     //Appy PBC
     particles[p]->pbc();
-
+    Particle::update_distances(particles[p], particles);
     //If there is no overlap in new position and it's inside the box
     if(particles[p]->hardSphere(particles) && particles[p]->pos[2] > particles[p]->d/2 + Base::wall && 
                                               particles[p]->pos[2] < Base::zL - Base::wall - particles[p]->d/2 ){
         //Get new energy
         //eNew = MC::get_particle_energy(p, particles[p], particles);
         MC::ewald3D.update_reciprocal(_old, particles[p]);
+        
         eNew = MC::ewald3D.get_energy(particles);
 
         //Accept move?
@@ -112,7 +115,9 @@ int MC::mcmove(Particle **particles, double dr){
         if(acceptProp > 1 || eNew < eOld){
             acceptProp = 1;
         }
+
         double rand = ran2::get_random();
+
         if(rand <= acceptProp){  //Accept move
             Base::eCummulative += dE; //Update cummulative energy
             accepted = 1;
@@ -124,6 +129,7 @@ int MC::mcmove(Particle **particles, double dr){
             particles[p]->pos[0] = _old->pos[0];
             particles[p]->pos[1] = _old->pos[1];
             particles[p]->pos[2] = _old->pos[2];
+            Particle::update_distances(particles[p], particles);
             //if(fabs(Base::lB * MC::ewald3D.get_energy(particles) - eOld) > 1e-4){
             //    printf("oldpos: %lf %lf %lf\n", particles[p]->pos[0], particles[p]->pos[1], particles[p]->pos[2]);
             //    printf("New energy: %lf\n", Base::lB * MC::ewald3D.get_energy(particles));
@@ -138,6 +144,7 @@ int MC::mcmove(Particle **particles, double dr){
         particles[p]->pos[0] = _old->pos[0];
         particles[p]->pos[1] = _old->pos[1];
         particles[p]->pos[2] = _old->pos[2];
+        Particle::update_distances(particles[p], particles);
     }
 
     free(_old->pos);
@@ -165,11 +172,14 @@ void MC::equilibrate(Particle **particles){
         oldPos[1] = particles[p]->pos[1];
         oldPos[2] = particles[p]->pos[2];
         particles[p]->randomMove(5);
+        Particle::update_distances(particles[p], particles);
         if(!particles[p]->hardSphere(particles) || particles[p]->pos[2] < particles[p]->d/2 + Base::wall || particles[p]->pos[2] > Base::zL - Base::wall - particles[p]->d/2){
             particles[p]->pos[0] = oldPos[0];
             particles[p]->pos[1] = oldPos[1];
             particles[p]->pos[2] = oldPos[2];
+            Particle::update_distances(particles[p], particles);
         }
+
         if(i % 50000 == 0){
             overlaps = Particle::get_overlaps(particles);
             //stepSize = log(abs(prevOverlaps - overlaps) + 3.0);

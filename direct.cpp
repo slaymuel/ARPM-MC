@@ -14,17 +14,17 @@ double Direct::get_energy(Particle **particles){
     double central = get_central(particles);
     double replicates = 1.0/2.0 * get_replicates(particles);
 
-    //printf("Central box: %lf Replicates: %lf\n", central, replicates);
+    printf("Central box: %lf Replicates: %lf\n", central, replicates);
     return Base::lB * (replicates + central);
 }
 
 double Direct::get_replicates(Particle **particles){
     double energy = 0;
     double dist = 0;
-    int rep = 30;
+    int rep = 3;
     int mx = rep;
     int my = rep;
-    int mz = rep * Base::xL/Base::zL;
+    int mz = rep;
     int count = 0;
     int numOfRep = 0;
 

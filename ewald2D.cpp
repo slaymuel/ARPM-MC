@@ -5,7 +5,7 @@ Ewald2D::Ewald2D(){
 }
 
 void Ewald2D::set_alpha(){
-    alpha = 9/Base::xL;
+    alpha = 5/Base::xL;
 }
 
 template<typename T>
@@ -64,7 +64,7 @@ void Ewald2D::initialize(){
         }
     }
 
-    printf("Found: %d k-vectors\n", kNum);
+    printf("2D: Found: %d k-vectors\n", kNum);
     //Calculate norms
     kNorm = (double*) malloc(kNum * sizeof(double));
     for(i = 0; i < kNum; i++){
@@ -163,7 +163,7 @@ double Ewald2D::get_energy(Particle **particles){
     reciprocal = (reciprocal - gE) * PI/(Base::xL * Base::yL);
     dipCorr = -2 * PI/(Base::xL * Base::yL * Base::zL) * dipCorr * dipCorr;
     self = alpha/sqrt(PI) * self;
-    energy = (real + reciprocal - self + dipCorr);
+    energy = (real + reciprocal - self);// + dipCorr);
     printf("Real: %lf, self: %lf, reciprocal: %lf dipCorr: %lf\n", real * Base::lB, self, reciprocal, dipCorr);
-    return energy;
+    return energy * Base::lB;
 }

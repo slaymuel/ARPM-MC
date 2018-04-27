@@ -1,12 +1,12 @@
 #include "ewald3D.h"
-
+#include "omp.h"
 Ewald3D::Ewald3D(){
     kNumMax = 1000000;
     kNum = 0;
 }
 
 void Ewald3D::set_alpha(){
-    alpha = 5/Base::zL;
+    alpha = 5/Base::xL;
 }
 /**
  * @brief Approximation of erfc-function
@@ -99,7 +99,7 @@ void Ewald3D::initialize(Particle **p){
         }
     }
     printf("\n");
-    printf("Found: %d k-vectors\n", kNum);
+    printf("3D: Found: %d k-vectors\n", kNum);
     //Calculate norms
     kNorm = (double*) malloc(kNum * sizeof(double));
     for(i = 0; i < kNum; i++){
@@ -121,6 +121,11 @@ void Ewald3D::initialize(Particle **p){
         }
         rkVec[k] = rho;
     }
+    selfTerm = 0;
+    for(int i = 0; i < Particle::numOfParticles; i++){
+        selfTerm += Ewald3D::get_self_correction(p[i]);
+    }
+    selfTerm = alpha/sqrt(PI) * selfTerm * Base::lB;
 }
 
 double Ewald3D::get_self_correction(Particle *p){
@@ -163,8 +168,34 @@ void Ewald3D::update_reciprocal(Particle *_old, Particle *_new){
     std::complex<double> rk_new;
     std::complex<double> rk_old;
     std::complex<double> charge = _new->q;
-    
+    //omp_set_num_threads(4);
+
+    // #pragma omp parallel
+    // {
+    //     int threadId, k, numThreads, istart, iend;
+    //     threadId = omp_get_thread_num();
+    //     numThreads = omp_get_num_threads();
+    //     istart = threadId * kNum / numThreads;
+    //     iend = (threadId + 1) * kNum / numThreads;
+    //     if (threadId == numThreads - 1){
+    //         iend = kNum;
+    //     }
+
+    //     for(k = istart; k < iend; k++){
+
+    //         rk_new.imag(std::sin(dot(_new->pos, kVec[k])));
+    //         rk_new.real(std::cos(dot(_new->pos, kVec[k])));
+
+    //         rk_old.imag(std::sin(dot(_old->pos, kVec[k])));
+    //         rk_old.real(std::cos(dot(_old->pos, kVec[k])));   
+
+    //         rkVec[k] -= rk_old * charge;
+    //         rkVec[k] += rk_new * charge;
+    //     }
+    // }
+    //#pragma omp parallel for reduction (+:rkVec)
     for(int k = 0; k < kNum; k++){
+
         rk_new.imag(std::sin(dot(_new->pos, kVec[k])));
         rk_new.real(std::cos(dot(_new->pos, kVec[k])));
 
@@ -178,18 +209,17 @@ void Ewald3D::update_reciprocal(Particle *_old, Particle *_new){
 }
 
 double Ewald3D::get_real(Particle *p1, Particle *p2){
-    int i = 0;
     double energy = 0;
-    double distance = sqrt(p1->distance(p2));
-    
+    //double distance = sqrt(p1->distance(p2));
+    double distance = Particle::distances[p1->index][p2->index];
     //printf("real dist: %lf\n", distance);
     energy = erfc_x(distance * alpha) / distance;
     //energy = 1/distance;
-    if(distance >= Base::xL/2 && fabs(energy) >= 1e-3){
-        printf("Energy is %lf at the boundary maybe you should increase alpha?\n", energy);
+    //if(distance >= Base::xL/2 && fabs(energy) >= 1e-3){
+        //printf("Energy is %lf at the boundary maybe you should increase alpha?\n", energy);
     //    exit(1);
         //printf("Distance: %lf\n", distance);
-    }
+    //}
     return p1->q * p2->q * energy;
 }
 
@@ -202,28 +232,31 @@ double Ewald3D::get_energy(Particle **particles){
     double corr= 0;
     //printf("alpha is: %lf\n", alpha);
     reciprocal = get_reciprocal();
+    //omp_set_num_threads(4);
+    //#pragma omp parallel for reduction (+:real, self)
     for(int i = 0; i < Particle::numOfParticles; i++){
         j = i + 1;
         while(j < Particle::numOfParticles){
-            if(j != i){
+            //if(j != i){
                 real += get_real(particles[i], particles[j]);
                 //reciprocal += get_reciprocal(particles[i], particles[j]);
-            }
+            //}
             j++;
         }
         dipoleMoment[0] += particles[i]->q * particles[i]->pos[0];
         dipoleMoment[1] += particles[i]->q * particles[i]->pos[1];
         dipoleMoment[2] += particles[i]->q * particles[i]->pos[2];
         //reciprocal += get_reciprocal2(particles[i]);
-        self += get_self_correction(particles[i]);
+        //self += get_self_correction(particles[i]);
     }
 
     corr = norm(dipoleMoment);
     corr *= corr;
     corr = 2 * PI * corr/(3 * Base::xL * Base::yL * Base::zL);
     reciprocal = 2 * PI/(Base::xL * Base::yL * Base::zL) * reciprocal;
-    self = alpha/sqrt(PI) * self;
+    //self = alpha/sqrt(PI) * self;
     //printf("Dipole moment: %lf\n", corr);
+    //printf("self term: %lf\n", selfTerm);
     //printf("Real: %lf, self: %lf, reciprocal: %lf\n", real, self, reciprocal);
-    return Base::lB * (real + reciprocal - self + corr);
+    return Base::lB * (real + reciprocal + corr) - selfTerm;
 }

@@ -5,7 +5,9 @@
 *.gro
 # Created by https://www.gitignore.io/api/c,osx,c++,fortran
 *.json
+*.ip
 .vscode*
+compile.sh
 ### C ###
 # Prerequisites
 *.d

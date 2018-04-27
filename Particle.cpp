@@ -69,32 +69,42 @@ void Particle::randomMove(double stepSize){
 
 double Particle::distance(Particle *p){
     //Calculate distance between particles
-    double xP1 = p->pos[0];
-    double yP1 = p->pos[1];
-    double zP1 = p->pos[2];
-    double xP2 = this->pos[0];
-    double yP2 = this->pos[1];
-    double zP2 = this->pos[2];
+    // double xP1 = p->pos[0];
+    // double yP1 = p->pos[1];
+    // double zP1 = p->pos[2];
+    // double xP2 = this->pos[0];
+    // double yP2 = this->pos[1];
+    // double zP2 = this->pos[2];
+    double xP12 = p->pos[0] - this->pos[0];
+    double yP12 = p->pos[1] - this->pos[1];
+    double zP12 = p->pos[2] - this->pos[2];
 
-    if(xP1 - xP2 < -1 * xL/2){
-        xP2 = xP2 - xL;
+    if(xP12 < -1 * xL/2){
+        //xP2 = xP2 - xL;
+        xP12 += xL;
     }
-    if(xP1 - xP2 > xL/2){
-        xP2 = xP2 + xL;
+    if(xP12 > xL/2){
+        //xP2 = xP2 + xL;
+        xP12 -= xL;
     }
-    if(yP1 - yP2 < -1 * yL/2){
-        yP2 = yP2 - yL;
+    if(yP12 < -1 * yL/2){
+        //yP2 = yP2 - yL;
+        yP12 += yL;
     }
-    if(yP1 - yP2 > yL/2){
-        yP2 = yP2 + yL;
+    if(yP12 > yL/2){
+        //yP2 = yP2 + yL;
+        yP12 -= yL;
     }
-    if(zP1 - zP2 < -1 * zL/2){
-        zP2 = zP2 - zL;
+    if(zP12 < -1 * zL/2){
+        //zP2 = zP2 - zL;
+        zP12 += zL;
     }
-    if(zP1 - zP2 > zL/2){
-        zP2 = zP2 + zL;
+    if(zP12 > zL/2){
+        //zP2 = zP2 + zL;
+        zP12 -= zL;
     }
-    return (pow((xP1 - xP2), 2) + pow((yP1 - yP2), 2) + pow((zP1 - zP2), 2));
+    //return (pow((xP1 - xP2), 2) + pow((yP1 - yP2), 2) + pow((zP1 - zP2), 2));
+    return sqrt(xP12 * xP12 + yP12 * yP12 + zP12 * zP12);
 }
 
 double Particle::distance_xy(Particle *p){
@@ -133,11 +143,21 @@ int Particle::hardSphere(Particle **particles){
     int i = 0;
     int j = 0;
 
-    for(i = 0; i < Particle::numOfParticles; i++){
-        if(i != this->index){
-            if(this->distance(particles[i]) < (this->d+particles[i]->d)/2*(this->d+particles[i]->d)/2){
-                return 0;
-            }
+    // for(i = 0; i < Particle::numOfParticles; i++){
+    //     if(i != this->index){
+    //         if(this->distance(particles[i]) < (this->d+particles[i]->d)/2*(this->d+particles[i]->d)/2){
+    //             return 0;
+    //         }
+    //     }
+    // }
+    for(i = this->index + 1; i < Particle::numOfParticles; i++){
+        if(Particle::distances[this->index][particles[i]->index] < (this->d+particles[i]->d)/2){
+            return 0;
+        }
+    }
+    for(i = 0; i < this->index; i++){
+        if(Particle::distances[particles[i]->index][this->index] < (this->d+particles[i]->d)/2){
+            return 0;
         }
     }
     return 1;
@@ -456,4 +476,24 @@ void Particle::write_coordinates(char name[], Particle **particles){
     }
     fprintf(f, "%lf    %lf     %lf\n", Base::xL/10, Base::yL/10, Base::zL/10);
     fclose(f);
+}
+
+void Particle::update_distances(Particle *p, Particle **particles){
+    for(int i = p->index + 1; i < Particle::numOfParticles; i++){
+        Particle::distances[p->index][i] = p->distance(particles[i]);
+    }
+    for(int i = 0; i < p->index; i++){
+        Particle::distances[i][p->index] = p->distance(particles[i]);
+    }
+}
+
+void Particle::update_distances(Particle **particles){
+    int k = 0;
+    for(int i = 0; i < Particle::numOfParticles; i++){
+        k = i + 1;
+        while(k < Particle::numOfParticles){
+            Particle::distances[i][k] = particles[i]->distance(particles[k]);
+            k++;
+        }
+    }
 }
