@@ -1,5 +1,5 @@
 #include "ewald3D.h"
-#include "omp.h"
+//#include "omp.h"
 Ewald3D::Ewald3D(){
     kNumMax = 1000000;
     kNum = 0;
