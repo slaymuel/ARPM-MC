@@ -243,20 +243,20 @@ double Ewald3D::get_energy(Particle **particles){
             //}
             j++;
         }
-        dipoleMoment[0] += particles[i]->q * particles[i]->pos[0];
-        dipoleMoment[1] += particles[i]->q * particles[i]->pos[1];
-        dipoleMoment[2] += particles[i]->q * particles[i]->pos[2];
+        //dipoleMoment[0] += particles[i]->q * particles[i]->pos[0];
+        //dipoleMoment[1] += particles[i]->q * particles[i]->pos[1];
+        //dipoleMoment[2] += particles[i]->q * particles[i]->pos[2];
         //reciprocal += get_reciprocal2(particles[i]);
         //self += get_self_correction(particles[i]);
     }
 
-    corr = norm(dipoleMoment);
-    corr *= corr;
-    corr = 2 * PI * corr/(3 * Base::xL * Base::yL * Base::zL);
+    //corr = norm(dipoleMoment);
+    //corr *= corr;
+    //corr = 2 * PI * corr/(3 * Base::xL * Base::yL * Base::zL);
     reciprocal = 2 * PI/(Base::xL * Base::yL * Base::zL) * reciprocal;
     //self = alpha/sqrt(PI) * self;
     //printf("Dipole moment: %lf\n", corr);
     //printf("self term: %lf\n", selfTerm);
     //printf("Real: %lf, self: %lf, reciprocal: %lf\n", real, self, reciprocal);
-    return Base::lB * (real + reciprocal + corr) - selfTerm;
+    return Base::lB * (real + reciprocal) - selfTerm;
 }
