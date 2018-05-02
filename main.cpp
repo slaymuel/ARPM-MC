@@ -205,7 +205,7 @@ int main(int argc, char *argv[])
             //zHist->sampleHisto(particles, 2);
         //}
         if(i % 100 == 0){
-            if(mc.mcmove(particles, Base::zL)){
+            if(mc.mcmove(particles, Base::xL)){
                 prevAccepted++; 
             }
         }
@@ -217,7 +217,7 @@ int main(int argc, char *argv[])
 
         Base::totalMoves++;
         
-        if(i % 1 == 10000 && i != 0){
+        if(i % 10000 == 0 && i != 0){
             energy = MC::ewald3D.get_energy(particles);//mc.get_energy(particles);
             energies[energyOut] = energy;
             energyOut++;
