@@ -7,6 +7,7 @@
 #include "ewald3D.h"
 #include "ewald2D.h"
 #include "direct.h"
+//#include "levin.cpp"
 
 class MC: public Base{
     public:
@@ -18,6 +19,7 @@ class MC: public Base{
         static Ewald3D ewald3D;
         static Ewald2D ewald2D;
         static Direct direct;
+        //static Levin levin;
 };
 
 #endif

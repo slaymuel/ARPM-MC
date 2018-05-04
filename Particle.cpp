@@ -366,7 +366,7 @@ Particle** Particle::read_coordinates(std::string name, bool relative = false, b
             else{
                 particles[j]->pos[0] = x * nano;
                 particles[j]->pos[1] = y * nano;
-                particles[j]->pos[2] = z * nano;    
+                particles[j]->pos[2] = z * nano + Base::wall;    
             }
 
             particles[j]->d = 5;

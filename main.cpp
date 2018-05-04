@@ -8,11 +8,13 @@
 #include "mc.h"
 #include "boost/program_options.hpp"
 #include <iterator>
+//#include "levin.h"
 
 //Initializers
 Ewald3D MC::ewald3D;
 Ewald2D MC::ewald2D;
 Direct MC::direct;
+//Levin MC::levin;
 
 int Particle::numOfParticles = 0;
 double **Particle::distances;
@@ -74,6 +76,9 @@ int main(int argc, char *argv[])
 
     //Simulation parameters
     MC mc;
+
+    //Levin levin;
+    //levin.initialize();
 
     //Command line parser
     po::options_description desc("Command line options:");
@@ -172,6 +177,11 @@ int main(int argc, char *argv[])
     if(vm.count("overlap")){
         mc.equilibrate(particles);
     }
+
+    //Levin levin;
+    //levin.initialize(particles);
+
+    //exit(1);
 
     Analysis *xHist = new Analysis(0.1, Base::xL);
     Analysis *yHist = new Analysis(0.1, Base::yL);

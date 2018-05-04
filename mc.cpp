@@ -106,7 +106,6 @@ int MC::mcmove(Particle **particles, double dr){
         //Get new energy
         //eNew = MC::get_particle_energy(p, particles[p], particles);
         MC::ewald3D.update_reciprocal(_old, particles[p]);
-        
         eNew = MC::ewald3D.get_energy(particles);
 
         //Accept move?
