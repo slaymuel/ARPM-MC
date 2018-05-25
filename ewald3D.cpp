@@ -1,5 +1,8 @@
 #include "ewald3D.h"
+#include "boost/math/special_functions/erf.hpp"
 //#include "omp.h"
+
+
 Ewald3D::Ewald3D(){
     kNumMax = 1000000;
     kNum = 0;
@@ -39,7 +42,8 @@ T Ewald3D::erfc_x( T x )
     const T a3 = 1.421413741;
     const T a4 = -1.453152027;
     const T a5 = 1.061405429;
-    return t * (a1 + t * (a2 + t * (a3 + t * (a4 + t * a5)))) * exp(-x * x);
+    return t * (a1 + t * (a2 + t * (a3 + t * (a4 + t * a5)))) *  exp(-x * x);
+    //return 1;
 }
 
 /**
@@ -214,12 +218,7 @@ double Ewald3D::get_real(Particle *p1, Particle *p2){
     double distance = Particle::distances[p1->index][p2->index];
     //printf("real dist: %lf\n", distance);
     energy = erfc_x(distance * alpha) / distance;
-    //energy = 1/distance;
-    //if(distance >= Base::xL/2 && fabs(energy) >= 1e-3){
-        //printf("Energy is %lf at the boundary maybe you should increase alpha?\n", energy);
-    //    exit(1);
-        //printf("Distance: %lf\n", distance);
-    //}
+
     return p1->q * p2->q * energy;
 }
 
@@ -229,34 +228,41 @@ double Ewald3D::get_energy(Particle **particles){
     double reciprocal = 0;
     int j = 0;
     double dipoleMoment[3] = {0, 0, 0};
-    double corr= 0;
+    double corr = 0;
+    double energy = 0;
+    double distance = 0;
     //printf("alpha is: %lf\n", alpha);
+    
     reciprocal = get_reciprocal();
     //omp_set_num_threads(4);
     //#pragma omp parallel for reduction (+:real, self)
+    clock_t start = clock();
     for(int i = 0; i < Particle::numOfParticles; i++){
         j = i + 1;
         while(j < Particle::numOfParticles){
-            //if(j != i){
-                real += get_real(particles[i], particles[j]);
+            distance = Particle::distances[i][j];
+            energy = erfc_x(distance * alpha) / distance;
+
+            real += particles[i]->q * particles[j]->q * energy;
+            //real += get_real(particles[i], particles[j]);
                 //reciprocal += get_reciprocal(particles[i], particles[j]);
             //}
             j++;
         }
-        //dipoleMoment[0] += particles[i]->q * particles[i]->pos[0];
-        //dipoleMoment[1] += particles[i]->q * particles[i]->pos[1];
-        //dipoleMoment[2] += particles[i]->q * particles[i]->pos[2];
+        dipoleMoment[0] += particles[i]->q * particles[i]->pos[0];
+        dipoleMoment[1] += particles[i]->q * particles[i]->pos[1];
+        dipoleMoment[2] += particles[i]->q * particles[i]->pos[2];
         //reciprocal += get_reciprocal2(particles[i]);
         //self += get_self_correction(particles[i]);
     }
-
-    //corr = norm(dipoleMoment);
-    //corr *= corr;
-    //corr = 2 * PI * corr/(3 * Base::xL * Base::yL * Base::zL);
+    printf("Time: %lu\n", clock() - start);
+    corr = norm(dipoleMoment);
+    corr *= corr;
+    corr = 2 * PI * corr/(3 * Base::xL * Base::yL * Base::zL);
     reciprocal = 2 * PI/(Base::xL * Base::yL * Base::zL) * reciprocal;
     //self = alpha/sqrt(PI) * self;
     //printf("Dipole moment: %lf\n", corr);
     //printf("self term: %lf\n", selfTerm);
     //printf("Real: %lf, self: %lf, reciprocal: %lf\n", real, self, reciprocal);
-    return Base::lB * (real + reciprocal) - selfTerm;
+    return Base::lB * (real + reciprocal + corr) - selfTerm;
 }

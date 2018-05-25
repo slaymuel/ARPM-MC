@@ -13,6 +13,7 @@ class Levin{
         Levin();
         double get_energy();
         void initialize(Particle **particles);
+        void update_f(Particle *_old, Particle *_new);
 
     private:
         int kNumMax;
@@ -27,6 +28,8 @@ class Levin{
         Eigen::ArrayXd f2;
         Eigen::ArrayXd f3;
         Eigen::ArrayXd f4;
+        Eigen::ArrayXd eFactors;
+        double uGamma;
         double get_polarization();
         
 };

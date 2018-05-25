@@ -139,6 +139,11 @@ double Particle::distance_z(Particle *p){
     return distance;
 }
 
+// double Particle::com_distance(Particle *p){
+
+
+// }
+
 int Particle::hardSphere(Particle **particles){
     int i = 0;
     int j = 0;
@@ -241,8 +246,8 @@ Particle** Particle::create_particles(int num){
     for(i = 0; i < num; i++){
         particles[i] = new Particle();
         particles[i]->index = i;
-        particles[i]->d = 5;
-        particles[i]->b = 0;
+        particles[i]->d = 5;    //Diameter of particles
+        particles[i]->b = 0; //Length of charge displacement vector
         particles[i]->pos = (double*)malloc(3 * sizeof(double));
 
         //Get random center of mass coordinates
@@ -254,6 +259,7 @@ Particle** Particle::create_particles(int num){
         particles[i]->chargeDisp[0] = (double) rand()/RAND_MAX * 2 - 1;
         particles[i]->chargeDisp[1] = (double) rand()/RAND_MAX * 2 - 1;
         particles[i]->chargeDisp[2] = (double) rand()/RAND_MAX * 2 - 1;
+
         //Normalize charge displacement vector and set length to b
         norm = sqrt(particles[i]->chargeDisp[0] * particles[i]->chargeDisp[0] +
                     particles[i]->chargeDisp[1] * particles[i]->chargeDisp[1] +

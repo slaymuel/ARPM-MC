@@ -8,7 +8,8 @@
 #include "mc.h"
 #include "boost/program_options.hpp"
 #include <iterator>
-//#include "levin.h"
+#include "levin.h"
+#include <ctime>
 
 //Initializers
 Ewald3D MC::ewald3D;
@@ -161,7 +162,6 @@ int main(int argc, char *argv[])
             numOfParticles = vm["density"].as<double>()/pow(diameter, 3)*(Base::xL * Base::yL * Base::zL);
             printf("%d particles will be created\n", numOfParticles);
             particles = Particle::create_particles(numOfParticles);
-            //mc.equilibrate(particles);
             density = (double)numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(diameter, 3);
         }
     }
@@ -206,7 +206,9 @@ int main(int argc, char *argv[])
     Base::eCummulative = MC::ewald3D.get_energy(particles);
     // ///////////////////////////////         Main MC-loop          ////////////////////////////////////////
     printf("\nRunning main MC-loop at temperature: %lf\n\n", T);
-    for(int i = 0; i < 5000000; i++){
+
+    for(int i = 0; i < 20; i++){
+        clock_t start = clock();
         //if(i % 1000 == 0 && i > 100){
             //sampleRDF(particles, zHisto, binWidth);
             //printf("Sampling...\n");
@@ -214,20 +216,23 @@ int main(int argc, char *argv[])
             //yHist->sampleHisto(particles, 1);
             //zHist->sampleHisto(particles, 2);
         //}
+        //energy = MC::ewald3D.get_energy(particles);
+        //energy = MC::ewald3D.get_energy(particles);
+        printf("Iteration: %d\n", i);
         if(i % 100 == 0){
             if(mc.mcmove(particles, Base::xL)){
-                prevAccepted++; 
+               prevAccepted++; 
             }
         }
         else{
             if(mc.mcmove(particles, 0.5)){
-                prevAccepted++; 
+               prevAccepted++; 
             }    
         }
 
         Base::totalMoves++;
         
-        if(i % 10000 == 0 && i != 0){
+        if(i % 1000 == 0 && i != 0){
             energy = MC::ewald3D.get_energy(particles);//mc.get_energy(particles);
             energies[energyOut] = energy;
             energyOut++;
@@ -245,6 +250,7 @@ int main(int argc, char *argv[])
             }
             prevAccepted = 0;
         }
+        printf("One iteration: %lu\n", clock() - start);
         
     }
     //////////////////////////////////////////////////////////////////////////////////////////////////////

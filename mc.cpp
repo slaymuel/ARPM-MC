@@ -82,14 +82,15 @@ int MC::mcmove(Particle **particles, double dr){
     //Calculate old energy
     //eOld = MC::get_particle_energy(p, particles[p], particles);
     eOld = MC::ewald3D.get_energy(particles);
-
     //Save old particle state
+    
     _old->pos = (double*)malloc(3 * sizeof(double));
     _old->pos[0] = particles[p]->pos[0];
     _old->pos[1] = particles[p]->pos[1];
     _old->pos[2] = particles[p]->pos[2];
     _old->q = particles[p]->q;
     _old->index = particles[p]->index;
+    
     //printf("oldpos: %lf %lf %lf\n", particles[p]->pos[0], particles[p]->pos[1], particles[p]->pos[2]);
     //Generate new trial coordinates
     particles[p]->pos[0] = particles[p]->pos[0] + (ran2::get_random()*2 - 1) * dr;
@@ -148,7 +149,6 @@ int MC::mcmove(Particle **particles, double dr){
 
     free(_old->pos);
     delete _old;
-    //exit(1);
     return accepted;
 }
 
