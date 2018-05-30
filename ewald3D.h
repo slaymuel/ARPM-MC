@@ -5,7 +5,6 @@
 #include "particle.h"
 #include <vector>
 #include <complex>
-//#include <eigen3/Eigen/Dense>
 
 class Ewald3D{
     public:

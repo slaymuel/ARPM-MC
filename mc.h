@@ -12,7 +12,8 @@
 class MC: public Base{
     public:
         void equilibrate(Particle **particles);
-        static int mcmove(Particle **particles, double dr);
+        static int trans_move(Particle **particles, double dr);
+        static int charge_rot_move(Particle **particles);
         static double get_particle_energy(int pInd, Particle *p, Particle **particles);
         double get_energy(Particle **particles);
         void disperse(Particle **particles);

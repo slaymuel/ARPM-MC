@@ -203,12 +203,13 @@ int main(int argc, char *argv[])
     //Update cumulative energy
     //Base::eCummulative = mc.get_energy(particles);
     int energyOut = 0;
-    Base::eCummulative = MC::ewald3D.get_energy(particles);
+    //Base::eCummulative = MC::ewald3D.get_energy(particles);
+    Base::eCummulative = MC::direct.get_energy(particles);
     // ///////////////////////////////         Main MC-loop          ////////////////////////////////////////
-    printf("\nRunning main MC-loop at temperature: %lf\n\n", T);
+    printf("\nRunning main MC-loop at temperature: %lf, Bjerrum length is %lf\n\n", T, Base::lB);
 
-    for(int i = 0; i < 20; i++){
-        clock_t start = clock();
+    for(int i = 0; i < 5000000; i++){
+        //clock_t start = clock();
         //if(i % 1000 == 0 && i > 100){
             //sampleRDF(particles, zHisto, binWidth);
             //printf("Sampling...\n");
@@ -218,31 +219,32 @@ int main(int argc, char *argv[])
         //}
         //energy = MC::ewald3D.get_energy(particles);
         //energy = MC::ewald3D.get_energy(particles);
-        printf("Iteration: %d\n", i);
+        //printf("Iteration: %d\n", i);
         if(i % 100 == 0){
-            if(mc.mcmove(particles, Base::xL)){
+            if(mc.trans_move(particles, Base::xL)){
                prevAccepted++; 
             }
         }
         else{
-            if(mc.mcmove(particles, 0.5)){
+            if(mc.trans_move(particles, 0.1)){
                prevAccepted++; 
             }    
         }
 
         Base::totalMoves++;
         
-        if(i % 1000 == 0 && i != 0){
-            energy = MC::ewald3D.get_energy(particles);//mc.get_energy(particles);
+        if(i % 10000 == 0 && i != 0){
+            //energy = MC::ewald3D.get_energy(particles);//mc.get_energy(particles);
+            energy = MC::direct.get_energy(particles);
             energies[energyOut] = energy;
             energyOut++;
-            Particle::write_coordinates(outName , particles);
+            //Particle::write_coordinates(outName , particles);
             printf("Iteration: %d\n", i);
             printf("Energy: %lf\n", energy);
             //printf("Error: ");
             //printf("%lf\n", fabs(energy - Base::eCummulative)/fabs(Base::eCummulative));
             printf("Acceptance ratio: %lf\n", (double)Base::acceptedMoves/Base::totalMoves);
-            printf("Acceptance ratio for the last 100000 steps: %lf\n\n", (double)prevAccepted/100000.0);
+            printf("Acceptance ratio for the last 10000 steps: %lf\n\n", (double)prevAccepted/10000.0);
             if(fabs(energy - Base::eCummulative)/fabs(energy) > pow(10, -12)){
                 printf("Error is too large!\n");
                 printf("Error: %lf\n", fabs(energy - Base::eCummulative)/fabs(energy));
@@ -250,7 +252,7 @@ int main(int argc, char *argv[])
             }
             prevAccepted = 0;
         }
-        printf("One iteration: %lu\n", clock() - start);
+        //printf("One iteration: %lu\n", clock() - start);
         
     }
     //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -268,6 +270,7 @@ int main(int argc, char *argv[])
     }
     printf("\n");
     //Write coordinates to file
+    printf("Saving output coordinates to: %s\n", outName);
     Particle::write_coordinates(outName , particles);
     // FILE *f = fopen("output_ewald.gro", "w");
     // if(f == NULL){
@@ -285,7 +288,7 @@ int main(int argc, char *argv[])
     //Clean up allocated memory
     printf("Cleaning up...\n");
     for(int i = 0; i < Particle::numOfParticles; i++){
-        free(particles[i]->pos);
+        //free(particles[i]->pos);
         free(particles[i]);
     }
     //for(i = 0; i < numOfCells; i++){

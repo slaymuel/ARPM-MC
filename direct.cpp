@@ -12,9 +12,18 @@ double Direct::norm(T vec){
 double Direct::get_energy(Particle **particles){
     double energy;
     double central = get_central(particles);
-    double replicates = 1.0/2.0 * get_replicates(particles);
+    double replicates = 0;//1.0/2.0 * get_replicates(particles);
 
-    printf("Central box: %lf Replicates: %lf\n", central, replicates);
+    //printf("Central box: %lf Replicates: %lf\n", central, replicates);
+    return Base::lB * (replicates + central);
+}
+
+double Direct::get_energy(Particle **particles, Particle *p){
+    double energy;
+    double central = get_central(particles, p);
+    double replicates = 0;//1.0/2.0 * get_replicates(particles);
+
+    //printf("Central box: %lf Replicates: %lf\n", central, replicates);
     return Base::lB * (replicates + central);
 }
 
@@ -70,10 +79,11 @@ double Direct::get_central(Particle **particles){
         k = i + 1;
         while(k < Particle::numOfParticles){
             if(i != k){
-                double den[] = {particles[i]->pos[0] - particles[k]->pos[0], 
-                                particles[i]->pos[1] - particles[k]->pos[1], 
-                                particles[i]->pos[2] - particles[k]->pos[2]};
-                dist = norm(den);
+                // double den[] = {particles[i]->pos[0] - particles[k]->pos[0], 
+                //                 particles[i]->pos[1] - particles[k]->pos[1], 
+                //                 particles[i]->pos[2] - particles[k]->pos[2]};
+                // dist = norm(den);
+                dist = Particle::distances[i][k];
                 //dist = sqrt(particles[i]->distance(particles[k]));
                 energy += particles[i]->q * particles[k]->q * 1/dist;
             }
@@ -81,5 +91,21 @@ double Direct::get_central(Particle **particles){
         }  
     }
 
+    return energy;
+}
+
+double Direct::get_central(Particle **particles, Particle *p){
+    int k = 0;
+    double energy = 0;
+    double dist = 0;
+
+    for(int i = 0; i < p->index; i++){
+            dist = Particle::distances[i][p->index];
+            energy += particles[i]->q * p->q * 1/dist;
+    }
+    for(int i = p->index + 1; i < Particle::numOfParticles; i++){
+        dist = Particle::distances[p->index][i];
+        energy += particles[i]->q * p->q * 1/dist;
+    }
     return energy;
 }   

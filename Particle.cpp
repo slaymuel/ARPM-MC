@@ -16,23 +16,23 @@ Particle::Particle(){
 }
 void Particle::pbc(){
     //Translate particles according to periodic boundary conditions
-    if(this->pos[0] > xL){
-        this->pos[0] = this->pos[0] - xL;
+    if(this->com[0] > xL){
+        this->com[0] = this->com[0] - xL;
     }
-    if(this->pos[0] < 0){
-        this->pos[0] = this->pos[0] + xL;
+    if(this->com[0] < 0){
+        this->com[0] = this->com[0] + xL;
     }
-    if(this->pos[1] > yL){
-        this->pos[1] = this->pos[1] - yL;
+    if(this->com[1] > yL){
+        this->com[1] = this->com[1] - yL;
     }
-    if(this->pos[1] < 0){
-        this->pos[1] = this->pos[1] + yL;
+    if(this->com[1] < 0){
+        this->com[1] = this->com[1] + yL;
     }
-    if(this->pos[2] > zL){
-        this->pos[2] = this->pos[2] - zL;
+    if(this->com[2] > zL){
+        this->com[2] = this->com[2] - zL;
     }
-    if(this->pos[2] < 0){
-        this->pos[2] = this->pos[2] + zL;
+    if(this->com[2] < 0){
+        this->com[2] = this->com[2] + zL;
     }
 }
 
@@ -59,52 +59,59 @@ void Particle::pbc_xy(){
 //     this->pbc();
 // }
 
-void Particle::randomMove(double stepSize){
-    this->pos[0] += ((double)rand()/RAND_MAX * 2 - 1.0) * stepSize;
-    this->pos[1] += ((double)rand()/RAND_MAX * 2 - 1.0) * stepSize;
-    this->pos[2] += ((double)rand()/RAND_MAX * 2 - 1.0) * stepSize;
+void Particle::random_move(double stepSize){
+    this->com[0] += (ran2::get_random()*2 - 1.0) * stepSize;
+    this->com[1] += (ran2::get_random()*2 - 1.0) * stepSize;
+    this->com[2] += (ran2::get_random()*2 - 1.0) * stepSize;
 
+    // this->pos[0] = this->com[0] + this->chargeDisp[0];
+    // this->pos[1] = this->com[1] + this->chargeDisp[1];
+    // this->pos[2] = this->com[2] + this->chargeDisp[2];
+    
+    this->pbc();
+    this->pos = this->com + this->chargeDisp;
+}
+
+void Particle::random_charge_rot(){
+    double norm;
+
+    this->chargeDisp[0] = (double) rand()/RAND_MAX * 2 - 1;
+    this->chargeDisp[1] = (double) rand()/RAND_MAX * 2 - 1;
+    this->chargeDisp[2] = (double) rand()/RAND_MAX * 2 - 1;
+    norm = sqrt(this->chargeDisp.dot(this->chargeDisp));
+    this->chargeDisp = this->b * this->chargeDisp/norm;
+
+    // this->pos[0] = this->com[0] + this->chargeDisp[0];
+    // this->pos[1] = this->com[1] + this->chargeDisp[1];
+    // this->pos[2] = this->com[2] + this->chargeDisp[2];
+    this->pos = this->com + this->chargeDisp;
     this->pbc();
 }
 
 double Particle::distance(Particle *p){
     //Calculate distance between particles
-    // double xP1 = p->pos[0];
-    // double yP1 = p->pos[1];
-    // double zP1 = p->pos[2];
-    // double xP2 = this->pos[0];
-    // double yP2 = this->pos[1];
-    // double zP2 = this->pos[2];
-    double xP12 = p->pos[0] - this->pos[0];
-    double yP12 = p->pos[1] - this->pos[1];
-    double zP12 = p->pos[2] - this->pos[2];
+    Eigen::Vector3d disp;
+    disp = p->pos - this->pos;
 
-    if(xP12 < -1 * xL/2){
-        //xP2 = xP2 - xL;
-        xP12 += xL;
+    if(disp[0] < -1 * xL/2){
+        disp[0] += xL;
     }
-    if(xP12 > xL/2){
-        //xP2 = xP2 + xL;
-        xP12 -= xL;
+    if(disp[0] > xL/2){
+        disp[0] -= xL;
     }
-    if(yP12 < -1 * yL/2){
-        //yP2 = yP2 - yL;
-        yP12 += yL;
+    if(disp[1] < -1 * yL/2){
+        disp[1] += yL;
     }
-    if(yP12 > yL/2){
-        //yP2 = yP2 + yL;
-        yP12 -= yL;
+    if(disp[1] > yL/2){
+        disp[1] -= yL;
     }
-    if(zP12 < -1 * zL/2){
-        //zP2 = zP2 - zL;
-        zP12 += zL;
+    if(disp[2] < -1 * zL/2){
+        disp[2] += zL;
     }
-    if(zP12 > zL/2){
-        //zP2 = zP2 + zL;
-        zP12 -= zL;
+    if(disp[2] > zL/2){
+        disp[2] -= zL;
     }
-    //return (pow((xP1 - xP2), 2) + pow((yP1 - yP2), 2) + pow((zP1 - zP2), 2));
-    return sqrt(xP12 * xP12 + yP12 * yP12 + zP12 * zP12);
+    return sqrt(disp.dot(disp));
 }
 
 double Particle::distance_xy(Particle *p){
@@ -139,32 +146,52 @@ double Particle::distance_z(Particle *p){
     return distance;
 }
 
-// double Particle::com_distance(Particle *p){
+double Particle::com_distance(Particle *p){
+    Eigen::Vector3d disp;
+    disp = p->com - this->com;
 
+    if(disp[0] < -1 * xL/2){
+        disp[0] += xL;
+    }
+    if(disp[0] > xL/2){
+        disp[0] -= xL;
+    }
+    if(disp[1] < -1 * yL/2){
+        disp[1] += yL;
+    }
+    if(disp[1] > yL/2){
+        disp[1] -= yL;
+    }
+    if(disp[2] < -1 * zL/2){
+        disp[2] += zL;
+    }
+    if(disp[2] > zL/2){
+        disp[2] -= zL;
+    }
+    return disp.dot(disp);
+}
 
-// }
-
-int Particle::hardSphere(Particle **particles){
+int Particle::hard_sphere(Particle **particles){
     int i = 0;
     int j = 0;
 
-    // for(i = 0; i < Particle::numOfParticles; i++){
-    //     if(i != this->index){
-    //         if(this->distance(particles[i]) < (this->d+particles[i]->d)/2*(this->d+particles[i]->d)/2){
-    //             return 0;
-    //         }
+    for(i = 0; i < Particle::numOfParticles; i++){
+        if(i != this->index){
+            if(this->com_distance(particles[i]) < (this->d+particles[i]->d)/2*(this->d+particles[i]->d)/2){
+                return 0;
+            }
+        }
+    }
+    // for(i = this->index + 1; i < Particle::numOfParticles; i++){
+    //     if(Particle::distances[this->index][particles[i]->index] < (this->d+particles[i]->d)/2){
+    //         return 0;
     //     }
     // }
-    for(i = this->index + 1; i < Particle::numOfParticles; i++){
-        if(Particle::distances[this->index][particles[i]->index] < (this->d+particles[i]->d)/2){
-            return 0;
-        }
-    }
-    for(i = 0; i < this->index; i++){
-        if(Particle::distances[particles[i]->index][this->index] < (this->d+particles[i]->d)/2){
-            return 0;
-        }
-    }
+    // for(i = 0; i < this->index; i++){
+    //     if(Particle::distances[particles[i]->index][this->index] < (this->d+particles[i]->d)/2){
+    //         return 0;
+    //     }
+    // }
     return 1;
 }
 
@@ -248,7 +275,7 @@ Particle** Particle::create_particles(int num){
         particles[i]->index = i;
         particles[i]->d = 5;    //Diameter of particles
         particles[i]->b = 0; //Length of charge displacement vector
-        particles[i]->pos = (double*)malloc(3 * sizeof(double));
+        //particles[i]->pos = (double*)malloc(3 * sizeof(double));
 
         //Get random center of mass coordinates
         particles[i]->com[0] = (double) rand()/RAND_MAX * Base::xL;
@@ -264,17 +291,14 @@ Particle** Particle::create_particles(int num){
         norm = sqrt(particles[i]->chargeDisp[0] * particles[i]->chargeDisp[0] +
                     particles[i]->chargeDisp[1] * particles[i]->chargeDisp[1] +
                     particles[i]->chargeDisp[2] * particles[i]->chargeDisp[2]);
-        particles[i]->chargeDisp[0] = particles[i]->b * particles[i]->chargeDisp[0]/norm;
-        particles[i]->chargeDisp[1] = particles[i]->b * particles[i]->chargeDisp[1]/norm;
-        particles[i]->chargeDisp[2] = particles[i]->b * particles[i]->chargeDisp[2]/norm;
+
+        particles[i]->chargeDisp = particles[i]->b * particles[i]->chargeDisp/norm;
 
         //Calculate position of the charge
-        particles[i]->pos[0] = particles[i]->com[0] + particles[i]->chargeDisp[0];
-        particles[i]->pos[1] = particles[i]->com[1] + particles[i]->chargeDisp[1];
-        particles[i]->pos[2] = particles[i]->com[2] + particles[i]->chargeDisp[2];
+        particles[i]->pos = particles[i]->com + particles[i]->chargeDisp;
         
-        if(particles[i]->pos[2] < particles[i]->d/2 || particles[i]->pos[2] > Base::zL - particles[i]->d/2){
-            printf("%lf %lf %lf Particle in forbidden area...\n", particles[i]->pos[0], particles[i]->pos[1], particles[i]->pos[2]);
+        if(particles[i]->com[2] < particles[i]->d/2 || particles[i]->com[2] > Base::zL - particles[i]->d/2){
+            printf("%lf %lf %lf Particle in forbidden area...\n", particles[i]->com[0], particles[i]->com[1], particles[i]->com[2]);
             exit(1);
         }
 
@@ -321,7 +345,7 @@ int Particle::get_overlaps(Particle **particles){
         j = i + 1;
         while(j < Particle::numOfParticles){
             if(i != j){
-                if(particles[i]->distance_xy(particles[j]) < 25){
+                if(particles[i]->com_distance(particles[j]) < 25){
                     overlaps++;
                 }
             }
@@ -362,7 +386,7 @@ Particle** Particle::read_coordinates(std::string name, bool relative = false, b
                 break; 
             } // error
             particles[j] = new Particle();
-            particles[j]->pos = (double*) malloc(3 * sizeof(double));
+            //particles[j]->pos = (double*) malloc(3 * sizeof(double));
 
             if(relative){
                 particles[j]->pos[0] = Base::xL * x;
@@ -420,7 +444,7 @@ Particle** Particle::read_jan(std::string pName, std::string nName){
                 break; 
             } // error
             particles[j] = new Particle();
-            particles[j]->pos = (double*) malloc(3 * sizeof(double));
+            //particles[j]->pos = (double*) malloc(3 * sizeof(double));
 
             particles[j]->pos[0] = x + Base::xL/2;
             particles[j]->pos[1] = y + Base::yL/2;
@@ -447,7 +471,7 @@ Particle** Particle::read_jan(std::string pName, std::string nName){
                 break; 
             } // error
             particles[j] = new Particle();
-            particles[j]->pos = (double*) malloc(3 * sizeof(double));
+            //particles[j]->pos = (double*) malloc(3 * sizeof(double));
 
             particles[j]->pos[0] = x + Base::xL/2;
             particles[j]->pos[1] = y + Base::yL/2;
@@ -475,16 +499,16 @@ void Particle::write_coordinates(char name[], Particle **particles){
         printf("Can't open file!\n");
         exit(1);
     }
-    fprintf(f, "File created by .....\n");
+    fprintf(f, "Generated by Slaymulator.\n");
     fprintf(f, "%d\n", Particle::numOfParticles);
     for(i = 0; i < Particle::numOfParticles; i++){
-        fprintf(f, "%5d%-5s%5s%5d%8.3f%8.3f%8.3f\n", 1, "liq", particles[i]->name, i, particles[i]->pos[0]/10, particles[i]->pos[1]/10, particles[i]->pos[2]/10);
+        fprintf(f, "%5d%-5s%5s%5d%8.3f%8.3f%8.3f\n", 1, "liq", particles[i]->name, i, particles[i]->com[0]/10, particles[i]->com[1]/10, particles[i]->com[2]/10);
     }
     fprintf(f, "%lf    %lf     %lf\n", Base::xL/10, Base::yL/10, Base::zL/10);
     fclose(f);
 }
 
-void Particle::update_distances(Particle *p, Particle **particles){
+void Particle::update_distances(Particle **particles, Particle *p){
     for(int i = p->index + 1; i < Particle::numOfParticles; i++){
         Particle::distances[p->index][i] = p->distance(particles[i]);
     }

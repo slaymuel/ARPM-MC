@@ -52,7 +52,21 @@ double MC::get_particle_energy(int pInd, Particle *p, Particle **particles){
     return energy;
 }
 
-int MC::mcmove(Particle **particles, double dr){
+int MC::charge_rot_move(Particle **particles){
+    double norm;
+    int r = ran2::get_random() * Particle::numOfParticles;
+    double energy_old;
+    double energy_new;
+    double acceptProb;
+
+    energy_old = MC::direct.get_central(particles, particles[r]);
+
+    energy_new = MC::direct.get_central(particles, particles[r]);
+    acceptProb = exp(-1 * energy_new - energy_old);
+    return 0;
+}
+
+int MC::trans_move(Particle **particles, double dr){
     double eOld = 0;
     double eNew = 0;
     double dist = 0;
@@ -65,11 +79,9 @@ int MC::mcmove(Particle **particles, double dr){
     double ewald3DEnergy = 0;
     double ewald2DEnergy = 0;
     double directEnergy = 0;
-    double pbc = 0;
     Particle *_old = new Particle(true);
 
     int p =  random * Particle::numOfParticles;
-
     //ewald3DEnergy = MC::ewald3D.get_energy(particles);
     //printf("Ewald3D: %lf\n", ewald3DEnergy);
     //directEnergy = MC::direct.get_energy(particles);
@@ -81,33 +93,32 @@ int MC::mcmove(Particle **particles, double dr){
 
     //Calculate old energy
     //eOld = MC::get_particle_energy(p, particles[p], particles);
-    eOld = MC::ewald3D.get_energy(particles);
+    //eOld = MC::ewald3D.get_energy(particles);
+    eOld = MC::direct.get_energy(particles, particles[p]);
     //Save old particle state
     
-    _old->pos = (double*)malloc(3 * sizeof(double));
-    _old->pos[0] = particles[p]->pos[0];
-    _old->pos[1] = particles[p]->pos[1];
-    _old->pos[2] = particles[p]->pos[2];
+    //_old->pos = (double*)malloc(3 * sizeof(double));
+    _old->pos = particles[p]->pos;
+    _old->com = particles[p]->com;
     _old->q = particles[p]->q;
     _old->index = particles[p]->index;
     
     //printf("oldpos: %lf %lf %lf\n", particles[p]->pos[0], particles[p]->pos[1], particles[p]->pos[2]);
     //Generate new trial coordinates
-    particles[p]->pos[0] = particles[p]->pos[0] + (ran2::get_random()*2 - 1) * dr;
-    particles[p]->pos[1] = particles[p]->pos[1] + (ran2::get_random()*2 - 1) * dr;
-    particles[p]->pos[2] = particles[p]->pos[2] + (ran2::get_random()*2 - 1) * dr;
 
     //printf("newpos: %lf %lf %lf\n", particles[p]->pos[0], particles[p]->pos[1], particles[p]->pos[2]);
     //Appy PBC
-    particles[p]->pbc();
-    Particle::update_distances(particles[p], particles);
+    //particles[p]->pbc();
+    particles[p]->random_move(dr);
+    Particle::update_distances(particles, particles[p]);
     //If there is no overlap in new position and it's inside the box
-    if(particles[p]->hardSphere(particles) && particles[p]->pos[2] > particles[p]->d/2 + Base::wall && 
-                                              particles[p]->pos[2] < Base::zL - Base::wall - particles[p]->d/2 ){
+    if(particles[p]->hard_sphere(particles)){// && particles[p]->pos[2] > particles[p]->d/2 + Base::wall && 
+                                              //particles[p]->pos[2] < Base::zL - Base::wall - particles[p]->d/2 ){
         //Get new energy
         //eNew = MC::get_particle_energy(p, particles[p], particles);
-        MC::ewald3D.update_reciprocal(_old, particles[p]);
-        eNew = MC::ewald3D.get_energy(particles);
+        //MC::ewald3D.update_reciprocal(_old, particles[p]);
+        //eNew = MC::ewald3D.get_energy(particles);
+        eNew = MC::direct.get_energy(particles, particles[p]);
 
         //Accept move?
         dE = eNew - eOld;
@@ -125,11 +136,10 @@ int MC::mcmove(Particle **particles, double dr){
             //printf("Accept\n");
         }
         else{   //Reject move
-            MC::ewald3D.update_reciprocal(particles[p], _old);
-            particles[p]->pos[0] = _old->pos[0];
-            particles[p]->pos[1] = _old->pos[1];
-            particles[p]->pos[2] = _old->pos[2];
-            Particle::update_distances(particles[p], particles);
+            //MC::ewald3D.update_reciprocal(particles[p], _old);
+            particles[p]->pos = _old->pos;
+            particles[p]->com = _old->com;
+            Particle::update_distances(particles, particles[p]);
             //if(fabs(Base::lB * MC::ewald3D.get_energy(particles) - eOld) > 1e-4){
             //    printf("oldpos: %lf %lf %lf\n", particles[p]->pos[0], particles[p]->pos[1], particles[p]->pos[2]);
             //    printf("New energy: %lf\n", Base::lB * MC::ewald3D.get_energy(particles));
@@ -141,13 +151,12 @@ int MC::mcmove(Particle **particles, double dr){
     }
 
     else{   //Reject move
-        particles[p]->pos[0] = _old->pos[0];
-        particles[p]->pos[1] = _old->pos[1];
-        particles[p]->pos[2] = _old->pos[2];
-        Particle::update_distances(particles[p], particles);
+        particles[p]->pos = _old->pos;
+        particles[p]->com = _old->com;
+        Particle::update_distances(particles, particles[p]);
     }
 
-    free(_old->pos);
+    //free(_old->pos);
     delete _old;
     return accepted;
 }
@@ -158,7 +167,7 @@ void MC::equilibrate(Particle **particles){
     int i = 0;
     int j = 0;
     double diameter2 = pow(particles[0]->d, 2);
-    double *oldPos = (double*) malloc(3*sizeof(double));
+    Eigen::Vector3d oldPos;
     double random;
     double stepSize = 5;
     int p;
@@ -167,16 +176,16 @@ void MC::equilibrate(Particle **particles){
     while(overlaps > 0){
         random = ran2::get_random();
         p =  random * Particle::numOfParticles;
-        oldPos[0] = particles[p]->pos[0];
-        oldPos[1] = particles[p]->pos[1];
-        oldPos[2] = particles[p]->pos[2];
-        particles[p]->randomMove(5);
-        Particle::update_distances(particles[p], particles);
-        if(!particles[p]->hardSphere(particles) || particles[p]->pos[2] < particles[p]->d/2 + Base::wall || particles[p]->pos[2] > Base::zL - Base::wall - particles[p]->d/2){
-            particles[p]->pos[0] = oldPos[0];
-            particles[p]->pos[1] = oldPos[1];
-            particles[p]->pos[2] = oldPos[2];
-            Particle::update_distances(particles[p], particles);
+        oldPos = particles[p]->com;
+        // oldPos[0] = particles[p]->com[0];
+        // oldPos[1] = particles[p]->com[1];
+        // oldPos[2] = particles[p]->com[2];
+        particles[p]->random_move(5);
+        Particle::update_distances(particles, particles[p]);
+        if(!particles[p]->hard_sphere(particles)){// || particles[p]->pos[2] < particles[p]->d/2 + Base::wall || 
+                                        //particles[p]->pos[2] > Base::zL - Base::wall - particles[p]->d/2){
+            particles[p]->com = oldPos;
+            Particle::update_distances(particles, particles[p]);    //REDO!!!!!!!!!!!!!!!!!
         }
 
         if(i % 50000 == 0){
@@ -214,8 +223,8 @@ void MC::disperse(Particle **particles){
                 oldPos[0] = particles[p]->pos[0];
                 oldPos[1] = particles[p]->pos[1];
                 oldPos[2] = particles[p]->pos[2];
-                particles[p]->randomMove(Base::xL);
-                if(!particles[p]->hardSphere(particles) || particles[p]->pos[2] < particles[p]->d/2 || 
+                particles[p]->random_move(Base::xL);
+                if(!particles[p]->hard_sphere(particles) || particles[p]->pos[2] < particles[p]->d/2 || 
                                                                         particles[p]->pos[2] > Base::zL - particles[p]->d/2){
                         particles[p]->pos[0] = oldPos[0];
                         particles[p]->pos[1] = oldPos[1];
@@ -226,8 +235,8 @@ void MC::disperse(Particle **particles){
                 oldPos[0] = particles[indices[i]]->pos[0];
                 oldPos[1] = particles[indices[i]]->pos[1];
                 oldPos[2] = particles[indices[i]]->pos[2];
-                particles[indices[i]]->randomMove(5);
-                if(!particles[indices[i]]->hardSphere(particles) || particles[indices[i]]->pos[2] < particles[indices[i]]->d/2 || 
+                particles[indices[i]]->random_move(5);
+                if(!particles[indices[i]]->hard_sphere(particles) || particles[indices[i]]->pos[2] < particles[indices[i]]->d/2 || 
                                                                         particles[indices[i]]->pos[2] > Base::zL - particles[indices[i]]->d/2){
                         particles[indices[i]]->pos[0] = oldPos[0];
                         particles[indices[i]]->pos[1] = oldPos[1];
@@ -258,13 +267,13 @@ void MC::disperse(Particle **particles){
     //         oldPos[2] = particles[i]->pos[2];
 
     //         if(i % 9 == 0){
-    //             particles[i]->randomMove(Base::xL);
+    //             particles[i]->random_move(Base::xL);
     //         }
     //         else{
-    //             particles[i]->randomMove(6);
+    //             particles[i]->random_move(6);
     //         }
 
-    //         if(!particles[i]->hardSphere(particles) || particles[i]->pos[2] < particles[i]->d/2 || particles[i]->pos[2] > Base::zL - particles[i]->d/2){
+    //         if(!particles[i]->hard_sphere(particles) || particles[i]->pos[2] < particles[i]->d/2 || particles[i]->pos[2] > Base::zL - particles[i]->d/2){
     //             particles[i]->pos[0] = oldPos[0];
     //             particles[i]->pos[1] = oldPos[1];
     //             particles[i]->pos[2] = oldPos[2];

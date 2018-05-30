@@ -11,25 +11,30 @@ class Particle: public Base{
         double d;
         int q;
         int index;
-        double *pos;    //Coordinates of the charge
+        //double *pos;    //Coordinates of the charge
+        Eigen::Vector3d pos;
+        Eigen::Vector3d chargeDisp;
+        Eigen::Vector3d com;
         char name[3];
-        double chargeDisp[3];   //Charge displacement vector
-        double com[3];  //Center of mass
+        //double chargeDisp[3];   //Charge displacement vector
+        //double com[3];  //Center of mass
         static double **distances;
         static int numOfParticles;
         Particle(bool dummie);
         Particle();
         void pbc();
         void pbc_xy();
-        void randomMove(double stepSize);
+        void random_move(double stepSize);
+        void random_charge_rot();
         void randomMove_xy(double stepSize);
         double distance(Particle *p);
+        double com_distance(Particle *p);
         double distance_xy(Particle *p);
         double distance_z(Particle *p);
-        int hardSphere(Particle **particles);
+        int hard_sphere(Particle **particles);
 
         static void update_distances(Particle **particles);
-        static void update_distances(Particle *p, Particle **particles);
+        static void update_distances(Particle **particles, Particle *p);
         static int get_overlaps(Particle ** particles);
         static void place_particles(Particle **particles);
         static Particle** create_particles(int num);

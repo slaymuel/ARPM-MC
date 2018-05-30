@@ -36,6 +36,7 @@
         "set": "cpp",
         "unordered_map": "cpp",
         "utility": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "core": "cpp"
     }
 }
