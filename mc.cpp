@@ -53,17 +53,47 @@ double MC::get_particle_energy(int pInd, Particle *p, Particle **particles){
 }
 
 int MC::charge_rot_move(Particle **particles){
-    double norm;
-    int r = ran2::get_random() * Particle::numOfParticles;
-    double energy_old;
-    double energy_new;
+    double eOld;
+    double eNew;
     double acceptProb;
+    double dE;
+    int r = ran2::get_random() * Particle::numOfParticles;
+    int accepted = 0;
+    Particle *_old = new Particle(true);
 
-    energy_old = MC::direct.get_central(particles, particles[r]);
+    _old->pos = particles[r]->pos;
+    _old->com = particles[r]->com;
+    _old->chargeDisp = particles[r]->chargeDisp;
+    _old->q = particles[r]->q;
+    _old->index = particles[r]->index;
+    
+    //eOld = MC::direct.get_energy(particles, particles[r]);
+    eOld = MC::ewald3D.get_energy(particles);
 
-    energy_new = MC::direct.get_central(particles, particles[r]);
-    acceptProb = exp(-1 * energy_new - energy_old);
-    return 0;
+    particles[r]->random_charge_rot();
+    Particle::update_distances(particles, particles[r]);
+    MC::ewald3D.update_reciprocal(_old, particles[r]);
+    //eNew = MC::direct.get_energy(particles, particles[r]);
+    eNew = MC::ewald3D.get_energy(particles);
+    dE = eNew - eOld;
+    acceptProb = exp(-1 * dE);
+    double p = ran2::get_random();
+
+    //Accept move
+    if(p <= acceptProb){
+        accepted = 1;
+        Base::eCummulative += dE;
+        Base::acceptedMoves++;
+    }
+    //Reject
+    else{
+        MC::ewald3D.update_reciprocal(particles[r], _old);
+        particles[r]->chargeDisp = _old->chargeDisp;
+        particles[r]->pos = _old->pos;
+        Particle::update_distances(particles, particles[r]);
+    }
+    delete _old;
+    return accepted;
 }
 
 int MC::trans_move(Particle **particles, double dr){
@@ -93,8 +123,9 @@ int MC::trans_move(Particle **particles, double dr){
 
     //Calculate old energy
     //eOld = MC::get_particle_energy(p, particles[p], particles);
-    //eOld = MC::ewald3D.get_energy(particles);
-    eOld = MC::direct.get_energy(particles, particles[p]);
+    eOld = MC::ewald3D.get_energy(particles);
+    //eOld = MC::direct.get_energy(particles, particles[p]);
+    //printf("old: %lf\n", eOld);
     //Save old particle state
     
     //_old->pos = (double*)malloc(3 * sizeof(double));
@@ -103,12 +134,7 @@ int MC::trans_move(Particle **particles, double dr){
     _old->q = particles[p]->q;
     _old->index = particles[p]->index;
     
-    //printf("oldpos: %lf %lf %lf\n", particles[p]->pos[0], particles[p]->pos[1], particles[p]->pos[2]);
     //Generate new trial coordinates
-
-    //printf("newpos: %lf %lf %lf\n", particles[p]->pos[0], particles[p]->pos[1], particles[p]->pos[2]);
-    //Appy PBC
-    //particles[p]->pbc();
     particles[p]->random_move(dr);
     Particle::update_distances(particles, particles[p]);
     //If there is no overlap in new position and it's inside the box
@@ -116,10 +142,10 @@ int MC::trans_move(Particle **particles, double dr){
                                               //particles[p]->pos[2] < Base::zL - Base::wall - particles[p]->d/2 ){
         //Get new energy
         //eNew = MC::get_particle_energy(p, particles[p], particles);
-        //MC::ewald3D.update_reciprocal(_old, particles[p]);
-        //eNew = MC::ewald3D.get_energy(particles);
-        eNew = MC::direct.get_energy(particles, particles[p]);
-
+        MC::ewald3D.update_reciprocal(_old, particles[p]);
+        eNew = MC::ewald3D.get_energy(particles);
+        //eNew = MC::direct.get_energy(particles, particles[p]);
+        //printf("new %lf\n", eNew);
         //Accept move?
         dE = eNew - eOld;
         acceptProp = exp(-1*dE);
@@ -136,7 +162,7 @@ int MC::trans_move(Particle **particles, double dr){
             //printf("Accept\n");
         }
         else{   //Reject move
-            //MC::ewald3D.update_reciprocal(particles[p], _old);
+            MC::ewald3D.update_reciprocal(particles[p], _old);
             particles[p]->pos = _old->pos;
             particles[p]->com = _old->com;
             Particle::update_distances(particles, particles[p]);

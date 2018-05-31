@@ -18,6 +18,8 @@ class Analysis: public Base{
     public:
         Analysis(double binWidth, double dLength);
         void sampleHisto(Particle **particles, int d);
+        void sample_rdf(Particle **particles, int *histo, double binWidth);
+        void save_rdf(int *histo, int bins, double binWidth);
         void saveHisto();
 };
 

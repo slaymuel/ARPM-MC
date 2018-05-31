@@ -22,7 +22,6 @@ class Particle: public Base{
         static int numOfParticles;
         Particle(bool dummie);
         Particle();
-        void pbc();
         void pbc_xy();
         void random_move(double stepSize);
         void random_charge_rot();
@@ -40,8 +39,14 @@ class Particle: public Base{
         static Particle** create_particles(int num);
         static Particle** create_dummies(Particle **particles);
         static void write_coordinates(char name[], Particle **particles);
+        static void write_charge_coordinates(char name[], Particle **particles);
         static Particle** read_jan(std::string pName, std::string nName);
+        static Particle** read_arpm_jan(std::string fileName);
         static Particle** read_coordinates(std::string name, bool relative, bool nanometers);
+
+    private:
+        void pbc(Eigen::Vector3d& x);
+        void pbc();
 };
 
 #endif

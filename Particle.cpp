@@ -10,10 +10,12 @@ Particle::Particle(bool dummie){
         numOfParticles++;
     }
 }
+
 Particle::Particle(){
     //Keep track of the number of particles
     numOfParticles++;
 }
+
 void Particle::pbc(){
     //Translate particles according to periodic boundary conditions
     if(this->com[0] > xL){
@@ -33,6 +35,28 @@ void Particle::pbc(){
     }
     if(this->com[2] < 0){
         this->com[2] = this->com[2] + zL;
+    }
+}
+
+void Particle::pbc(Eigen::Vector3d& x){
+    //Translate particles according to periodic boundary conditions
+    if(x[0] > Base::xL){
+        x[0] -= Base::xL;
+    }
+    if(x[0] < 0){
+        x[0] += Base::xL;
+    }
+    if(x[1] > Base::yL){
+        x[1] -= Base::yL;
+    }
+    if(x[1] < 0){
+        x[1] += Base::yL;
+    }
+    if(x[2] > Base::zL){
+        x[2] -= Base::zL;
+    }
+    if(x[2] < 0){
+        x[2] += Base::zL;
     }
 }
 
@@ -68,24 +92,19 @@ void Particle::random_move(double stepSize){
     // this->pos[1] = this->com[1] + this->chargeDisp[1];
     // this->pos[2] = this->com[2] + this->chargeDisp[2];
     
-    this->pbc();
+    pbc(this->com);
     this->pos = this->com + this->chargeDisp;
+    pbc(this->pos);
 }
 
 void Particle::random_charge_rot(){
-    double norm;
-
-    this->chargeDisp[0] = (double) rand()/RAND_MAX * 2 - 1;
-    this->chargeDisp[1] = (double) rand()/RAND_MAX * 2 - 1;
-    this->chargeDisp[2] = (double) rand()/RAND_MAX * 2 - 1;
-    norm = sqrt(this->chargeDisp.dot(this->chargeDisp));
-    this->chargeDisp = this->b * this->chargeDisp/norm;
-
-    // this->pos[0] = this->com[0] + this->chargeDisp[0];
-    // this->pos[1] = this->com[1] + this->chargeDisp[1];
-    // this->pos[2] = this->com[2] + this->chargeDisp[2];
+    this->chargeDisp[0] = ran2::get_random() * 2 - 1;
+    this->chargeDisp[1] = ran2::get_random() * 2 - 1;
+    this->chargeDisp[2] = ran2::get_random() * 2 - 1;
+    
+    this->chargeDisp = this->b * this->chargeDisp.normalized();
     this->pos = this->com + this->chargeDisp;
-    this->pbc();
+    pbc(this->pos);
 }
 
 double Particle::distance(Particle *p){
@@ -492,6 +511,103 @@ Particle** Particle::read_jan(std::string pName, std::string nName){
     return particles;
 }
 
+Particle** Particle::read_arpm_jan(std::string fileName){
+    int i = 0;
+    int j = 0;
+    double x, y, z;
+    int c;
+    std::string line;
+    std::ifstream infile(fileName);
+    Particle** particles;
+
+    //Read positive particles
+    while (std::getline(infile, line)){
+        if(i < 1){
+            std::istringstream iss(line);
+            if (!(iss >> c)) {
+                printf("Error reading file...\n");
+                exit(1); 
+            } // error
+            particles = (Particle**) malloc(c * sizeof(Particle*));
+        }
+        
+        if(i >= 1){
+            std::istringstream iss(line);
+            if (!(iss >> x >> y >> z)) {
+                printf("File in wrong format...\n");
+                break; 
+            } // error
+
+            //Create Cation
+            particles[j] = new Particle();
+            //particles[j]->pos = (double*) malloc(3 * sizeof(double));
+
+            particles[j]->com[0] = x + Base::xL/2;
+            particles[j]->com[1] = y + Base::yL/2;
+            particles[j]->com[2] = z + Base::zL/2;//Base::wall - 2.5;   
+
+            std::getline(infile, line);
+            iss.str(line);
+            if (!(iss >> x >> y >> z)) {
+                printf("File in wrong format...\n");
+                break; 
+            } // error
+
+            particles[j]->pos[0] = x + Base::xL/2;
+            particles[j]->pos[1] = y + Base::yL/2;
+            particles[j]->pos[2] = z + Base::zL/2;
+
+            particles[j]->chargeDisp = particles[j]->com - particles[j]->pos;
+            particles[j]->chargeDisp.normalize();
+            particles[j]->d = 5;
+            particles[j]->index = j;
+            strcpy(particles[j]->name, "Na\0");
+            particles[j]->q = 1.0;
+            particles[j]->b = 1.0;
+            particles[j]->pos = particles[j]->com;
+            j++;
+
+            //Create Anion
+            particles[j] = new Particle();
+            std::getline(infile, line);
+            iss.str(line);
+            if (!(iss >> x >> y >> z)) {
+                printf("File in wrong format...\n");
+                break; 
+            } // error
+            particles[j]->com[0] = x + Base::xL/2;
+            particles[j]->com[1] = y + Base::yL/2;
+            particles[j]->com[2] = z + Base::zL/2;
+
+            std::getline(infile, line);
+            iss.str(line);
+            if (!(iss >> x >> y >> z)) {
+                printf("File in wrong format...\n");
+                break; 
+            } // error
+
+            particles[j]->pos[0] = x + Base::xL/2;
+            particles[j]->pos[1] = y + Base::yL/2;
+            particles[j]->pos[2] = z + Base::zL/2;
+            particles[j]->chargeDisp = particles[j]->com - particles[j]->pos;
+            particles[j]->chargeDisp.normalize();
+            particles[j]->d = 5;
+            particles[j]->index = j;
+            strcpy(particles[j]->name, "Cl\0");
+            particles[j]->q = -1.0;
+            particles[j]->pos = particles[j]->com;
+            particles[j]->b = 1.0;
+            j++;
+        }
+        i++;
+    }
+
+
+    printf("%d particles read from file.\n", j);
+    //exit(1);
+    return particles;
+}
+
 void Particle::write_coordinates(char name[], Particle **particles){
     int i = 0;
     FILE *f = fopen(name, "w");
@@ -502,7 +618,23 @@ void Particle::write_coordinates(char name[], Particle **particles){
     fprintf(f, "Generated by Slaymulator.\n");
     fprintf(f, "%d\n", Particle::numOfParticles);
     for(i = 0; i < Particle::numOfParticles; i++){
-        fprintf(f, "%5d%-5s%5s%5d%8.3f%8.3f%8.3f\n", 1, "liq", particles[i]->name, i, particles[i]->com[0]/10, particles[i]->com[1]/10, particles[i]->com[2]/10);
+        fprintf(f, "%5d%-5s%5s%5d%8.3f%8.3f%8.3f\n", 1, "ion", particles[i]->name, i, particles[i]->com[0]/10, particles[i]->com[1]/10, particles[i]->com[2]/10);
+    }
+    fprintf(f, "%lf    %lf     %lf\n", Base::xL/10, Base::yL/10, Base::zL/10);
+    fclose(f);
+}
+
+void Particle::write_charge_coordinates(char name[], Particle **particles){
+    int i = 0;
+    FILE *f = fopen(name, "w");
+    if(f == NULL){
+        printf("Can't open file!\n");
+        exit(1);
+    }
+    fprintf(f, "Generated by Slaymulator.\n");
+    fprintf(f, "%d\n", Particle::numOfParticles);
+    for(i = 0; i < Particle::numOfParticles; i++){
+        fprintf(f, "%5d%-5s%5s%5d%8.3f%8.3f%8.3f\n", 1, "cha", "H", i, particles[i]->pos[0]/10, particles[i]->pos[1]/10, particles[i]->pos[2]/10);
     }
     fprintf(f, "%lf    %lf     %lf\n", Base::xL/10, Base::yL/10, Base::zL/10);
     fclose(f);

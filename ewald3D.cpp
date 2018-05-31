@@ -227,7 +227,8 @@ double Ewald3D::get_energy(Particle **particles){
     double self = 0;
     double reciprocal = 0;
     int j = 0;
-    double dipoleMoment[3] = {0, 0, 0};
+    //double dipoleMoment[3] = {0, 0, 0};
+    Eigen::Vector3d dipoleMoment;
     double corr = 0;
     double energy = 0;
     double distance = 0;
@@ -236,7 +237,7 @@ double Ewald3D::get_energy(Particle **particles){
     reciprocal = get_reciprocal();
     //omp_set_num_threads(4);
     //#pragma omp parallel for reduction (+:real, self)
-    clock_t start = clock();
+    //clock_t start = clock();
     for(int i = 0; i < Particle::numOfParticles; i++){
         j = i + 1;
         while(j < Particle::numOfParticles){
@@ -255,8 +256,8 @@ double Ewald3D::get_energy(Particle **particles){
         //reciprocal += get_reciprocal2(particles[i]);
         //self += get_self_correction(particles[i]);
     }
-    printf("Time: %lu\n", clock() - start);
-    corr = norm(dipoleMoment);
+    //printf("Time: %lu\n", clock() - start);
+    corr = dipoleMoment.norm();
     corr *= corr;
     corr = 2 * PI * corr/(3 * Base::xL * Base::yL * Base::zL);
     reciprocal = 2 * PI/(Base::xL * Base::yL * Base::zL) * reciprocal;
