@@ -67,14 +67,14 @@ int MC::charge_rot_move(Particle **particles){
     _old->q = particles[r]->q;
     _old->index = particles[r]->index;
     
-    //eOld = MC::direct.get_energy(particles, particles[r]);
-    eOld = MC::ewald3D.get_energy(particles);
+    eOld = MC::direct.get_energy(particles, particles[r]);
+    //eOld = MC::ewald3D.get_energy(particles);
 
     particles[r]->random_charge_rot();
     Particle::update_distances(particles, particles[r]);
-    MC::ewald3D.update_reciprocal(_old, particles[r]);
-    //eNew = MC::direct.get_energy(particles, particles[r]);
-    eNew = MC::ewald3D.get_energy(particles);
+    //MC::ewald3D.update_reciprocal(_old, particles[r]);
+    eNew = MC::direct.get_energy(particles, particles[r]);
+    //eNew = MC::ewald3D.get_energy(particles);
     dE = eNew - eOld;
     acceptProb = exp(-1 * dE);
     double p = ran2::get_random();
@@ -87,7 +87,7 @@ int MC::charge_rot_move(Particle **particles){
     }
     //Reject
     else{
-        MC::ewald3D.update_reciprocal(particles[r], _old);
+        //MC::ewald3D.update_reciprocal(particles[r], _old);
         particles[r]->chargeDisp = _old->chargeDisp;
         particles[r]->pos = _old->pos;
         Particle::update_distances(particles, particles[r]);
@@ -123,8 +123,8 @@ int MC::trans_move(Particle **particles, double dr){
 
     //Calculate old energy
     //eOld = MC::get_particle_energy(p, particles[p], particles);
-    eOld = MC::ewald3D.get_energy(particles);
-    //eOld = MC::direct.get_energy(particles, particles[p]);
+    //eOld = MC::ewald3D.get_energy(particles);
+    eOld = MC::direct.get_energy(particles, particles[p]);
     //printf("old: %lf\n", eOld);
     //Save old particle state
     
@@ -142,9 +142,9 @@ int MC::trans_move(Particle **particles, double dr){
                                               //particles[p]->pos[2] < Base::zL - Base::wall - particles[p]->d/2 ){
         //Get new energy
         //eNew = MC::get_particle_energy(p, particles[p], particles);
-        MC::ewald3D.update_reciprocal(_old, particles[p]);
-        eNew = MC::ewald3D.get_energy(particles);
-        //eNew = MC::direct.get_energy(particles, particles[p]);
+        //MC::ewald3D.update_reciprocal(_old, particles[p]);
+        //eNew = MC::ewald3D.get_energy(particles);
+        eNew = MC::direct.get_energy(particles, particles[p]);
         //printf("new %lf\n", eNew);
         //Accept move?
         dE = eNew - eOld;
@@ -162,7 +162,7 @@ int MC::trans_move(Particle **particles, double dr){
             //printf("Accept\n");
         }
         else{   //Reject move
-            MC::ewald3D.update_reciprocal(particles[p], _old);
+            //MC::ewald3D.update_reciprocal(particles[p], _old);
             particles[p]->pos = _old->pos;
             particles[p]->com = _old->com;
             Particle::update_distances(particles, particles[p]);

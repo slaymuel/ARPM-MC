@@ -60,9 +60,12 @@ int main(int argc, char *argv[])
     int totalMoves = 0;
     int acceptedMoves = 0;
     int numberOfSamples = 0;
+    int iter = 1000000;
     double kb = KB;
     double T = Base::T;
     double beta = 1;
+    double random1;
+    double random2;
     int prevAccepted = 0;
     double *energies = (double*) malloc((numOfSteps/50 + 50) * sizeof(double));
     bool nanometers = false;
@@ -70,7 +73,7 @@ int main(int argc, char *argv[])
     char outName[] = "output_ewald.gro";
     char outName_charges[] = "output_ewald_charges.gro";
     //Analysis
-    int bins = 100;
+    int bins = 500;
     double binWidth = (Base::xL/2)/bins;
     double dist = 0;
     int *histo;
@@ -97,6 +100,7 @@ int main(int argc, char *argv[])
         ("T", po::value<double>(), "Temperature")
         ("o", po::value<std::string>(), "Output filename")
         ("nm", po::value<int>(), "If input file is in nanometers")
+        ("iter", po::value<int>(), "Number of iteration (MC-moves)")
         ("overlap", po::value<int>(), "Remove Overlaps");
     
     po::variables_map vm;        
@@ -170,7 +174,9 @@ int main(int argc, char *argv[])
             density = (double)numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(diameter, 3);
         }
     }
-
+    if(vm.count("iter")){
+        iter= vm["iter"].as<int>();
+    }
     Particle::distances = (double**) malloc(Particle::numOfParticles * sizeof(double*));
     for(int i = 0; i < Particle::numOfParticles; i++){
         Particle::distances[i] = (double*) malloc(Particle::numOfParticles * sizeof(double*));
@@ -210,16 +216,17 @@ int main(int argc, char *argv[])
     //Update cumulative energy
     //Base::eCummulative = mc.get_energy(particles);
     int energyOut = 0;
-    Base::eCummulative = MC::ewald3D.get_energy(particles);
-    //Base::eCummulative = MC::direct.get_energy(particles);
+    //Base::eCummulative = MC::ewald3D.get_energy(particles);
+    Base::eCummulative = MC::direct.get_energy(particles);
+
     // ///////////////////////////////         Main MC-loop          ////////////////////////////////////////
     printf("\nRunning main MC-loop at temperature: %lf, Bjerrum length is %lf\n\n", T, Base::lB);
 
-    for(int i = 0; i < 5000000; i++){
+    for(int i = 0; i < iter; i++){
         //clock_t start = clock();
-        if(i % 5000 == 0 && i >= 100000){
+        double stime = omp_get_wtime();
+        if(i % 100 == 0 && i >= 1000000){
             rdf->sample_rdf(particles, histo, binWidth);
-            printf("Sampling...\n");
             xHist->sampleHisto(particles, 0);
             yHist->sampleHisto(particles, 1);
             zHist->sampleHisto(particles, 2);
@@ -227,27 +234,33 @@ int main(int argc, char *argv[])
         //energy = MC::ewald3D.get_energy(particles);
         //energy = MC::ewald3D.get_energy(particles);
         //printf("Iteration: %d\n", i);
-        if(i % 100 == 0){
-            if(mc.trans_move(particles, Base::xL)){
-               prevAccepted++; 
-            }
-        }
-        else if(i % 3 == 0){
+        random1 = ran2::get_random();
+        random2 = ran2::get_random();
+        if(random2 <= 0.3){
              if(mc.charge_rot_move(particles)){
                 prevAccepted++; 
              }
         }
         else{
-            if(mc.trans_move(particles, 0.1)){
-               prevAccepted++; 
-            }    
+            if(random1 <= 0.1){
+                if(mc.trans_move(particles, Base::xL)){
+                prevAccepted++; 
+                }
+            }
+
+            else{
+                if(mc.trans_move(particles, 0.1)){
+                prevAccepted++; 
+                }    
+            }
         }
+
 
         Base::totalMoves++;
         
-        if(i % 50000 == 0 && i != 0){
-            energy = MC::ewald3D.get_energy(particles);//mc.get_energy(particles);
-            //energy = MC::direct.get_energy(particles);
+        if(i % 10000 == 0 && i != 0){
+            //energy = MC::ewald3D.get_energy(particles);//mc.get_energy(particles);
+            energy = MC::direct.get_energy(particles);
             energies[energyOut] = energy;
             energyOut++;
             //Particle::write_coordinates(outName , particles);
@@ -265,7 +278,7 @@ int main(int argc, char *argv[])
             prevAccepted = 0;
         }
         //printf("One iteration: %lu\n", clock() - start);
-        
+        printf("Time: %lf\n", omp_get_wtime() - stime);
     }
     //////////////////////////////////////////////////////////////////////////////////////////////////////
 

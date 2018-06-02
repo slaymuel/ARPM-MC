@@ -97,15 +97,21 @@ double Direct::get_central(Particle **particles){
 double Direct::get_central(Particle **particles, Particle *p){
     int k = 0;
     double energy = 0;
+    double lenergy = 0;
     double dist = 0;
-
+    //#pragma omp parallel for reduction(+:energy) private(lenergy, dist)
+    //{
     for(int i = 0; i < p->index; i++){
             dist = Particle::distances[i][p->index];
-            energy += particles[i]->q * p->q * 1/dist;
+            lenergy += particles[i]->q * p->q * 1/dist;
     }
+    //}
+    //#pragma omp parallel for reduction(+:energy) private(lenergy, dist)
+    //{
     for(int i = p->index + 1; i < Particle::numOfParticles; i++){
         dist = Particle::distances[p->index][i];
         energy += particles[i]->q * p->q * 1/dist;
     }
+    //}
     return energy;
 }   

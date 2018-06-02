@@ -85,8 +85,10 @@ void Analysis::sample_rdf(Particle **particles, int *histo, double binWidth){
         while(j < Particle::numOfParticles){
             dist = particles[i]->com_distance(particles[j]);
             if(dist < xL2){
-                dist = sqrt(dist);
-                histo[(int)(dist/binWidth)] = histo[(int)(dist/binWidth)] + 2;
+                if(particles[i]->q < 0 && particles[j]->q < 0){
+                    dist = sqrt(dist);
+                    histo[(int)(dist/binWidth)] = histo[(int)(dist/binWidth)] + 2;
+                }
             }
             j++;
         }
@@ -107,9 +109,10 @@ void Analysis::save_rdf(int *histo, int bins, double binWidth){
 
     //Number of particles in ideal gas with same density
     for(i = 0; i < bins; i++){
-        dv = (double)4/3 * PI * (pow(i + 1, 3) - pow(i, 3)) * pow(binWidth, 3);
-        idealDen = dv * Particle::numOfParticles/(Base::xL*Base::yL*Base::zL);
-        fprintf(f, "%lf     %lf\n", i * binWidth, histo[i]/(Particle::numOfParticles * numberOfSamples * idealDen));
+        //dv = (double)4.0/3.0 * PI * (pow(i + 1, 3) - pow(i, 3)) * pow(binWidth, 3);
+        dv = (double)4.0 * PI * pow(i * binWidth, 2) * binWidth;
+        idealDen = dv * 1/2 * Particle::numOfParticles/(Base::xL * Base::yL * Base::zL);
+        fprintf(f, "%lf     %lf\n", i * binWidth, histo[i]/(Particle::numOfParticles * 1/2 * numberOfSamples * idealDen));
     }
     fclose(f);
 }

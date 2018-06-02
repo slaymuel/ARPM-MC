@@ -641,12 +641,17 @@ void Particle::write_charge_coordinates(char name[], Particle **particles){
 }
 
 void Particle::update_distances(Particle **particles, Particle *p){
+    
+    //#pragma omp parallel for default(none) shared(Particle::distances) private(p, particles)
+    //{
     for(int i = p->index + 1; i < Particle::numOfParticles; i++){
         Particle::distances[p->index][i] = p->distance(particles[i]);
     }
+    
     for(int i = 0; i < p->index; i++){
         Particle::distances[i][p->index] = p->distance(particles[i]);
     }
+    //}
 }
 
 void Particle::update_distances(Particle **particles){
