@@ -101,7 +101,7 @@ void Analysis::save_rdf(int *histo, int bins, double binWidth){
     double dv = 0;
     double idealDen = 0;
 
-    FILE *f = fopen("rdf.txt", "w");
+    FILE *f = fopen("rdf_ewald_ewald.txt", "w");
     if(f == NULL){
         printf("Can't open file!\n");
         exit(1);

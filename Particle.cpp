@@ -644,14 +644,19 @@ void Particle::update_distances(Particle **particles, Particle *p){
     
     //#pragma omp parallel for default(none) shared(Particle::distances) private(p, particles)
     //{
-    for(int i = p->index + 1; i < Particle::numOfParticles; i++){
-        Particle::distances[p->index][i] = p->distance(particles[i]);
-    }
-    
-    for(int i = 0; i < p->index; i++){
-        Particle::distances[i][p->index] = p->distance(particles[i]);
-    }
+    double stime = omp_get_wtime();
+    //#pragma omp parallel
+    //{
+    //    #pragma omp for schedule(static) nowait
+        for(int i = p->index + 1; i < Particle::numOfParticles; i++){
+            Particle::distances[p->index][i] = p->distance(particles[i]);
+        }
+    //    #pragma omp for schedule(static)
+        for(int i = 0; i < p->index; i++){
+            Particle::distances[i][p->index] = p->distance(particles[i]);
+        }
     //}
+    //printf("Distance time: %lf\n", omp_get_wtime() - stime);
 }
 
 void Particle::update_distances(Particle **particles){

@@ -209,27 +209,26 @@ int main(int argc, char *argv[])
     //     exit(0);
     // }
     printf("Box dimensions are x: %lf y: %lf z: %lf\n", Base::xL, Base::yL, Base::zL);
-    char name[] = "output_equilibrate.gro";
-    char name_charges[] = "output_equilibrate_charges.gro";
+    char name[] = "output_equilibrate_ewald.gro";
+    char name_charges[] = "output_equilibrate_charges_ewald.gro";
     Particle::write_coordinates(name, particles);
     Particle::write_charge_coordinates(name_charges, particles);
     //Update cumulative energy
     //Base::eCummulative = mc.get_energy(particles);
     int energyOut = 0;
-    //Base::eCummulative = MC::ewald3D.get_energy(particles);
-    Base::eCummulative = MC::direct.get_energy(particles);
+    Base::eCummulative = MC::ewald3D.get_energy(particles);
+    //Base::eCummulative = MC::direct.get_energy(particles);
 
     // ///////////////////////////////         Main MC-loop          ////////////////////////////////////////
     printf("\nRunning main MC-loop at temperature: %lf, Bjerrum length is %lf\n\n", T, Base::lB);
-
     for(int i = 0; i < iter; i++){
         //clock_t start = clock();
-        double stime = omp_get_wtime();
+        //double stime = omp_get_wtime();
         if(i % 100 == 0 && i >= 1000000){
             rdf->sample_rdf(particles, histo, binWidth);
-            xHist->sampleHisto(particles, 0);
-            yHist->sampleHisto(particles, 1);
-            zHist->sampleHisto(particles, 2);
+            //xHist->sampleHisto(particles, 0);
+            //yHist->sampleHisto(particles, 1);
+            //zHist->sampleHisto(particles, 2);
         }
         //energy = MC::ewald3D.get_energy(particles);
         //energy = MC::ewald3D.get_energy(particles);
@@ -259,8 +258,8 @@ int main(int argc, char *argv[])
         Base::totalMoves++;
         
         if(i % 10000 == 0 && i != 0){
-            //energy = MC::ewald3D.get_energy(particles);//mc.get_energy(particles);
-            energy = MC::direct.get_energy(particles);
+            energy = MC::ewald3D.get_energy(particles);//mc.get_energy(particles);
+            //energy = MC::direct.get_energy(particles);
             energies[energyOut] = energy;
             energyOut++;
             //Particle::write_coordinates(outName , particles);
@@ -278,7 +277,7 @@ int main(int argc, char *argv[])
             prevAccepted = 0;
         }
         //printf("One iteration: %lu\n", clock() - start);
-        printf("Time: %lf\n", omp_get_wtime() - stime);
+        //printf("Time: %lf\n", omp_get_wtime() - stime);
     }
     //////////////////////////////////////////////////////////////////////////////////////////////////////
 

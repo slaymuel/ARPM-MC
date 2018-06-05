@@ -12,6 +12,7 @@ class Direct{
         double get_central(Particle **particles);
         double get_central(Particle **particles, Particle *p);
         double get_replicates(Particle **particles);
+        double get_replicates(Particle **particles, Particle *p);
         template<typename T>
         double norm(T vec);
 };
