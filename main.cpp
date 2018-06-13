@@ -10,11 +10,13 @@
 #include <iterator>
 #include "levin.h"
 #include <ctime>
+#include "direct.h"
+#include "valleau.h"
 
 //Initializers
 Ewald3D MC::ewald3D;
 Ewald2D MC::ewald2D;
-Direct MC::direct;
+//Direct MC::direct;
 //Levin MC::levin;
 
 int Particle::numOfParticles = 0;
@@ -29,7 +31,8 @@ double Base::eCummulative = 0;
 double Base::wall = 0;
 int Base::acceptedMoves = 0;
 int Base::totalMoves = 0;
-
+Eigen::VectorXd energy::valleau::chargeVector;
+Eigen::VectorXd energy::valleau::ext;
 namespace po = boost::program_options;
 
 
@@ -193,7 +196,7 @@ int main(int argc, char *argv[])
     //levin.initialize(particles);
 
     //exit(1);
-
+    energy::valleau::update_charge_vector(particles);
     Analysis *xHist = new Analysis(0.1, Base::xL);
     Analysis *yHist = new Analysis(0.1, Base::yL);
     Analysis *zHist = new Analysis(0.1, Base::zL);
@@ -218,8 +221,13 @@ int main(int argc, char *argv[])
     int energyOut = 0;
     Base::eCummulative = MC::ewald3D.get_energy(particles);
     //Base::eCummulative = MC::direct.get_energy(particles);
+    //Base::eCummulative = energy::direct::get_energy(particles);
 
     // ///////////////////////////////         Main MC-loop          ////////////////////////////////////////
+    std::string energyFunction = "ewald";
+    if(energyFunction == "ewald"){
+        MC::run(&energy::direct::get_energy, particles, iter);
+    }
     printf("\nRunning main MC-loop at temperature: %lf, Bjerrum length is %lf\n\n", T, Base::lB);
     for(int i = 0; i < iter; i++){
         //clock_t start = clock();
@@ -257,7 +265,7 @@ int main(int argc, char *argv[])
 
         Base::totalMoves++;
         
-        if(i % 10000 == 0 && i != 0){
+        if(i % 100 == 0 && i != 0){
             energy = MC::ewald3D.get_energy(particles);//mc.get_energy(particles);
             //energy = MC::direct.get_energy(particles);
             energies[energyOut] = energy;

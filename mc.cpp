@@ -1,56 +1,56 @@
 #include "mc.h"
 #include <vector>
 
-double MC::get_energy(Particle **particles){
-    int i = 0;
-    int j = 0;
-    double dist = 0;
-    double energy = 0;
-    double r6 = 0;
-    double sigma = 1;
-    double epsilon = 1;
+// double MC::get_energy(Particle **particles){
+//     int i = 0;
+//     int j = 0;
+//     double dist = 0;
+//     double energy = 0;
+//     double r6 = 0;
+//     double sigma = 1;
+//     double epsilon = 1;
 
-    for(i = 0; i < Particle::numOfParticles; i++){
-        j = i + 1;
-        while(j < Particle::numOfParticles){
-            //LJ
-            dist = particles[j]->distance(particles[i]);
-            //r6 = pow(dist, 3);
-            //energy += 4 * (1/(r6*r6) - 1/r6);
-            //Coloumb
-            dist = sqrt(dist);
-            energy += pow(EC, 2)/(4 * VP * PI * 2 * KB * Base::T * 1e-10) * (particles[i]->q * particles[j]->q)/dist;
-            j++;
-        }
-    }
-    return energy;
-}
+//     for(i = 0; i < Particle::numOfParticles; i++){
+//         j = i + 1;
+//         while(j < Particle::numOfParticles){
+//             //LJ
+//             dist = particles[j]->distance(particles[i]);
+//             //r6 = pow(dist, 3);
+//             //energy += 4 * (1/(r6*r6) - 1/r6);
+//             //Coloumb
+//             dist = sqrt(dist);
+//             energy += pow(EC, 2)/(4 * VP * PI * 2 * KB * Base::T * 1e-10) * (particles[i]->q * particles[j]->q)/dist;
+//             j++;
+//         }
+//     }
+//     return energy;
+// }
 
-double MC::get_particle_energy(int pInd, Particle *p, Particle **particles){
-    int i = 0;
-    double energy = 0;
-    double dist = 0;
-    double r6 = 0;
-    double sigma = 1;
-    double epsilon = 1;
+// double MC::get_particle_energy(int pInd, Particle *p, Particle **particles){
+//     int i = 0;
+//     double energy = 0;
+//     double dist = 0;
+//     double r6 = 0;
+//     double sigma = 1;
+//     double epsilon = 1;
 
-    for(i = 0; i < Particle::numOfParticles; i++){
-        if(i != pInd){
-            //LJ
-            dist = p->distance_xy(particles[i]);
-            r6 = pow(dist, 3);
-            //energy += 1/kb*(4 * (1/(r6*r6) - 1/r6));
-            //printf("Lennard%lf\n", 1/kb*(4 * (1/(r6*r6) - 1/r6)));
-            //printf("Lennard: %lf\n", energy);
-            //Coloumb
-            dist = sqrt(dist);
-            //printf("Coloumb %lf\n", pow(EC, 2)/(4 * VP * PI * 2 * kb * T  * 1e-10) * (p->q * particles[i]->q)/dist);
-            energy += pow(EC, 2)/(4 * VP * PI * 2 * KB * Base::T * 1e-10) * (p->q * particles[i]->q)/dist;
-            //printf("Coloumb: %lf\n", energy);
-        }
-    }
-    return energy;
-}
+//     for(i = 0; i < Particle::numOfParticles; i++){
+//         if(i != pInd){
+//             //LJ
+//             dist = p->distance_xy(particles[i]);
+//             r6 = pow(dist, 3);
+//             //energy += 1/kb*(4 * (1/(r6*r6) - 1/r6));
+//             //printf("Lennard%lf\n", 1/kb*(4 * (1/(r6*r6) - 1/r6)));
+//             //printf("Lennard: %lf\n", energy);
+//             //Coloumb
+//             dist = sqrt(dist);
+//             //printf("Coloumb %lf\n", pow(EC, 2)/(4 * VP * PI * 2 * kb * T  * 1e-10) * (p->q * particles[i]->q)/dist);
+//             energy += pow(EC, 2)/(4 * VP * PI * 2 * KB * Base::T * 1e-10) * (p->q * particles[i]->q)/dist;
+//             //printf("Coloumb: %lf\n", energy);
+//         }
+//     }
+//     return energy;
+// }
 
 int MC::charge_rot_move(Particle **particles){
     double eOld;
@@ -319,3 +319,12 @@ void MC::disperse(Particle **particles){
     // }
     printf("\n");
 }
+
+// template<typename F>
+// void MC::run(F&& energy_function, Particle** particles, int iter){
+//     double energy;
+//     for(int i = 0; i < iter; i++){
+//         energy = energy_function(particles);
+//         printf("rvalue reference energy function called: %lf\n", energy);
+//     }
+// }

@@ -262,6 +262,6 @@ double Ewald3D::get_energy(Particle **particles){
     //printf("Dipole moment: %lf\n", corr);
     //printf("self term: %lf\n", selfTerm);
     //printf("Real: %lf, self: %lf, reciprocal: %lf\n", real, self, reciprocal);
-    //return Base::lB * (real + reciprocal + corr) - selfTerm;
-    return Base::lB * (real + reciprocal) - selfTerm;
+    return Base::lB * (real + reciprocal + corr) - selfTerm;
+    //return Base::lB * (real + reciprocal) - selfTerm;
 }

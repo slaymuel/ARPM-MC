@@ -1,15 +1,20 @@
 #include "direct.h"
+//#include "particle.h"
+// Direct::Direct(){
 
-Direct::Direct(){
+// }
 
-}
+    // double get_replicates(Particle **particles, Particle *p);
+    // double get_replicates(Particle **particles);
+    // double get_central(Particle **particles);
+    // double get_central(Particle **particles, Particle *p);
 
 template<typename T>
-double Direct::norm(T vec){
+double energy::direct::norm(T vec){
     return sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 }
 
-double Direct::get_energy(Particle **particles){
+double energy::direct::get_energy(Particle **particles){
     double energy;
     double central = get_central(particles);
     double replicates = 1.0/2.0 * get_replicates(particles);
@@ -18,16 +23,16 @@ double Direct::get_energy(Particle **particles){
     return Base::lB * (replicates + central);
 }
 
-double Direct::get_energy(Particle **particles, Particle *p){
-    double energy;
-    double central = get_central(particles, p);
-    double replicates = get_replicates(particles, p);
+// double energy::direct::get_energy(Particle **particles, Particle *p){
+//     double energy;
+//     double central = get_central(particles, p);
+//     double replicates = get_replicates(particles, p);
 
-    //printf("Central box: %lf Replicates: %lf\n", central, replicates);
-    return Base::lB * (replicates + central);
-}
+//     //printf("Central box: %lf Replicates: %lf\n", central, replicates);
+//     return Base::lB * (replicates + central);
+// }
 
-double Direct::get_replicates(Particle **particles){
+double energy::direct::get_replicates(Particle **particles){
     double energy = 0;
     double dist = 0;
     int rep = 2;
@@ -70,7 +75,7 @@ double Direct::get_replicates(Particle **particles){
     return energy;
 }
 
-double Direct::get_central(Particle **particles){
+double energy::direct::get_central(Particle **particles){
     int k = 0;
     double energy = 0;
     double dist = 0;
@@ -92,7 +97,7 @@ double Direct::get_central(Particle **particles){
     return energy;
 }
 
-double Direct::get_central(Particle **particles, Particle *p){
+double energy::direct::get_central(Particle **particles, Particle *p){
     int k = 0;
     double energy = 0;
     //double lenergy = 0;
@@ -114,7 +119,7 @@ double Direct::get_central(Particle **particles, Particle *p){
     return energy;
 }   
 
-double Direct::get_replicates(Particle **particles, Particle *p){
+double energy::direct::get_replicates(Particle **particles, Particle *p){
     double energy = 0;
     //double lenergy = 0;
     double dist = 0;
@@ -155,3 +160,4 @@ double Direct::get_replicates(Particle **particles, Particle *p){
     //printf("Number of replicas: %d\n", numOfRep - 1);
     return energy;
 }
+

@@ -6,10 +6,11 @@
 #include "ran2_lib.cpp"
 #include "ewald3D.h"
 #include "ewald2D.h"
-#include "direct.h"
+//#include "valleau.h"
+//#include "direct.h"
 //#include "levin.cpp"
 
-class MC: public Base{
+class MC{
     public:
         void equilibrate(Particle **particles);
         static int trans_move(Particle **particles, double dr);
@@ -19,7 +20,16 @@ class MC: public Base{
         void disperse(Particle **particles);
         static Ewald3D ewald3D;
         static Ewald2D ewald2D;
-        static Direct direct;
+        //static Direct direct;
+
+        template<typename F>
+        static void run(F&& energy_function, Particle** particles, int iter){
+            double energy;
+            for(int i = 0; i < iter; i++){
+                energy = energy_function(particles);
+                printf("rvalue reference energy function called: %lf\n", energy);
+            }
+        }
         //static Levin levin;
 };
 

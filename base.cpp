@@ -10,6 +10,7 @@
 #include "constants.h"
 #include <eigen3/Eigen/Dense>
 #include <omp.h>
+
 //#include "Eigen/Dense"
 
 class Base{
