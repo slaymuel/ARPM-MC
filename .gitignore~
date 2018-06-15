@@ -11,7 +11,8 @@ compile.sh
 ### C ###
 # Prerequisites
 *.d
-
+*.sh
+*.err
 # Object files
 *.o
 *.ko

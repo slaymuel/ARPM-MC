@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="mc"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/Users/samuel/Documents/mc/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/Users/samuel/Documents/mc/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/samuel/Documents/mc/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/Users/samuel/Documents/mc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/samuel/Documents/mc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/Users/samuel/Documents/mc/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/Users/samuel/Documents/mc/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/samuel/Documents/mc/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/Users/samuel/Documents/mc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/samuel/Documents/mc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/Users/samuel/Documents/mc/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/Users/samuel/Documents/mc/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/samuel/Documents/mc/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/Users/samuel/Documents/mc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/samuel/Documents/mc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="ran2_fortran">
+				<Option output="/Users/samuel/Documents/mc/cmake-build-debug/ran2_fortran" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/samuel/Documents/mc/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/samuel/Documents/mc/."/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/include/c++/v1"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/lib/clang/9.1.0/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/include"/>
+					<Add directory="/usr/include"/>
+					<Add directory="/System/Library/Frameworks"/>
+					<Add directory="/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/Users/samuel/Documents/mc/cmake-build-debug/Makefile&quot;  VERBOSE=1 ran2_fortran"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/samuel/Documents/mc/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/Users/samuel/Documents/mc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/samuel/Documents/mc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="ran2_fortran/fast">
+				<Option output="/Users/samuel/Documents/mc/cmake-build-debug/ran2_fortran" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/samuel/Documents/mc/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/samuel/Documents/mc/."/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/include/c++/v1"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/lib/clang/9.1.0/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/include"/>
+					<Add directory="/usr/include"/>
+					<Add directory="/System/Library/Frameworks"/>
+					<Add directory="/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/Users/samuel/Documents/mc/cmake-build-debug/Makefile&quot;  VERBOSE=1 ran2_fortran/fast"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/samuel/Documents/mc/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/Users/samuel/Documents/mc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/samuel/Documents/mc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="mc">
+				<Option output="/Users/samuel/Documents/mc/cmake-build-debug/mc" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/samuel/Documents/mc/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/samuel/Documents/mc/."/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/include/c++/v1"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/lib/clang/9.1.0/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/include"/>
+					<Add directory="/usr/include"/>
+					<Add directory="/System/Library/Frameworks"/>
+					<Add directory="/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/Users/samuel/Documents/mc/cmake-build-debug/Makefile&quot;  VERBOSE=1 mc"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/samuel/Documents/mc/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/Users/samuel/Documents/mc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/samuel/Documents/mc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="mc/fast">
+				<Option output="/Users/samuel/Documents/mc/cmake-build-debug/mc" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/samuel/Documents/mc/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/samuel/Documents/mc/."/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/include/c++/v1"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/lib/clang/9.1.0/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/include"/>
+					<Add directory="/usr/include"/>
+					<Add directory="/System/Library/Frameworks"/>
+					<Add directory="/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/Users/samuel/Documents/mc/cmake-build-debug/Makefile&quot;  VERBOSE=1 mc/fast"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/samuel/Documents/mc/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/Users/samuel/Documents/mc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/samuel/Documents/mc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/Users/samuel/Documents/mc/analysis.cpp">
+			<Option target="mc"/>
+		</Unit>
+		<Unit filename="/Users/samuel/Documents/mc/analysis.h">
+			<Option target="mc"/>
+		</Unit>
+		<Unit filename="/Users/samuel/Documents/mc/base.cpp">
+			<Option target="mc"/>
+		</Unit>
+		<Unit filename="/Users/samuel/Documents/mc/constants.h">
+			<Option target="mc"/>
+		</Unit>
+		<Unit filename="/Users/samuel/Documents/mc/direct.cpp">
+			<Option target="mc"/>
+		</Unit>
+		<Unit filename="/Users/samuel/Documents/mc/direct.h">
+			<Option target="mc"/>
+		</Unit>
+		<Unit filename="/Users/samuel/Documents/mc/ewald2D.cpp">
+			<Option target="mc"/>
+		</Unit>
+		<Unit filename="/Users/samuel/Documents/mc/ewald2D.h">
+			<Option target="mc"/>
+		</Unit>
+		<Unit filename="/Users/samuel/Documents/mc/ewald3D.cpp">
+			<Option target="mc"/>
+		</Unit>
+		<Unit filename="/Users/samuel/Documents/mc/ewald3D.h">
+			<Option target="mc"/>
+		</Unit>
+		<Unit filename="/Users/samuel/Documents/mc/levin.cpp">
+			<Option target="mc"/>
+		</Unit>
+		<Unit filename="/Users/samuel/Documents/mc/levin.h">
+			<Option target="mc"/>
+		</Unit>
+		<Unit filename="/Users/samuel/Documents/mc/main.cpp">
+			<Option target="mc"/>
+		</Unit>
+		<Unit filename="/Users/samuel/Documents/mc/mc.cpp">
+			<Option target="mc"/>
+		</Unit>
+		<Unit filename="/Users/samuel/Documents/mc/mc.h">
+			<Option target="mc"/>
+		</Unit>
+		<Unit filename="/Users/samuel/Documents/mc/molecule.cpp">
+			<Option target="mc"/>
+		</Unit>
+		<Unit filename="/Users/samuel/Documents/mc/molecule.h">
+			<Option target="mc"/>
+		</Unit>
+		<Unit filename="/Users/samuel/Documents/mc/particle.cpp">
+			<Option target="mc"/>
+		</Unit>
+		<Unit filename="/Users/samuel/Documents/mc/particle.h">
+			<Option target="mc"/>
+		</Unit>
+		<Unit filename="/Users/samuel/Documents/mc/ran2.f">
+			<Option target="ran2_fortran"/>
+		</Unit>
+		<Unit filename="/Users/samuel/Documents/mc/ran2_lib.cpp">
+			<Option target="mc"/>
+		</Unit>
+		<Unit filename="/Users/samuel/Documents/mc/valleau.cpp">
+			<Option target="mc"/>
+		</Unit>
+		<Unit filename="/Users/samuel/Documents/mc/valleau.h">
+			<Option target="mc"/>
+		</Unit>
+		<Unit filename="/Users/samuel/Documents/mc/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

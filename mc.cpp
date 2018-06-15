@@ -51,13 +51,13 @@
 //     }
 //     return energy;
 // }
-
+/*
 int MC::charge_rot_move(Particle **particles){
     double eOld;
     double eNew;
     double acceptProb;
-    double dE;
     int r = ran2::get_random() * Particle::numOfParticles;
+    double dE;
     int accepted = 0;
     Particle *_old = new Particle(true);
 
@@ -95,6 +95,9 @@ int MC::charge_rot_move(Particle **particles){
     delete _old;
     return accepted;
 }
+ */
+
+
 
 int MC::trans_move(Particle **particles, double dr){
     double eOld = 0;
@@ -122,8 +125,8 @@ int MC::trans_move(Particle **particles, double dr){
     //exit(1);
 
     //Calculate old energy
-    eOld = MC::ewald3D.get_energy(particles);
-
+    //eOld = MC::ewald3D.get_energy(particles);
+    eOld = MC::ewald3D.get_energy(particles, particles[p]);
     //#pragma omp task
     //{
     //eOld = MC::direct.get_energy(particles);
@@ -141,11 +144,14 @@ int MC::trans_move(Particle **particles, double dr){
     particles[p]->random_move(dr);
     Particle::update_distances(particles, particles[p]);
     //If there is no overlap in new position and it's inside the box
-    if(particles[p]->hard_sphere(particles)){// && particles[p]->pos[2] > particles[p]->d/2 + Base::wall && 
-                                              //particles[p]->pos[2] < Base::zL - Base::wall - particles[p]->d/2 ){
+
+    if(particles[p]->hard_sphere(particles) && particles[p]->pos[2] > particles[p]->d/2 + Base::wall &&
+                                              particles[p]->pos[2] < Base::zL - Base::wall - particles[p]->d/2 ){
+
         //Get new energy
         MC::ewald3D.update_reciprocal(_old, particles[p]);
-        eNew = MC::ewald3D.get_energy(particles);
+        //eNew = MC::ewald3D.get_energy(particles);
+        eNew = MC::ewald3D.get_energy(particles, particles[p]);
 
         //#pragma omp task
         //{
@@ -195,6 +201,8 @@ int MC::trans_move(Particle **particles, double dr){
     return accepted;
 }
 
+
+
 void MC::equilibrate(Particle **particles){
     int overlaps = 1;
     int prevOverlaps = 3000;
@@ -234,7 +242,7 @@ void MC::equilibrate(Particle **particles){
     printf("\n");
 }
 
-void MC::disperse(Particle **particles){
+void MC::disperse(Particle **particles) {
     int i = 0;
     int j = 0;
     int k = 0;
@@ -242,56 +250,81 @@ void MC::disperse(Particle **particles){
     int overlaps = Particle::get_overlaps(particles);
     double random;
     int p;
-    double *oldPos = (double*)malloc(3*sizeof(double));
+    double *oldPos = (double *) malloc(3 * sizeof(double));
     std::vector<int> indices(Particle::numOfParticles);
 
-    for(i = 0; i < indices.size(); i++){
+    for (i = 0; i < indices.size(); i++) {
         indices[i] = i;
     }
 
-    while(overlaps > 0){
-        for(i = 0; i < indices.size(); i++){
-            if(k % 100 == 0){
+    while (overlaps > 0) {
+        for (i = 0; i < indices.size(); i++) {
+            if (k % 100 == 0) {
                 random = ran2::get_random();
-                p =  random * Particle::numOfParticles;
+                p = random * Particle::numOfParticles;
                 oldPos[0] = particles[p]->pos[0];
                 oldPos[1] = particles[p]->pos[1];
                 oldPos[2] = particles[p]->pos[2];
                 particles[p]->random_move(Base::xL);
-                if(!particles[p]->hard_sphere(particles) || particles[p]->pos[2] < particles[p]->d/2 || 
-                                                                        particles[p]->pos[2] > Base::zL - particles[p]->d/2){
-                        particles[p]->pos[0] = oldPos[0];
-                        particles[p]->pos[1] = oldPos[1];
-                        particles[p]->pos[2] = oldPos[2];
-                    }
-            }
-            else{
+                if (!particles[p]->hard_sphere(particles) || particles[p]->pos[2] < particles[p]->d / 2 ||
+                    particles[p]->pos[2] > Base::zL - particles[p]->d / 2) {
+                    particles[p]->pos[0] = oldPos[0];
+                    particles[p]->pos[1] = oldPos[1];
+                    particles[p]->pos[2] = oldPos[2];
+                }
+            } else {
                 oldPos[0] = particles[indices[i]]->pos[0];
                 oldPos[1] = particles[indices[i]]->pos[1];
                 oldPos[2] = particles[indices[i]]->pos[2];
                 particles[indices[i]]->random_move(5);
-                if(!particles[indices[i]]->hard_sphere(particles) || particles[indices[i]]->pos[2] < particles[indices[i]]->d/2 || 
-                                                                        particles[indices[i]]->pos[2] > Base::zL - particles[indices[i]]->d/2){
-                        particles[indices[i]]->pos[0] = oldPos[0];
-                        particles[indices[i]]->pos[1] = oldPos[1];
-                        particles[indices[i]]->pos[2] = oldPos[2];
-                    }
-                else{
-                        indices.erase(indices.begin() + i);
-                    }
+                if (!particles[indices[i]]->hard_sphere(particles) ||
+                    particles[indices[i]]->pos[2] < particles[indices[i]]->d / 2 ||
+                    particles[indices[i]]->pos[2] > Base::zL - particles[indices[i]]->d / 2) {
+                    particles[indices[i]]->pos[0] = oldPos[0];
+                    particles[indices[i]]->pos[1] = oldPos[1];
+                    particles[indices[i]]->pos[2] = oldPos[2];
+                } else {
+                    indices.erase(indices.begin() + i);
+                }
             }
             k++;
         }
 
         j++;
-        if(j % 10 == 0){
+        if (j % 10 == 0) {
             overlaps = Particle::get_overlaps(particles);
             printf("Overlapping elements: %lu, Overlaps: %d\r", indices.size(), overlaps);
             fflush(stdout);
         }
     }
+}
+template<typename F>
+void MC::run(F&& energy_function, Particle** particles, int iter){
+    double energy;
+    int prevAccepted = 0;
+    Base::eCummulative = energy_function(particles);
+    for(int i = 0; i < iter; i++){
+        //trans_move(particles, 0.1, energy_function);
+        //energy = energy_function(particles);
+        //printf("rvalue reference energy function called: %lf\n", energy);
+        Base::totalMoves++;
 
-
+        if(i % 1 == 0 && i != 0){
+            energy = energy_function(particles);
+            //Particle::write_coordinates(outName , particles);
+            printf("Iteration: %d\n", i);
+            printf("Energy: %lf\n", energy);
+            printf("Acceptance ratio: %lf\n", (double)Base::acceptedMoves/Base::totalMoves);
+            printf("Acceptance ratio for the last 10000 steps: %lf\n\n", (double)prevAccepted/1.0);
+            if(fabs(energy - Base::eCummulative)/fabs(energy) > pow(10, -12)){
+                printf("Error is too large!\n");
+                printf("Error: %lf\n", fabs(energy - Base::eCummulative)/fabs(energy));
+                exit(1);
+            }
+            prevAccepted = 0;
+        }
+    }
+}
     // for(j = 0; j < 10; j++){
     //     printf("Iteration: %d of 10, accepted dispersion moves %d\r", j, k);
     //     fflush(stdout);
@@ -317,14 +350,5 @@ void MC::disperse(Particle **particles){
     //         }
     //     }
     // }
-    printf("\n");
-}
-
-// template<typename F>
-// void MC::run(F&& energy_function, Particle** particles, int iter){
-//     double energy;
-//     for(int i = 0; i < iter; i++){
-//         energy = energy_function(particles);
-//         printf("rvalue reference energy function called: %lf\n", energy);
-//     }
-// }
+    //printf("\n");
+//}

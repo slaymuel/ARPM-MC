@@ -8,6 +8,8 @@
 *.ipynb
 .vscode*
 compile.sh
+*.xml
+*.iml
 ### C ###
 # Prerequisites
 *.d

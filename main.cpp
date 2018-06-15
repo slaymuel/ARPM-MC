@@ -12,7 +12,7 @@
 #include <ctime>
 #include "direct.h"
 #include "valleau.h"
-
+#include "ewald3D.h"
 //Initializers
 Ewald3D MC::ewald3D;
 Ewald2D MC::ewald2D;
@@ -22,8 +22,8 @@ Ewald2D MC::ewald2D;
 int Particle::numOfParticles = 0;
 double **Particle::distances;
 int Analysis::numOfHisto = 0;
-double Base::xL = 114.862525361502;
-double Base::yL = 114.862525361502;
+double Base::xL = 114.862525361502; //172
+double Base::yL = 114.862525361502; //45
 double Base::zL = 45;
 double Base::T = 1000;
 double Base::lB;
@@ -59,7 +59,6 @@ int main(int argc, char *argv[])
     double energy = 0;
     
     //Simulation variables
-    int numOfSteps = 1000000;
     int totalMoves = 0;
     int acceptedMoves = 0;
     int numberOfSamples = 0;
@@ -70,7 +69,6 @@ int main(int argc, char *argv[])
     double random1;
     double random2;
     int prevAccepted = 0;
-    double *energies = (double*) malloc((numOfSteps/50 + 50) * sizeof(double));
     bool nanometers = false;
     int Digs = 14;
     char outName[] = "output_ewald.gro";
@@ -97,7 +95,7 @@ int main(int argc, char *argv[])
         ("f_jan", po::value<std::string>(), "Coordinates in Jan-format")
         ("f_arpm_jan", po::value<std::string>(), "Coordinates in Jan-ARPM format")
         ("density", po::value<double>(), "Specify density of the system.")
-        ("wall", po::value<double>(), "Insert walls in the z-dimension.")
+        ("wall", po::value<double>(), "Insert walls in the z-dimension. Argument increases the box length as zL = 2 * wall")
         ("box", po::value<std::vector<double> >()->multitoken(), "Box dimensions")
         ("rc", po::value<int>(), "Relative coordinates")
         ("T", po::value<double>(), "Temperature")
@@ -142,7 +140,7 @@ int main(int argc, char *argv[])
         strcpy(outName, vm["o"].as<std::string>().c_str());
     }
     if(vm.count("f_jan")){
-        particles = Particle::read_jan("coordp-2.dms", "coordn-2.dms");
+        particles = Particle::read_jan("coordp_dense.dms", "coordn_dense.dms");
     }
     if(vm.count("f_arpm_jan")){
         particles = Particle::read_arpm_jan("coord");
@@ -151,7 +149,7 @@ int main(int argc, char *argv[])
         numOfParticles = vm["np"].as<int>();
         printf("%d particles will be created\n", numOfParticles);
         particles = Particle::create_particles(numOfParticles);
-        mc.equilibrate(particles);
+        //mc.equilibrate(particles);
         density = (double)numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(diameter, 3);
     }
     if(vm.count("T")){
@@ -167,7 +165,7 @@ int main(int argc, char *argv[])
         printf("%d particles will be created\n", numOfParticles);
         printf("Density is: %lf\n", density);
         particles = Particle::create_particles(numOfParticles);
-        mc.equilibrate(particles);
+        //mc.equilibrate(particles);
     }
     else{
         if(vm.count("density")){
@@ -189,23 +187,24 @@ int main(int argc, char *argv[])
     srand(time(NULL));
 
     if(vm.count("overlap")){
-        mc.equilibrate(particles);
+        //mc.equilibrate(particles);
     }
 
     //Levin levin;
     //levin.initialize(particles);
 
     //exit(1);
-    energy::valleau::update_charge_vector(particles);
     Analysis *xHist = new Analysis(0.1, Base::xL);
     Analysis *yHist = new Analysis(0.1, Base::yL);
     Analysis *zHist = new Analysis(0.1, Base::zL);
     Analysis *rdf = new Analysis(0.1, Base::zL);
     Base::set_lB();
+
     MC::ewald3D.set_alpha();
     MC::ewald2D.set_alpha();
     MC::ewald3D.initialize(particles);
     MC::ewald2D.initialize();
+
     // overlaps = Particle::get_overlaps(particles);
     // if(overlaps > 0){
     //     printf("System contains overlaps!\n");
@@ -218,37 +217,42 @@ int main(int argc, char *argv[])
     Particle::write_charge_coordinates(name_charges, particles);
     //Update cumulative energy
     //Base::eCummulative = mc.get_energy(particles);
+
     int energyOut = 0;
+
     Base::eCummulative = MC::ewald3D.get_energy(particles);
     //Base::eCummulative = MC::direct.get_energy(particles);
     //Base::eCummulative = energy::direct::get_energy(particles);
 
     // ///////////////////////////////         Main MC-loop          ////////////////////////////////////////
-    std::string energyFunction = "ewald";
-    if(energyFunction == "ewald"){
-        MC::run(&energy::direct::get_energy, particles, iter);
+/*
+    energy::valleau::update_charge_vector(particles);
+    energy::valleau::update_potential();
+    std::string energyFunction = "direct";
+    if(energyFunction == "direct"){
+        MC::run(&MC::ewald3D.get_energy, particles, iter);
     }
+*/
+    double avgTime = 0;
     printf("\nRunning main MC-loop at temperature: %lf, Bjerrum length is %lf\n\n", T, Base::lB);
+
     for(int i = 0; i < iter; i++){
-        //clock_t start = clock();
-        //double stime = omp_get_wtime();
+        double stime = omp_get_wtime();
         if(i % 100 == 0 && i >= 1000000){
             rdf->sample_rdf(particles, histo, binWidth);
             //xHist->sampleHisto(particles, 0);
             //yHist->sampleHisto(particles, 1);
             //zHist->sampleHisto(particles, 2);
         }
-        //energy = MC::ewald3D.get_energy(particles);
-        //energy = MC::ewald3D.get_energy(particles);
-        //printf("Iteration: %d\n", i);
+
         random1 = ran2::get_random();
-        random2 = ran2::get_random();
-        if(random2 <= 0.3){
-             if(mc.charge_rot_move(particles)){
-                prevAccepted++; 
-             }
-        }
-        else{
+        //random2 = ran2::get_random();
+        //if(random2 <= 0.3){
+        //     if(mc.charge_rot_move(particles)){
+        //        prevAccepted++;
+        //     }
+        //}
+        //else{
             if(random1 <= 0.1){
                 if(mc.trans_move(particles, Base::xL)){
                 prevAccepted++; 
@@ -256,36 +260,35 @@ int main(int argc, char *argv[])
             }
 
             else{
-                if(mc.trans_move(particles, 0.1)){
+                if(mc.trans_move(particles, 0.2)){
                 prevAccepted++; 
                 }    
             }
-        }
+        //}
 
 
         Base::totalMoves++;
-        
-        if(i % 100 == 0 && i != 0){
-            energy = MC::ewald3D.get_energy(particles);//mc.get_energy(particles);
+        if(i % 10000 == 0 && i != 0) {
+            energy = MC::ewald3D.get_energy(particles);
             //energy = MC::direct.get_energy(particles);
-            energies[energyOut] = energy;
             energyOut++;
             //Particle::write_coordinates(outName , particles);
             printf("Iteration: %d\n", i);
             printf("Energy: %lf\n", energy);
             //printf("Error: ");
             //printf("%lf\n", fabs(energy - Base::eCummulative)/fabs(Base::eCummulative));
-            printf("Acceptance ratio: %lf\n", (double)Base::acceptedMoves/Base::totalMoves);
-            printf("Acceptance ratio for the last 10000 steps: %lf\n\n", (double)prevAccepted/10000.0);
-            if(fabs(energy - Base::eCummulative)/fabs(energy) > pow(10, -12)){
+            printf("Acceptance ratio: %lf\n", (double) Base::acceptedMoves / Base::totalMoves);
+            printf("Acceptance ratio for the last 10000 steps: %lf\n\n", (double) prevAccepted / 10000.0);
+            if(fabs(energy - Base::eCummulative) / fabs(energy) > pow(10, -10)) {
                 printf("Error is too large!\n");
-                printf("Error: %lf\n", fabs(energy - Base::eCummulative)/fabs(energy));
-                exit(1);
+                printf("Error: %.20lf\n", fabs(energy - Base::eCummulative) / fabs(energy));
+                //exit(1);
             }
             prevAccepted = 0;
+            printf("Time: %lf\n", omp_get_wtime() - stime);
         }
-        //printf("One iteration: %lu\n", clock() - start);
-        //printf("Time: %lf\n", omp_get_wtime() - stime);
+        //avgTime += omp_get_wtime() - stime;
+        //printf("Real time: %lf\n", avgTime/(i + 1);
     }
     //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -296,11 +299,6 @@ int main(int argc, char *argv[])
     xHist->saveHisto();
     yHist->saveHisto();
     zHist->saveHisto();
-    printf("Energies:\n");
-    for(int i = 0; i < energyOut; i++){
-        printf("%lf\n", energies[i]);
-    }
-    printf("\n");
     //Write coordinates to file
     printf("Saving output coordinates to: %s\n", outName);
     Particle::write_coordinates(outName, particles);

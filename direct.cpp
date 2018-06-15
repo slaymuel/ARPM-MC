@@ -35,7 +35,7 @@ double energy::direct::get_energy(Particle **particles){
 double energy::direct::get_replicates(Particle **particles){
     double energy = 0;
     double dist = 0;
-    int rep = 2;
+    int rep = 0;
     int mx = rep;
     int my = rep;
     int mz = rep;
@@ -124,7 +124,7 @@ double energy::direct::get_replicates(Particle **particles, Particle *p){
     //double lenergy = 0;
     double dist = 0;
     //Eigen::Vector3d disp;
-    int rep = 5;
+    int rep = 0;
     int mx = rep;
     int my = rep;
     int mz = rep;

@@ -44,10 +44,10 @@ double energy::valleau::phiw(double z){
     return z;
 }
 
-void energy::valleau::calculate_potential(){
+void energy::valleau::update_potential(){
     double dz = 0.5;
     double diffz = 0;
-    
+    ext.resize(chargeVector.size());
     for(int i = 0; i < Base::zL; i++){
         for(int j = 0; j < Base::zL; j++){
             diffz = fabs(j * dz - i * dz);

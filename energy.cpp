@@ -1,6 +1,7 @@
 #include "particle.h"
 #include "constants.h"
 
+/*
 double getEnergy(Particle **particles){
     int i = 0;
     int j = 0;
@@ -48,4 +49,4 @@ double getParticleEnergy(int pInd, Particle *p, Particle **particles){
         }
     }
     return energy;
-}
+}*/
