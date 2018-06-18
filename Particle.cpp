@@ -60,19 +60,19 @@ void Particle::pbc(Eigen::Vector3d& x){
     }
 }
 
-void Particle::pbc_xy(){
+void Particle::pbc_xy(Eigen::Vector3d& x){
     //Translate particles according to periodic boundary conditions in the xy-directions
-    if(this->pos[0] > xL){
-        this->pos[0] = this->pos[0] - xL;
+    if(x[0] > Base::xL){
+        x[0] -= Base::xL;
     }
-    if(this->pos[0] < 0){
-        this->pos[0] = this->pos[0] + xL;
+    if(x[0] < 0){
+        x[0] += Base::xL;
     }
-    if(this->pos[1] > yL){
-        this->pos[1] = this->pos[1] - yL;
+    if(x[1] > Base::yL){
+        x[1] -= Base::yL;
     }
-    if(this->pos[1] < 0){
-        this->pos[1] = this->pos[1] + yL;
+    if(x[1] < 0){
+        x[1] += Base::yL;
     }
 }
 
@@ -91,10 +91,16 @@ void Particle::random_move(double stepSize){
     // this->pos[0] = this->com[0] + this->chargeDisp[0];
     // this->pos[1] = this->com[1] + this->chargeDisp[1];
     // this->pos[2] = this->com[2] + this->chargeDisp[2];
-    
-    pbc(this->com);
-    this->pos = this->com + this->chargeDisp;
-    pbc(this->pos);
+    if(Base::wall > 0){
+        pbc_xy(this->com);
+        this->pos = this->com + this->chargeDisp;
+        pbc_xy(this->pos);
+    }
+    else{
+        pbc(this->com);
+        this->pos = this->com + this->chargeDisp;
+        pbc(this->pos);
+    }
 }
 
 void Particle::random_charge_rot(){
@@ -432,6 +438,71 @@ Particle** Particle::read_coordinates(std::string name, bool relative = false, b
             j++;
         }
         i++;
+    }
+    printf("%d particles read from file.\n", j);
+    return particles;
+}
+
+Particle** Particle::read_coordinates_gro(std::string name){
+    int i = 0;
+    int j = 0;
+    double x, y, z;
+    int c, ind;
+    double nano;
+    std::string molecule;
+    std::string atom;
+    std::string line;
+    std::ifstream infile(name);
+    Particle** particles;
+    while (std::getline(infile, line))
+    {
+        if(i == 1){
+            std::istringstream iss(line);
+            if (!(iss >> c)) {
+                printf("The second line in the input file should be the total number of atoms!\n");
+                exit(1); 
+            } // error
+            particles = (Particle**) malloc(c * sizeof(Particle*));
+        }
+        if(i > 1){
+            std::istringstream iss(line);
+            if (!(iss >> molecule >> atom >> ind >> x >> y >> z)) {
+                printf("Done reading input file\n");
+                break;
+                //exit(1);
+            }
+            particles[j] = new Particle();
+
+            particles[j]->com[0] = x * 10;
+            particles[j]->com[1] = y * 10;
+            particles[j]->com[2] = z * 10;    
+
+            particles[j]->pos[0] = x * 10;
+            particles[j]->pos[1] = y * 10;
+            particles[j]->pos[2] = z * 10;  
+
+            particles[j]->d = 5;
+            particles[j]->index = j;
+
+            if(atom == "Cl"){
+                strcpy(particles[j]->name, "Cl\0");
+                particles[j]->q = -1.0;
+            }
+            else if(atom == "Na"){
+                strcpy(particles[j]->name, "Na\0");
+                particles[j]->q = 1.0;            
+            }
+            else{
+                printf("Atom is not Na or Cl!\n");
+                exit(1);
+            }
+            j++;
+        }
+        i++;
+    }
+    if(c != j){
+        printf("Did not read all particles from file, is the second line really the number of particles?\n");
+        exit(1);
     }
     printf("%d particles read from file.\n", j);
     return particles;

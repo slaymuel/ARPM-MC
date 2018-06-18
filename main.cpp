@@ -92,6 +92,7 @@ int main(int argc, char *argv[])
         ("help", "show this message")
         ("np", po::value<int>(), "Number of particles")
         ("f", po::value<std::string>(), "Coordinates in xyz format")
+        ("f_gro", po::value<std::string>(), "Coordinates in gro-format")
         ("f_jan", po::value<std::string>(), "Coordinates in Jan-format")
         ("f_arpm_jan", po::value<std::string>(), "Coordinates in Jan-ARPM format")
         ("density", po::value<double>(), "Specify density of the system.")
@@ -135,6 +136,11 @@ int main(int argc, char *argv[])
         std::cout << "Opening " << vm["f"].as<std::string>() << std::endl;
         std::string filename = vm["f"].as<std::string>().c_str();
         particles = Particle::read_coordinates(filename, relative, nanometers);
+    }
+    if(vm.count("f_gro")){
+        std::cout << "Opening " << vm["f_gro"].as<std::string>() << std::endl;
+        std::string filename = vm["f_gro"].as<std::string>().c_str();
+        particles = Particle::read_coordinates_gro(filename);
     }
     if(vm.count("o")){
         strcpy(outName, vm["o"].as<std::string>().c_str());
@@ -237,7 +243,7 @@ int main(int argc, char *argv[])
     printf("\nRunning main MC-loop at temperature: %lf, Bjerrum length is %lf\n\n", T, Base::lB);
 
     for(int i = 0; i < iter; i++){
-        double stime = omp_get_wtime();
+        //double stime = omp_get_wtime();
         if(i % 100 == 0 && i >= 1000000){
             rdf->sample_rdf(particles, histo, binWidth);
             //xHist->sampleHisto(particles, 0);
@@ -255,13 +261,13 @@ int main(int argc, char *argv[])
         //else{
             if(random1 <= 0.1){
                 if(mc.trans_move(particles, Base::xL)){
-                prevAccepted++; 
+                    prevAccepted++; 
                 }
             }
 
             else{
                 if(mc.trans_move(particles, 0.2)){
-                prevAccepted++; 
+                    prevAccepted++; 
                 }    
             }
         //}
@@ -285,7 +291,7 @@ int main(int argc, char *argv[])
                 //exit(1);
             }
             prevAccepted = 0;
-            printf("Time: %lf\n", omp_get_wtime() - stime);
+            //printf("Time: %lf\n", omp_get_wtime() - stime);
         }
         //avgTime += omp_get_wtime() - stime;
         //printf("Real time: %lf\n", avgTime/(i + 1);

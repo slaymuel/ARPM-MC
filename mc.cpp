@@ -127,14 +127,7 @@ int MC::trans_move(Particle **particles, double dr){
     //Calculate old energy
     //eOld = MC::ewald3D.get_energy(particles);
     eOld = MC::ewald3D.get_energy(particles, particles[p]);
-    //#pragma omp task
-    //{
-    //eOld = MC::direct.get_energy(particles);
-    //}
-    //printf("old: %lf\n", eOld);
-    //Save old particle state
     
-    //_old->pos = (double*)malloc(3 * sizeof(double));
     _old->pos = particles[p]->pos;
     _old->com = particles[p]->com;
     _old->q = particles[p]->q;
@@ -143,8 +136,8 @@ int MC::trans_move(Particle **particles, double dr){
     //Generate new trial coordinates
     particles[p]->random_move(dr);
     Particle::update_distances(particles, particles[p]);
-    //If there is no overlap in new position and it's inside the box
 
+    //If there is no overlap in new position and it's inside the box
     if(particles[p]->hard_sphere(particles) && particles[p]->pos[2] > particles[p]->d/2 + Base::wall &&
                                               particles[p]->pos[2] < Base::zL - Base::wall - particles[p]->d/2 ){
 
@@ -152,12 +145,6 @@ int MC::trans_move(Particle **particles, double dr){
         MC::ewald3D.update_reciprocal(_old, particles[p]);
         //eNew = MC::ewald3D.get_energy(particles);
         eNew = MC::ewald3D.get_energy(particles, particles[p]);
-
-        //#pragma omp task
-        //{
-        //eNew = MC::direct.get_energy(particles);
-        //}
-        //#pragma omp barrier
 
         //printf("new %lf\n", eNew);
         //Accept move?
@@ -176,21 +163,16 @@ int MC::trans_move(Particle **particles, double dr){
             //printf("Accept\n");
         }
         else{   //Reject move
+            //printf("Bad move\n");
             MC::ewald3D.update_reciprocal(particles[p], _old);
             particles[p]->pos = _old->pos;
             particles[p]->com = _old->com;
             Particle::update_distances(particles, particles[p]);
-            //if(fabs(Base::lB * MC::ewald3D.get_energy(particles) - eOld) > 1e-4){
-            //    printf("oldpos: %lf %lf %lf\n", particles[p]->pos[0], particles[p]->pos[1], particles[p]->pos[2]);
-            //    printf("New energy: %lf\n", Base::lB * MC::ewald3D.get_energy(particles));
-            //    printf("Old energy: %lf\n", eOld);
-            //    printf("Energy failed..\n");
-            //    exit(1);
-            //}
         }
     }
 
     else{   //Reject move
+        //printf("Outside box\n");
         particles[p]->pos = _old->pos;
         particles[p]->com = _old->com;
         Particle::update_distances(particles, particles[p]);

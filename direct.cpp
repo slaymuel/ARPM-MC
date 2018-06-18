@@ -130,7 +130,7 @@ double energy::direct::get_replicates(Particle **particles, Particle *p){
     int mz = rep;
 
     //printf("Calculating energy for %d replicas.\n", (2 * rep+1) * (2 * rep+1) * (2 * rep+1) - 1);
-    #pragma omp parallel for if(rep > 10) reduction(+:energy) private(dist)
+    //#pragma omp parallel for if(rep > 10) reduction(+:energy) private(dist)
     for(int i = -mx; i <= mx; i++){
         for(int j = -my; j <= my; j++){
             for(int k = -mz; k <= mz; k++){

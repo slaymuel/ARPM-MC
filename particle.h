@@ -23,7 +23,6 @@ class Particle: public Base{
         Eigen::Vector3d com;    //Center of mass coordinates
         char name[3];
 
-        void pbc_xy();
         void random_move(double stepSize);
         void random_charge_rot();
         void randomMove_xy(double stepSize);
@@ -43,10 +42,12 @@ class Particle: public Base{
         static Particle** read_jan(std::string pName, std::string nName);
         static Particle** read_arpm_jan(std::string fileName);
         static Particle** read_coordinates(std::string name, bool relative, bool nanometers);
+        static Particle** read_coordinates_gro(std::string name);
 
     private:
         void pbc(Eigen::Vector3d& x);
         void pbc();
+        void pbc_xy(Eigen::Vector3d& x);
         double distance(Particle *p);
 };
 
