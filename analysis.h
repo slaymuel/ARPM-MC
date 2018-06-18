@@ -20,7 +20,7 @@ class Analysis: public Base{
         void sampleHisto(Particle **particles, int d);
         void sample_rdf(Particle **particles, int *histo, double binWidth);
         void save_rdf(int *histo, int bins, double binWidth);
-        void saveHisto();
+        void saveHisto(char outName[]);
 };
 
 #endif

@@ -14,33 +14,32 @@ Analysis::Analysis(double binWidth, double dLength){
 void Analysis::sampleHisto(Particle **particles, int d){
     int i = 0;
     double dist = 0;
-    //printf("%d\n", Particle::numOfParticles);
     for(i = 0; i < Particle::numOfParticles; i++){
         histo[(int)(particles[i]->pos[d]/binWidth)]++;
-        //printf("Current histo value: %d\n", histo[(int)(particles[i]->pos[d]/binWidth)]);
         if(particles[i]->q < 0){
             nHisto[(int)(particles[i]->pos[d]/binWidth)]++;
-            //printf("Current histo value: %d\n", nHisto[(int)(particles[i]->pos[d]/binWidth)]);
         }
         else{
             pHisto[(int)(particles[i]->pos[d]/binWidth)]++;
-            //printf("Current histo value: %d\n", pHisto[(int)(particles[i]->pos[d]/binWidth)]);
         }
     }
     numberOfSamples++;
 }
 
-void Analysis::saveHisto(){
+void Analysis::saveHisto(char outName[]){
     int i = 0;
     double dv = 0;
     double idealDen = 0;
     char pHisto_name[64];
-    sprintf(pHisto_name, "pHisto_ewald_%d.txt", num);
+    sprintf(pHisto_name, "pHisto_%d_", num);
+    strcat(pHisto_name, outName);
     char nHisto_name[64];
-    sprintf(nHisto_name, "nHisto_ewald_%d.txt", num);
+    sprintf(nHisto_name, "nHisto_%d_", num);
+    strcat(nHisto_name, outName);
     char histo_name[64];
-    sprintf(histo_name, "histo_ewald_%d.txt", num);
-
+    sprintf(histo_name, "histo_%d_", num);
+    strcat(histo_name, outName);
+    
     FILE *f = fopen(histo_name, "w");
     if(f == NULL){
         printf("Can't open file!\n");

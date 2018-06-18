@@ -203,7 +203,7 @@ int main(int argc, char *argv[])
     Analysis *xHist = new Analysis(0.1, Base::xL);
     Analysis *yHist = new Analysis(0.1, Base::yL);
     Analysis *zHist = new Analysis(0.1, Base::zL);
-    Analysis *rdf = new Analysis(0.1, Base::zL);
+    //Analysis *rdf = new Analysis(0.1, Base::zL);
     Base::set_lB();
 
     MC::ewald3D.set_alpha();
@@ -244,11 +244,11 @@ int main(int argc, char *argv[])
 
     for(int i = 0; i < iter; i++){
         //double stime = omp_get_wtime();
-        if(i % 100 == 0 && i >= 1000000){
-            rdf->sample_rdf(particles, histo, binWidth);
-            //xHist->sampleHisto(particles, 0);
-            //yHist->sampleHisto(particles, 1);
-            //zHist->sampleHisto(particles, 2);
+        if(i % 100 == 0 && i >= 1){
+            //rdf->sample_rdf(particles, histo, binWidth);
+            xHist->sampleHisto(particles, 0);
+            yHist->sampleHisto(particles, 1);
+            zHist->sampleHisto(particles, 2);
         }
 
         random1 = ran2::get_random();
@@ -301,10 +301,10 @@ int main(int argc, char *argv[])
     printf("Accepted moves: %d\n", Base::acceptedMoves);
     printf("Rejected moves: %d\n", Base::totalMoves - Base::acceptedMoves);
 
-    rdf->save_rdf(histo, bins, binWidth);
-    xHist->saveHisto();
-    yHist->saveHisto();
-    zHist->saveHisto();
+    //rdf->save_rdf(histo, bins, binWidth);
+    xHist->saveHisto(outName);
+    yHist->saveHisto(outName);
+    zHist->saveHisto(outName);
     //Write coordinates to file
     printf("Saving output coordinates to: %s\n", outName);
     Particle::write_coordinates(outName, particles);
