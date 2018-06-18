@@ -160,7 +160,7 @@ double Particle::distance_xy(Particle *p){
     if(yP1 - yP2 > yL/2){
         yP2 = yP2 + yL;
     }
-    return (pow((xP1 - xP2), 2) + pow((yP1 - yP2), 2) + pow((zP1 - zP2), 2));
+    return sqrt(pow((xP1 - xP2), 2) + pow((yP1 - yP2), 2) + pow((zP1 - zP2), 2));
 }
 
 double Particle::distance_z(Particle *p){
@@ -714,31 +714,45 @@ void Particle::write_charge_coordinates(char name[], Particle **particles){
 }
 
 void Particle::update_distances(Particle **particles, Particle *p){
-    
-    //#pragma omp parallel for default(none) shared(Particle::distances) private(p, particles)
-    //{
-    double stime = omp_get_wtime();
-    //#pragma omp parallel
-    //{
-    //    #pragma omp for schedule(static) nowait
+    if(Base::wall > 0){
+        for(int i = p->index + 1; i < Particle::numOfParticles; i++){
+            Particle::distances[p->index][i] = p->distance_xy(particles[i]);
+        }
+        for(int i = 0; i < p->index; i++){
+            Particle::distances[i][p->index] = p->distance_xy(particles[i]);
+        }
+    }
+    else{
         for(int i = p->index + 1; i < Particle::numOfParticles; i++){
             Particle::distances[p->index][i] = p->distance(particles[i]);
         }
-    //    #pragma omp for schedule(static)
         for(int i = 0; i < p->index; i++){
             Particle::distances[i][p->index] = p->distance(particles[i]);
         }
-    //}
-    //printf("Distance time: %lf\n", omp_get_wtime() - stime);
+    }
+
+
 }
 
 void Particle::update_distances(Particle **particles){
     int k = 0;
-    for(int i = 0; i < Particle::numOfParticles; i++){
-        k = i + 1;
-        while(k < Particle::numOfParticles){
-            Particle::distances[i][k] = particles[i]->distance(particles[k]);
-            k++;
+    if(Base::wall > 0){
+        for(int i = 0; i < Particle::numOfParticles; i++){
+            k = i + 1;
+            while(k < Particle::numOfParticles){
+                Particle::distances[i][k] = particles[i]->distance_xy(particles[k]);
+                k++;
+            }
         }
     }
+    else{
+        for(int i = 0; i < Particle::numOfParticles; i++){
+            k = i + 1;
+            while(k < Particle::numOfParticles){
+                Particle::distances[i][k] = particles[i]->distance(particles[k]);
+                k++;
+            }
+        }
+    }
+
 }
