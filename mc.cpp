@@ -280,6 +280,7 @@ void MC::disperse(Particle **particles) {
         }
     }
 }
+
 template<typename F>
 void MC::run(F&& energy_function, Particle** particles, int iter){
     double energy;
@@ -307,6 +308,7 @@ void MC::run(F&& energy_function, Particle** particles, int iter){
         }
     }
 }
+
     // for(j = 0; j < 10; j++){
     //     printf("Iteration: %d of 10, accepted dispersion moves %d\r", j, k);
     //     fflush(stdout);

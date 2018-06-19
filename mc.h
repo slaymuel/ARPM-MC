@@ -18,7 +18,7 @@ class MC{
         double get_energy(Particle **particles);
         void disperse(Particle **particles);
         template<typename F>
-        void run(F&& energy_function, Particle** particles, int iter);
+        static void run(F&& energy_function, Particle** particles, int iter);
         static Ewald3D ewald3D;
         static Ewald2D ewald2D;
         //static Direct direct;

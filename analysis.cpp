@@ -1,41 +1,50 @@
 #include "analysis.h"
 
 Analysis::Analysis(double binWidth, double dLength){
-    numberOfSamples = 0;
+    this->numberOfSamples = 0;
     this->binWidth = binWidth;
     this->bins = dLength/binWidth;//zL/binWidth;
-    histo = (int*)malloc(this->bins*sizeof(int));
-    pHisto = (int*)malloc(this->bins*sizeof(int));
-    nHisto = (int*)malloc(this->bins*sizeof(int));
-    num = numOfHisto;
-    numOfHisto++;
+    this->histo = (int*)malloc(this->bins * sizeof(int));
+    this->pHisto = (int*)malloc(this->bins * sizeof(int));
+    this->nHisto = (int*)malloc(this->bins * sizeof(int));
+    
+    for(int i = 0; i < this->bins; i++){
+        this->histo[i] = 0;
+        this->pHisto[i] = 0;
+        this->nHisto[i] = 0;
+    }
+    this->num = numOfHisto;
+    this->numOfHisto++;
 }
 
 void Analysis::sampleHisto(Particle **particles, int d){
     int i = 0;
     double dist = 0;
     for(i = 0; i < Particle::numOfParticles; i++){
-        histo[(int)(particles[i]->pos[d]/binWidth)]++;
+        this->histo[(int)(particles[i]->pos[d]/binWidth)]++;
         if(particles[i]->q < 0){
-            nHisto[(int)(particles[i]->pos[d]/binWidth)]++;
+            this->nHisto[(int)(particles[i]->pos[d]/binWidth)]++;
         }
-        else{
-            pHisto[(int)(particles[i]->pos[d]/binWidth)]++;
+        else if(particles[i]->q < 0){
+            this->pHisto[(int)(particles[i]->pos[d]/binWidth)]++;
         }
     }
-    numberOfSamples++;
+    this->numberOfSamples++;
 }
 
 void Analysis::saveHisto(char outName[]){
     int i = 0;
     double dv = 0;
     double idealDen = 0;
+
     char pHisto_name[64];
     sprintf(pHisto_name, "pHisto_%d_", num);
     strcat(pHisto_name, outName);
+
     char nHisto_name[64];
     sprintf(nHisto_name, "nHisto_%d_", num);
     strcat(nHisto_name, outName);
+
     char histo_name[64];
     sprintf(histo_name, "histo_%d_", num);
     strcat(histo_name, outName);
@@ -47,7 +56,7 @@ void Analysis::saveHisto(char outName[]){
     }
 
     for(i = 0; i < bins; i++){
-        fprintf(f, "%lf     %lf\n", (double)i * binWidth, (double)histo[i]/(Particle::numOfParticles * numberOfSamples));
+        fprintf(f, "%lf     %lf\n", (double)i * this->binWidth, (double)this->histo[i]/(Particle::numOfParticles * this->numberOfSamples));
     }
     fclose(f);
 
@@ -57,7 +66,7 @@ void Analysis::saveHisto(char outName[]){
         exit(1);
     }
     for(i = 0; i < bins; i++){
-        fprintf(pf, "%lf     %lf\n", (double)i * binWidth, (double)pHisto[i]/(Particle::numOfParticles * numberOfSamples));
+        fprintf(pf, "%lf     %lf\n", (double)i * this->binWidth, (double)this->pHisto[i]/(Particle::numOfParticles * this->numberOfSamples));
     }
     fclose(pf);
 
@@ -67,7 +76,7 @@ void Analysis::saveHisto(char outName[]){
         exit(1);
     }
     for(i = 0; i < bins; i++){
-        fprintf(nf, "%lf     %lf\n", (double)i * binWidth, (double)nHisto[i]/(Particle::numOfParticles * numberOfSamples));
+        fprintf(nf, "%lf     %lf\n", (double)i * this->binWidth, (double)this->nHisto[i]/(Particle::numOfParticles * this->numberOfSamples));
     }
     fclose(f);
 }
@@ -86,7 +95,7 @@ void Analysis::sample_rdf(Particle **particles, int *histo, double binWidth){
             if(dist < xL2){
                 if(particles[i]->q < 0 && particles[j]->q < 0){
                     dist = sqrt(dist);
-                    histo[(int)(dist/binWidth)] = histo[(int)(dist/binWidth)] + 2;
+                    this->histo[(int)(dist/binWidth)] += 2;
                 }
             }
             j++;

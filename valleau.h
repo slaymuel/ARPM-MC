@@ -9,6 +9,7 @@ namespace energy{ namespace valleau{
     extern Eigen::VectorXd ext;
     void update_charge_vector(Particle **particles);
     void update_potential();
+    double get_energy(Particle *particle);
     double phiw(double z);
 } }
 

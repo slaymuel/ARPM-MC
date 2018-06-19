@@ -32,7 +32,6 @@ void energy::valleau::update_charge_vector(Particle **particles){
         chargeVector[j] = avg;
         j--;
     }
-    //std::cout << chargeVector << std::endl;
 
     double dZ = 0.1;
     for(int i = 0; i < chargeVector.size() / dZ; i++){
@@ -41,18 +40,39 @@ void energy::valleau::update_charge_vector(Particle **particles){
 }
 
 double energy::valleau::phiw(double z){
-    return z;
+    double a = Base::xL/2;
+    double asq = a * a;
+    double b = Base::zL/2;
+    double s = 1;
+    double zsbsq = (z + s * b) * (z + s * b);
+    double self = 8 * a * log((sqrt(2 * asq+ zsbsq) + a) / sqrt(asq + zsbsq)) - 
+        2 * fabs(z + s * b) * (asin((asq * asq - zsbsq * zsbsq - s * asq * zsbsq) / (asq * asq + 2 * asq * zsbsq  + zsbsq * zsbsq))) +
+        PI/2;
+    s = -1;
+    self = self + 
+        8 * a * log((sqrt(2 * asq+ zsbsq) + a) / sqrt(asq + zsbsq)) - 
+        2 * fabs(z + s * b) * (asin((asq * asq - zsbsq * zsbsq - s * asq * zsbsq) / (asq * asq + 2 * asq * zsbsq  + zsbsq * zsbsq)) +
+        PI/2);
+    
+    return self;
 }
 
 void energy::valleau::update_potential(){
-    double dz = 0.5;
+    double dz = 0.1;
     double diffz = 0;
-    ext.resize(chargeVector.size());
-    for(int i = 0; i < Base::zL; i++){
-        for(int j = 0; j < Base::zL; j++){
+    int numOfBins = chargeVector.size();
+    ext.resize(numOfBins);
+    for(int i = 0; i < numOfBins; i++){
+        for(int j = 0; j < numOfBins; j++){
             diffz = fabs(j * dz - i * dz);
             ext[i] += chargeVector[j] * (-2 * PI * diffz - phiw(diffz));
         }
         ext[i] *= Base::lB * dz;
     }
+    std::cout << ext << std::endl;
+}
+
+double energy::valleau::get_energy(Particle *particle){
+    double energy = ext[(int)particle->pos[2] / 0.1];
+    return energy;
 }

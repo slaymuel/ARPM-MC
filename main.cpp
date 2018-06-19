@@ -79,7 +79,9 @@ int main(int argc, char *argv[])
     double dist = 0;
     int *histo;
     histo = (int*)malloc(bins * sizeof(int));
-
+    for(int i = 0; i < bins; i++){
+        histo[i] = 0;
+    }
     //Simulation parameters
     MC mc;
 
@@ -222,29 +224,26 @@ int main(int argc, char *argv[])
     Particle::write_coordinates(name, particles);
     Particle::write_charge_coordinates(name_charges, particles);
     //Update cumulative energy
-    //Base::eCummulative = mc.get_energy(particles);
 
     int energyOut = 0;
 
     Base::eCummulative = MC::ewald3D.get_energy(particles);
-    //Base::eCummulative = MC::direct.get_energy(particles);
-    //Base::eCummulative = energy::direct::get_energy(particles);
 
     // ///////////////////////////////         Main MC-loop          ////////////////////////////////////////
-/*
+
     energy::valleau::update_charge_vector(particles);
     energy::valleau::update_potential();
+    /*
     std::string energyFunction = "direct";
     if(energyFunction == "direct"){
-        MC::run(&MC::ewald3D.get_energy, particles, iter);
+        MC::run(&energy::valleau::get_energy, particles, iter);
     }
-*/
+    */
     double avgTime = 0;
     printf("\nRunning main MC-loop at temperature: %lf, Bjerrum length is %lf\n\n", T, Base::lB);
 
     for(int i = 0; i < iter; i++){
-        //double stime = omp_get_wtime();
-        if(i % 100 == 0 && i >= 1){
+        if(i % 100 == 0 && i >= 1000000){
             //rdf->sample_rdf(particles, histo, binWidth);
             xHist->sampleHisto(particles, 0);
             yHist->sampleHisto(particles, 1);
@@ -290,6 +289,7 @@ int main(int argc, char *argv[])
                 printf("Error: %.20lf\n", fabs(energy - Base::eCummulative) / fabs(energy));
                 //exit(1);
             }
+            fflush(stdout);
             prevAccepted = 0;
             //printf("Time: %lf\n", omp_get_wtime() - stime);
         }
@@ -309,23 +309,10 @@ int main(int argc, char *argv[])
     printf("Saving output coordinates to: %s\n", outName);
     Particle::write_coordinates(outName, particles);
     Particle::write_charge_coordinates(outName_charges, particles);
-    // FILE *f = fopen("output_ewald.gro", "w");
-    // if(f == NULL){
-    //     printf("Can't open file!\n");
-    //     exit(1);
-    // }
-
-    // fprintf(f, "%d\n", numOfParticles);
-    // fprintf(f, "\n");
-    // for(int i = 0; i < Particle::numOfParticles; i++){
-    //     fprintf(f, "%s     %lf    %lf     %lf\n", particles[i]->name, particles[i]->pos[0], particles[i]->pos[1], particles[i]->pos[2]);
-    // }
-    // fclose(f);
 
     //Clean up allocated memory
     printf("Cleaning up...\n");
     for(int i = 0; i < Particle::numOfParticles; i++){
-        //free(particles[i]->pos);
         free(particles[i]);
     }
     //for(i = 0; i < numOfCells; i++){
