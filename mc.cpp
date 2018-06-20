@@ -98,7 +98,7 @@ int MC::charge_rot_move(Particle **particles){
  */
 
 
-
+/*
 int MC::trans_move(Particle **particles, double dr){
     double eOld = 0;
     double eNew = 0;
@@ -126,7 +126,8 @@ int MC::trans_move(Particle **particles, double dr){
 
     //Calculate old energy
     //eOld = MC::ewald3D.get_energy(particles);
-    eOld = MC::ewald3D.get_energy(particles, particles[p]);
+    //eOld = MC::ewald3D.get_energy(particles, particles[p]);
+    eOld = energy::valleau::get_energy(particles);
     
     _old->pos = particles[p]->pos;
     _old->com = particles[p]->com;
@@ -144,7 +145,8 @@ int MC::trans_move(Particle **particles, double dr){
         //Get new energy
         MC::ewald3D.update_reciprocal(_old, particles[p]);
         //eNew = MC::ewald3D.get_energy(particles);
-        eNew = MC::ewald3D.get_energy(particles, particles[p]);
+        //eNew = MC::ewald3D.get_energy(particles, particles[p]);
+        eNew = energy::valleau::get_energy(particles);
 
         //printf("new %lf\n", eNew);
         //Accept move?
@@ -183,8 +185,7 @@ int MC::trans_move(Particle **particles, double dr){
     return accepted;
 }
 
-
-
+*/
 void MC::equilibrate(Particle **particles){
     int overlaps = 1;
     int prevOverlaps = 3000;
@@ -280,7 +281,7 @@ void MC::disperse(Particle **particles) {
         }
     }
 }
-
+/*
 template<typename F>
 void MC::run(F&& energy_function, Particle** particles, int iter){
     double energy;
@@ -308,7 +309,7 @@ void MC::run(F&& energy_function, Particle** particles, int iter){
         }
     }
 }
-
+*/
     // for(j = 0; j < 10; j++){
     //     printf("Iteration: %d of 10, accepted dispersion moves %d\r", j, k);
     //     fflush(stdout);

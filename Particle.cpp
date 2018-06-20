@@ -288,9 +288,10 @@ void Particle::place_particles(Particle **particles){
     }
 }
 
-Particle** Particle::create_particles(int num){
+Particle** Particle::create_particles(int nNum, int pNum){
 
     int i = 0;
+    int num = nNum + pNum;
     double norm = 0;
     Particle **particles;
     particles = (Particle**) malloc(num * sizeof(Particle*));
@@ -312,13 +313,7 @@ Particle** Particle::create_particles(int num){
         particles[i]->chargeDisp[1] = (double) rand()/RAND_MAX * 2 - 1;
         particles[i]->chargeDisp[2] = (double) rand()/RAND_MAX * 2 - 1;
 
-        //Normalize charge displacement vector and set length to b
-        norm = sqrt(particles[i]->chargeDisp[0] * particles[i]->chargeDisp[0] +
-                    particles[i]->chargeDisp[1] * particles[i]->chargeDisp[1] +
-                    particles[i]->chargeDisp[2] * particles[i]->chargeDisp[2]);
-
-        particles[i]->chargeDisp = particles[i]->b * particles[i]->chargeDisp/norm;
-
+        particles[i]->chargeDisp = particles[i]->b * particles[i]->chargeDisp.normalized();
         //Calculate position of the charge
         particles[i]->pos = particles[i]->com + particles[i]->chargeDisp;
         
@@ -327,7 +322,7 @@ Particle** Particle::create_particles(int num){
             exit(1);
         }
 
-        if(i % 2 == 0){
+        if(i < nNum){
             particles[i]->q = -1.0;
             strcpy(particles[i]->name, "Cl\0");
         }
@@ -336,7 +331,7 @@ Particle** Particle::create_particles(int num){
             strcpy(particles[i]->name, "Na\0");
         }
     }
-    printf("Created %d particles.\n", num);
+    printf("Created %d particles.\n", Particle::numOfParticles);
     return particles;
 }
 
@@ -370,7 +365,7 @@ int Particle::get_overlaps(Particle **particles){
         j = i + 1;
         while(j < Particle::numOfParticles){
             if(i != j){
-                if(particles[i]->com_distance(particles[j]) < 25){
+                if(particles[i]->com_distance(particles[j]) < (particles[i]->d/2 + particles[j]->d/2) * (particles[i]->d/2 + particles[j]->d/2)){
                     overlaps++;
                 }
             }

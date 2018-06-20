@@ -93,6 +93,8 @@ int main(int argc, char *argv[])
     desc.add_options()
         ("help", "show this message")
         ("np", po::value<int>(), "Number of particles")
+        ("pnum", po::value<int>(), "Number of positive particles")
+        ("nnum", po::value<int>(), "Number of negative particles")
         ("f", po::value<std::string>(), "Coordinates in xyz format")
         ("f_gro", po::value<std::string>(), "Coordinates in gro-format")
         ("f_jan", po::value<std::string>(), "Coordinates in Jan-format")
@@ -105,12 +107,15 @@ int main(int argc, char *argv[])
         ("o", po::value<std::string>(), "Output filename")
         ("nm", po::value<int>(), "If input file is in nanometers")
         ("iter", po::value<int>(), "Number of iteration (MC-moves)")
-        ("overlap", po::value<int>(), "Remove Overlaps");
+        ("2d", po::bool_switch()->default_value(false), "System only extends in the x and y dimenstions")
+        ("overlap", po::bool_switch()->default_value(false), "Remove Overlaps");
     
     po::variables_map vm;        
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);    
-
+    if(vm["2d"].as<bool>()){
+        
+    }
     if (vm.count("help")) {
         std::cout << desc << "\n";
         exit(1);
@@ -121,7 +126,6 @@ int main(int argc, char *argv[])
         Base::xL = box[0];
         Base::yL = box[1];
         Base::zL = box[2];
-        printf("Set box dimensions to: %lf %lf %lf\n", Base::xL, Base::yL, Base::zL);
     }
     if(vm.count("wall")){
         Base::wall = vm["wall"].as<double>();
@@ -155,8 +159,12 @@ int main(int argc, char *argv[])
     }
     if(vm.count("np")){
         numOfParticles = vm["np"].as<int>();
+        if(numOfParticles % 2 != 0){
+            printf("Please choose an even number of particles\n");
+            exit(1);
+        }
         printf("%d particles will be created\n", numOfParticles);
-        particles = Particle::create_particles(numOfParticles);
+        particles = Particle::create_particles(numOfParticles/2, numOfParticles/2);
         //mc.equilibrate(particles);
         density = (double)numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(diameter, 3);
     }
@@ -168,23 +176,35 @@ int main(int argc, char *argv[])
         density = vm["density"].as<double>();
         Base::wall = vm["wall"].as<double>();
         numOfParticles = density/pow(diameter, 3) * (Base::xL * Base::yL * (Base::zL - 2 * Base::wall));
+        if(numOfParticles % 2 != 0){
+            printf("Please choose an even number of particles\n");
+            exit(1);
+        }
         density = (double)numOfParticles/(Base::xL * Base::yL * (Base::zL - 2 * Base::wall)) * pow(diameter, 3);
         //numOfParticles = vm["density"].as<double>()/pow(diameter, 3)*(Base::xL * Base::yL * Base::zL);
         printf("%d particles will be created\n", numOfParticles);
         printf("Density is: %lf\n", density);
-        particles = Particle::create_particles(numOfParticles);
+        particles = Particle::create_particles(numOfParticles/2, numOfParticles/2);
         //mc.equilibrate(particles);
     }
     else{
         if(vm.count("density")){
+            if(numOfParticles % 2 != 0){
+                printf("Please choose an even number of particles\n");
+                exit(1);
+            }
             numOfParticles = vm["density"].as<double>()/pow(diameter, 3)*(Base::xL * Base::yL * Base::zL);
             printf("%d particles will be created\n", numOfParticles);
-            particles = Particle::create_particles(numOfParticles);
+            particles = Particle::create_particles(numOfParticles/2, numOfParticles/2);
             density = (double)numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(diameter, 3);
         }
     }
     if(vm.count("iter")){
         iter= vm["iter"].as<int>();
+    }
+    if(vm.count("pnum")){
+        particles = Particle::create_particles(vm["nnum"].as<int>(), vm["pnum"].as<int>());
+        density = (double)Particle::numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(diameter, 3);
     }
     Particle::distances = (double**) malloc(Particle::numOfParticles * sizeof(double*));
     for(int i = 0; i < Particle::numOfParticles; i++){
@@ -194,8 +214,8 @@ int main(int argc, char *argv[])
     //Seed
     srand(time(NULL));
 
-    if(vm.count("overlap")){
-        //mc.equilibrate(particles);
+    if(vm["overlap"].as<bool>()){
+        mc.equilibrate(particles);
     }
 
     //Levin levin;
@@ -221,29 +241,32 @@ int main(int argc, char *argv[])
     printf("Box dimensions are x: %lf y: %lf z: %lf\n", Base::xL, Base::yL, Base::zL);
     char name[] = "output_equilibrate_ewald.gro";
     char name_charges[] = "output_equilibrate_charges_ewald.gro";
+
     Particle::write_coordinates(name, particles);
     Particle::write_charge_coordinates(name_charges, particles);
     //Update cumulative energy
-
     int energyOut = 0;
-
-    Base::eCummulative = MC::ewald3D.get_energy(particles);
 
     // ///////////////////////////////         Main MC-loop          ////////////////////////////////////////
 
-    energy::valleau::update_charge_vector(particles);
-    energy::valleau::update_potential();
-    /*
-    std::string energyFunction = "direct";
-    if(energyFunction == "direct"){
-        MC::run(&energy::valleau::get_energy, particles, iter);
+    std::string energyFunction = "valleau";
+    if(energyFunction == "valleau"){
+        MC::run(&energy::direct::get_energy, particles, 0.5, iter);
+        //energy::valleau::update_charge_vector(particles);
+        //energy::valleau::update_potential();
+        //MC::run(&energy::valleau::get_energy, particles, 0.5, 1000);
+        //energy::valleau::update_charge_vector(particles);
+        //energy::valleau::update_potential();
+        //MC::run(&energy::valleau::get_energy, particles, 0.5, iter);
     }
-    */
+
+    //Base::eCummulative = MC::ewald3D.get_energy(particles);
+    //Base::eCummulative = energy::valleau::get_energy(particles);
     double avgTime = 0;
     printf("\nRunning main MC-loop at temperature: %lf, Bjerrum length is %lf\n\n", T, Base::lB);
-
+/*
     for(int i = 0; i < iter; i++){
-        if(i % 100 == 0 && i >= 1000000){
+        if(i % 100 == 0 && i >= 10000000){
             //rdf->sample_rdf(particles, histo, binWidth);
             xHist->sampleHisto(particles, 0);
             yHist->sampleHisto(particles, 1);
@@ -274,7 +297,8 @@ int main(int argc, char *argv[])
 
         Base::totalMoves++;
         if(i % 10000 == 0 && i != 0) {
-            energy = MC::ewald3D.get_energy(particles);
+            energy = energy::valleau::get_energy(particles);
+            //energy = MC::ewald3D.get_energy(particles);
             //energy = MC::direct.get_energy(particles);
             energyOut++;
             //Particle::write_coordinates(outName , particles);
@@ -297,14 +321,14 @@ int main(int argc, char *argv[])
         //printf("Real time: %lf\n", avgTime/(i + 1);
     }
     //////////////////////////////////////////////////////////////////////////////////////////////////////
-
+*/
     printf("Accepted moves: %d\n", Base::acceptedMoves);
     printf("Rejected moves: %d\n", Base::totalMoves - Base::acceptedMoves);
 
     //rdf->save_rdf(histo, bins, binWidth);
-    xHist->saveHisto(outName);
-    yHist->saveHisto(outName);
-    zHist->saveHisto(outName);
+    //xHist->saveHisto(outName);
+    //yHist->saveHisto(outName);
+    //zHist->saveHisto(outName);
     //Write coordinates to file
     printf("Saving output coordinates to: %s\n", outName);
     Particle::write_coordinates(outName, particles);

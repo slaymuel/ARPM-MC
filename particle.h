@@ -35,7 +35,7 @@ class Particle: public Base{
         static void update_distances(Particle **particles, Particle *p);
         static int get_overlaps(Particle ** particles);
         static void place_particles(Particle **particles);
-        static Particle** create_particles(int num);
+        static Particle** create_particles(int nNum, int pNum);
         static Particle** create_dummies(Particle **particles);
         static void write_coordinates(char name[], Particle **particles);
         static void write_charge_coordinates(char name[], Particle **particles);

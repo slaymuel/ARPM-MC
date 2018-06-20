@@ -69,10 +69,19 @@ void energy::valleau::update_potential(){
         }
         ext[i] *= Base::lB * dz;
     }
-    std::cout << ext << std::endl;
+    //std::cout << ext << std::endl;
 }
 
-double energy::valleau::get_energy(Particle *particle){
-    double energy = ext[(int)particle->pos[2] / 0.1];
+double energy::valleau::get_energy(Particle **particles){
+    double energy = 0;
+    for(int i = 0; i < Particle::numOfParticles; i++){
+        if(particles[i]->q > 0){
+            energy += ext[(int)particles[i]->pos[2] / 0.1];
+        }
+        else{
+            energy -= ext[(int)particles[i]->pos[2] / 0.1];
+        }
+    }
+    energy += energy::direct::get_energy(particles);
     return energy;
 }

@@ -7,7 +7,7 @@ Analysis::Analysis(double binWidth, double dLength){
     this->histo = (int*)malloc(this->bins * sizeof(int));
     this->pHisto = (int*)malloc(this->bins * sizeof(int));
     this->nHisto = (int*)malloc(this->bins * sizeof(int));
-    
+
     for(int i = 0; i < this->bins; i++){
         this->histo[i] = 0;
         this->pHisto[i] = 0;
@@ -49,16 +49,17 @@ void Analysis::saveHisto(char outName[]){
     sprintf(histo_name, "histo_%d_", num);
     strcat(histo_name, outName);
     
+
     FILE *f = fopen(histo_name, "w");
     if(f == NULL){
         printf("Can't open file!\n");
         exit(1);
     }
-
     for(i = 0; i < bins; i++){
         fprintf(f, "%lf     %lf\n", (double)i * this->binWidth, (double)this->histo[i]/(Particle::numOfParticles * this->numberOfSamples));
     }
     fclose(f);
+
 
     FILE *pf = fopen(pHisto_name, "w");
     if(pf == NULL){
@@ -70,6 +71,7 @@ void Analysis::saveHisto(char outName[]){
     }
     fclose(pf);
 
+
     FILE *nf = fopen(nHisto_name, "w");
     if(nf == NULL){
         printf("Can't open file!\n");
@@ -78,7 +80,7 @@ void Analysis::saveHisto(char outName[]){
     for(i = 0; i < bins; i++){
         fprintf(nf, "%lf     %lf\n", (double)i * this->binWidth, (double)this->nHisto[i]/(Particle::numOfParticles * this->numberOfSamples));
     }
-    fclose(f);
+    fclose(nf);
 }
 
 
