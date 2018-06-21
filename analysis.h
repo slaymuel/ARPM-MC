@@ -7,15 +7,16 @@
 class Analysis: public Base{
     protected:
         int *histo;
-        int *pHisto;
-        int *nHisto;
         double binWidth;
         int bins;
-        int numberOfSamples;
+        
         int num;
         static int numOfHisto;
 
     public:
+        int *pHisto;
+        int *nHisto;
+        int numberOfSamples;
         Analysis(double binWidth, double dLength);
         void sampleHisto(Particle **particles, int d);
         void sample_rdf(Particle **particles, int *histo, double binWidth);

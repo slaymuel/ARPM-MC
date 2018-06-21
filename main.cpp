@@ -27,6 +27,7 @@ double Base::yL = 114.862525361502; //45
 double Base::zL = 45;
 double Base::T = 1000;
 double Base::lB;
+bool Base::d2 = false;
 double Base::eCummulative = 0;
 double Base::wall = 0;
 int Base::acceptedMoves = 0;
@@ -57,7 +58,7 @@ int main(int argc, char *argv[])
     double density = 0;
     int overlap = 1;
     double energy = 0;
-    
+    double dr = 0.5;
     //Simulation variables
     int totalMoves = 0;
     int acceptedMoves = 0;
@@ -107,6 +108,7 @@ int main(int argc, char *argv[])
         ("o", po::value<std::string>(), "Output filename")
         ("nm", po::value<int>(), "If input file is in nanometers")
         ("iter", po::value<int>(), "Number of iteration (MC-moves)")
+        ("dr", po::value<double>(), "Size of MC step")
         ("2d", po::bool_switch()->default_value(false), "System only extends in the x and y dimenstions")
         ("overlap", po::bool_switch()->default_value(false), "Remove Overlaps");
     
@@ -114,7 +116,10 @@ int main(int argc, char *argv[])
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);    
     if(vm["2d"].as<bool>()){
-        
+        Base::d2 = true;
+    }
+    if(vm.count("dr")){
+        dr = vm["dr"].as<double>();
     }
     if (vm.count("help")) {
         std::cout << desc << "\n";
@@ -248,13 +253,18 @@ int main(int argc, char *argv[])
     int energyOut = 0;
 
     // ///////////////////////////////         Main MC-loop          ////////////////////////////////////////
-
+    //Ewald3D ewald;
     std::string energyFunction = "valleau";
     if(energyFunction == "valleau"){
-        MC::run(&energy::direct::get_energy, particles, 0.5, iter);
+        //MC::run(&ewald.get_energy, particles, dr, iter, true);
+        MC::run(&energy::direct::get_energy, particles, 15, 100000, false);
+       // energy::valleau::update_charge_vector(particles);
+        energy::valleau::update_potential();
+
+        //MC::run(&energy::valleau::get_energy, particles, dr, 10000, false);
         //energy::valleau::update_charge_vector(particles);
         //energy::valleau::update_potential();
-        //MC::run(&energy::valleau::get_energy, particles, 0.5, 1000);
+        MC::run(&energy::valleau::get_energy, particles, dr, iter, true);
         //energy::valleau::update_charge_vector(particles);
         //energy::valleau::update_potential();
         //MC::run(&energy::valleau::get_energy, particles, 0.5, iter);

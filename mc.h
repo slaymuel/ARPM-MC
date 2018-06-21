@@ -6,7 +6,8 @@
 #include "ran2_lib.cpp"
 #include "ewald3D.h"
 #include "ewald2D.h"
-//#include "valleau.h"
+#include "analysis.h"
+#include "valleau.h"
 //#include "direct.h"
 //#include "levin.cpp"
 class MC{
@@ -52,8 +53,8 @@ class MC{
             particles[p]->random_move(dr);
             Particle::update_distances(particles, particles[p]);
             //If there is no overlap in new position and it's inside the box
-            if(particles[p]->hard_sphere(particles)){// && particles[p]->pos[2] > particles[p]->d/2 + Base::wall &&
-                //particles[p]->pos[2] < Base::zL - Base::wall - particles[p]->d/2 ){
+            if(particles[p]->hard_sphere(particles) && particles[p]->pos[2] > particles[p]->d/2 + Base::wall &&
+                particles[p]->pos[2] < Base::zL - Base::wall - particles[p]->d/2 ){
                 //Get new energy
                 //MC::ewald3D.update_reciprocal(_old, particles[p]);
                 eNew = energy_function(particles);
@@ -91,36 +92,59 @@ class MC{
         }
 
         template<typename F>
-        static void run(F&& energy_function, Particle** particles, double dr, int iter){
-            double energy;
+        static void run(F&& energy_function, Particle** particles, double dr, int iter, bool sample){
+            double energy_temp;
             int prevAccepted = 0;
             int outFreq = 1000;
 
+            Analysis *xHist = new Analysis(0.1, Base::xL);
+            Analysis *yHist = new Analysis(0.1, Base::yL);
+            Analysis *zHist = new Analysis(0.1, Base::zL);
+
+            char outName[] = ".txt";
             Base::eCummulative = energy_function(particles);
             for(int i = 0; i < iter; i++){
+
+                if(i % 100 == 0 && i >= 100000 && sample){
+                    //rdf->sample_rdf(particles, histo, binWidth);
+                    xHist->sampleHisto(particles, 0);
+                    yHist->sampleHisto(particles, 1);
+                    zHist->sampleHisto(particles, 2);
+                }
+
                 if(trans_move(particles, dr, energy_function)){
                     prevAccepted++; 
                 }    
 
                 Base::totalMoves++;
+                if(i % 100 && i > 50000 && !sample){
+                    energy::valleau::update_charge_vector(particles);
+                }
 
                 if(i % outFreq == 0 && i != 0){
-                    energy = energy_function(particles);
+                    energy_temp = energy_function(particles);
                     //Particle::write_coordinates(outName , particles);
                     printf("Iteration: %d\n", i);
-                    printf("Energy: %lf\n", energy);
+                    printf("Energy: %lf\n", energy_temp);
                     printf("Acceptance ratio: %lf\n", (double)Base::acceptedMoves/Base::totalMoves);
-                    printf("Acceptance ratio for the last 10000 steps: %lf\n\n", (double)prevAccepted/outFreq);
-                    if(fabs(energy - Base::eCummulative)/fabs(energy) > pow(10, -12)){
+                    printf("Acceptance ratio for the last %i steps: %lf\n\n", outFreq, (double)prevAccepted/outFreq);
+                    if(fabs(energy_temp - Base::eCummulative)/fabs(energy_temp) > pow(10, -12)){
                         printf("Error is too large!\n");
-                        printf("Error: %lf\n", fabs(energy - Base::eCummulative)/fabs(energy));
+                        printf("Error: %lf\n", fabs(energy_temp - Base::eCummulative)/fabs(energy_temp));
                         exit(1);
                     }
                     prevAccepted = 0;
                 }
             }
+            if(sample){
+                xHist->saveHisto(outName);
+                yHist->saveHisto(outName);
+                zHist->saveHisto(outName);
+            }
+            delete xHist;
+            delete yHist;
+            delete zHist;
         }
-
 };
 
 #endif

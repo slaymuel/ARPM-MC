@@ -184,8 +184,8 @@ int MC::trans_move(Particle **particles, double dr){
     delete _old;
     return accepted;
 }
-
 */
+
 void MC::equilibrate(Particle **particles){
     int overlaps = 1;
     int prevOverlaps = 3000;
@@ -207,8 +207,8 @@ void MC::equilibrate(Particle **particles){
         // oldPos[2] = particles[p]->com[2];
         particles[p]->random_move(5);
         Particle::update_distances(particles, particles[p]);
-        if(!particles[p]->hard_sphere(particles)){// || particles[p]->pos[2] < particles[p]->d/2 + Base::wall || 
-                                        //particles[p]->pos[2] > Base::zL - Base::wall - particles[p]->d/2){
+        if(!particles[p]->hard_sphere(particles) || particles[p]->pos[2] < particles[p]->d/2 + Base::wall || 
+                                        particles[p]->pos[2] > Base::zL - Base::wall - particles[p]->d/2){
             particles[p]->com = oldPos;
             Particle::update_distances(particles, particles[p]);    //REDO!!!!!!!!!!!!!!!!!
         }

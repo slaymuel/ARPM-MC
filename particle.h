@@ -29,6 +29,7 @@ class Particle: public Base{
         int hard_sphere(Particle **particles);
         
         double com_distance(Particle *p);
+        double com_distance_xy(Particle *p);
         double distance_xy(Particle *p);
         double distance_z(Particle *p);
         static void update_distances(Particle **particles);

@@ -91,7 +91,7 @@ void Particle::random_move(double stepSize){
     // this->pos[0] = this->com[0] + this->chargeDisp[0];
     // this->pos[1] = this->com[1] + this->chargeDisp[1];
     // this->pos[2] = this->com[2] + this->chargeDisp[2];
-    if(Base::wall > 0){
+    if(Base::wall > 0 || Base::d2){
         pbc_xy(this->com);
         this->pos = this->com + this->chargeDisp;
         pbc_xy(this->pos);
@@ -196,14 +196,42 @@ double Particle::com_distance(Particle *p){
     return disp.dot(disp);
 }
 
+double Particle::com_distance_xy(Particle *p){
+    Eigen::Vector3d disp;
+    disp = p->com - this->com;
+
+    if(disp[0] < -1 * xL/2){
+        disp[0] += xL;
+    }
+    if(disp[0] > xL/2){
+        disp[0] -= xL;
+    }
+    if(disp[1] < -1 * yL/2){
+        disp[1] += yL;
+    }
+    if(disp[1] > yL/2){
+        disp[1] -= yL;
+    }
+    return disp.dot(disp);
+}
+
 int Particle::hard_sphere(Particle **particles){
     int i = 0;
     int j = 0;
 
     for(i = 0; i < Particle::numOfParticles; i++){
-        if(i != this->index){
-            if(this->com_distance(particles[i]) < (this->d+particles[i]->d)/2*(this->d+particles[i]->d)/2){
-                return 0;
+        if(Base::wall > 0 || Base::d2){
+            if(i != this->index){
+                if(this->com_distance_xy(particles[i]) < (this->d+particles[i]->d)/2*(this->d+particles[i]->d)/2){
+                    return 0;
+                }
+            }
+        }
+        else{
+            if(i != this->index){
+                if(this->com_distance(particles[i]) < (this->d+particles[i]->d)/2*(this->d+particles[i]->d)/2){
+                    return 0;
+                }
             }
         }
     }
@@ -301,7 +329,6 @@ Particle** Particle::create_particles(int nNum, int pNum){
         particles[i]->index = i;
         particles[i]->d = 5;    //Diameter of particles
         particles[i]->b = 0; //Length of charge displacement vector
-        //particles[i]->pos = (double*)malloc(3 * sizeof(double));
 
         //Get random center of mass coordinates
         particles[i]->com[0] = (double) rand()/RAND_MAX * Base::xL;
@@ -365,7 +392,7 @@ int Particle::get_overlaps(Particle **particles){
         j = i + 1;
         while(j < Particle::numOfParticles){
             if(i != j){
-                if(particles[i]->com_distance(particles[j]) < (particles[i]->d/2 + particles[j]->d/2) * (particles[i]->d/2 + particles[j]->d/2)){
+                if(particles[i]->com_distance_xy(particles[j]) < (particles[i]->d/2 + particles[j]->d/2) * (particles[i]->d/2 + particles[j]->d/2)){
                     overlaps++;
                 }
             }
@@ -709,7 +736,7 @@ void Particle::write_charge_coordinates(char name[], Particle **particles){
 }
 
 void Particle::update_distances(Particle **particles, Particle *p){
-    if(Base::wall > 0){
+    if(Base::wall > 0 || Base::d2){
         for(int i = p->index + 1; i < Particle::numOfParticles; i++){
             Particle::distances[p->index][i] = p->distance_xy(particles[i]);
         }
@@ -725,13 +752,11 @@ void Particle::update_distances(Particle **particles, Particle *p){
             Particle::distances[i][p->index] = p->distance(particles[i]);
         }
     }
-
-
 }
 
 void Particle::update_distances(Particle **particles){
     int k = 0;
-    if(Base::wall > 0){
+    if(Base::wall > 0 || Base::d2){
         for(int i = 0; i < Particle::numOfParticles; i++){
             k = i + 1;
             while(k < Particle::numOfParticles){
@@ -749,5 +774,4 @@ void Particle::update_distances(Particle **particles){
             }
         }
     }
-
 }

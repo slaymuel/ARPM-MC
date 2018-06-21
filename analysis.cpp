@@ -25,7 +25,7 @@ void Analysis::sampleHisto(Particle **particles, int d){
         if(particles[i]->q < 0){
             this->nHisto[(int)(particles[i]->pos[d]/binWidth)]++;
         }
-        else if(particles[i]->q < 0){
+        else if(particles[i]->q > 0){
             this->pHisto[(int)(particles[i]->pos[d]/binWidth)]++;
         }
     }
@@ -38,15 +38,15 @@ void Analysis::saveHisto(char outName[]){
     double idealDen = 0;
 
     char pHisto_name[64];
-    sprintf(pHisto_name, "pHisto_%d_", num);
+    sprintf(pHisto_name, "pHisto_%d_", this->num);
     strcat(pHisto_name, outName);
 
     char nHisto_name[64];
-    sprintf(nHisto_name, "nHisto_%d_", num);
+    sprintf(nHisto_name, "nHisto_%d_", this->num);
     strcat(nHisto_name, outName);
 
     char histo_name[64];
-    sprintf(histo_name, "histo_%d_", num);
+    sprintf(histo_name, "histo_%d_", this->num);
     strcat(histo_name, outName);
     
 
@@ -56,7 +56,7 @@ void Analysis::saveHisto(char outName[]){
         exit(1);
     }
     for(i = 0; i < bins; i++){
-        fprintf(f, "%lf     %lf\n", (double)i * this->binWidth, (double)this->histo[i]/(Particle::numOfParticles * this->numberOfSamples));
+        fprintf(f, "%lf     %lf\n", (double)i * this->binWidth, (double)this->histo[i] * binWidth * Base::xL * Base::yL / (Particle::numOfParticles * this->numberOfSamples));
     }
     fclose(f);
 
@@ -67,7 +67,7 @@ void Analysis::saveHisto(char outName[]){
         exit(1);
     }
     for(i = 0; i < bins; i++){
-        fprintf(pf, "%lf     %lf\n", (double)i * this->binWidth, (double)this->pHisto[i]/(Particle::numOfParticles * this->numberOfSamples));
+        fprintf(pf, "%lf     %lf\n", (double)i * this->binWidth, (double)this->pHisto[i] / (Base::xL * Base::yL * this->binWidth * this->numberOfSamples));
     }
     fclose(pf);
 
@@ -78,7 +78,7 @@ void Analysis::saveHisto(char outName[]){
         exit(1);
     }
     for(i = 0; i < bins; i++){
-        fprintf(nf, "%lf     %lf\n", (double)i * this->binWidth, (double)this->nHisto[i]/(Particle::numOfParticles * this->numberOfSamples));
+        fprintf(nf, "%lf     %lf\n", (double)i * this->binWidth, (double)this->nHisto[i] / (Base::xL * Base::yL * this->binWidth * this->numberOfSamples));
     }
     fclose(nf);
 }
