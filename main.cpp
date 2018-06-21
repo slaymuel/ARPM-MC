@@ -254,6 +254,9 @@ int main(int argc, char *argv[])
 
     // ///////////////////////////////         Main MC-loop          ////////////////////////////////////////
     //Ewald3D ewald;
+
+
+    /*
     std::string energyFunction = "valleau";
     if(energyFunction == "valleau"){
         //MC::run(&ewald.get_energy, particles, dr, iter, true);
@@ -261,7 +264,8 @@ int main(int argc, char *argv[])
        // energy::valleau::update_charge_vector(particles);
         energy::valleau::update_potential();
 
-        //MC::run(&energy::valleau::get_energy, particles, dr, 10000, false);
+        MC::run(&energy::valleau::get_energy, particles, 15, 100000, false);
+        energy::valleau::update_potential();
         //energy::valleau::update_charge_vector(particles);
         //energy::valleau::update_potential();
         MC::run(&energy::valleau::get_energy, particles, dr, iter, true);
@@ -269,14 +273,14 @@ int main(int argc, char *argv[])
         //energy::valleau::update_potential();
         //MC::run(&energy::valleau::get_energy, particles, 0.5, iter);
     }
-
-    //Base::eCummulative = MC::ewald3D.get_energy(particles);
+*/
+    Base::eCummulative = MC::ewald3D.get_energy(particles);
     //Base::eCummulative = energy::valleau::get_energy(particles);
     double avgTime = 0;
     printf("\nRunning main MC-loop at temperature: %lf, Bjerrum length is %lf\n\n", T, Base::lB);
-/*
+
     for(int i = 0; i < iter; i++){
-        if(i % 100 == 0 && i >= 10000000){
+        if(i % 100 == 0 && i >= 1){
             //rdf->sample_rdf(particles, histo, binWidth);
             xHist->sampleHisto(particles, 0);
             yHist->sampleHisto(particles, 1);
@@ -307,8 +311,8 @@ int main(int argc, char *argv[])
 
         Base::totalMoves++;
         if(i % 10000 == 0 && i != 0) {
-            energy = energy::valleau::get_energy(particles);
-            //energy = MC::ewald3D.get_energy(particles);
+            //energy = energy::valleau::get_energy(particles);
+            energy = MC::ewald3D.get_energy(particles);
             //energy = MC::direct.get_energy(particles);
             energyOut++;
             //Particle::write_coordinates(outName , particles);
@@ -331,14 +335,14 @@ int main(int argc, char *argv[])
         //printf("Real time: %lf\n", avgTime/(i + 1);
     }
     //////////////////////////////////////////////////////////////////////////////////////////////////////
-*/
+
     printf("Accepted moves: %d\n", Base::acceptedMoves);
     printf("Rejected moves: %d\n", Base::totalMoves - Base::acceptedMoves);
 
     //rdf->save_rdf(histo, bins, binWidth);
-    //xHist->saveHisto(outName);
-    //yHist->saveHisto(outName);
-    //zHist->saveHisto(outName);
+    xHist->saveHisto(outName);
+    yHist->saveHisto(outName);
+    zHist->saveHisto(outName);
     //Write coordinates to file
     printf("Saving output coordinates to: %s\n", outName);
     Particle::write_coordinates(outName, particles);

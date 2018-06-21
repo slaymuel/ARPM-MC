@@ -13,7 +13,7 @@
 class MC{
     public:
         void equilibrate(Particle **particles);
-        //static int trans_move(Particle **particles, double dr);
+        static int trans_move(Particle **particles, double dr);
         static int charge_rot_move(Particle **particles);
         static double get_particle_energy(int pInd, Particle *p, Particle **particles);
         double get_energy(Particle **particles);
@@ -23,7 +23,7 @@ class MC{
         static Ewald3D ewald3D;
         static Ewald2D ewald2D;
         //static Direct direct;
-
+/*
         template<typename E>
         static int trans_move(Particle **particles, double dr, E energy_function){
             double eOld = 0;
@@ -145,6 +145,7 @@ class MC{
             delete yHist;
             delete zHist;
         }
+        */
 };
 
 #endif
