@@ -98,7 +98,7 @@ int MC::charge_rot_move(Particle **particles){
  */
 
 
-
+/*
 int MC::trans_move(Particle **particles, double dr){
     double eOld = 0;
     double eNew = 0;
@@ -184,15 +184,16 @@ int MC::trans_move(Particle **particles, double dr){
     delete _old;
     return accepted;
 }
-
+*/
 
 void MC::equilibrate(Particle **particles){
     int overlaps = 1;
-    int prevOverlaps = 3000;
+    int prevOverlaps = 500000;
     int i = 0;
     int j = 0;
     double diameter2 = pow(particles[0]->d, 2);
     Eigen::Vector3d oldPos;
+    Eigen::Vector3d oldCom;
     double random;
     double stepSize = 5;
     int p;
@@ -201,16 +202,23 @@ void MC::equilibrate(Particle **particles){
     while(overlaps > 0){
         random = ran2::get_random();
         p =  random * Particle::numOfParticles;
-        oldPos = particles[p]->com;
+        oldCom = particles[p]->com;
+        oldPos = particles[p]->pos;
         // oldPos[0] = particles[p]->com[0];
         // oldPos[1] = particles[p]->com[1];
         // oldPos[2] = particles[p]->com[2];
         particles[p]->random_move(5);
         Particle::update_distances(particles, particles[p]);
-        if(!particles[p]->hard_sphere(particles) || particles[p]->pos[2] < particles[p]->d/2 + Base::wall || 
-                                        particles[p]->pos[2] > Base::zL - Base::wall - particles[p]->d/2){
-            particles[p]->com = oldPos;
-            Particle::update_distances(particles, particles[p]);    //REDO!!!!!!!!!!!!!!!!!
+        if(!particles[p]->hard_sphere(particles) || particles[p]->com[2] < particles[p]->d/2 + Base::wall || 
+                                        particles[p]->com[2] > Base::zL - Base::wall - particles[p]->d/2){
+            particles[p]->com = oldCom;
+            particles[p]->pos = oldPos;
+            Particle::update_distances(particles, particles[p]);
+        }
+
+        else if(particles[p]->com[2] < 0 || particles[p]->com[1] < 0 || particles[p]->com[0] < 0){
+            printf("Failed to equilibrate system, a particle was found outside the box...\n");
+            exit(1);
         }
 
         if(i % 50000 == 0){

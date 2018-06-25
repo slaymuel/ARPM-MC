@@ -1,14 +1,13 @@
 #include "valleau.h"
 double binWidth = 0.05; //Angstrom
 int numOfBins = Base::zL/binWidth; //number of bins
-Eigen::VectorXd energy::valleau::pDensity(numOfBins);
-Eigen::VectorXd energy::valleau::nDensity(numOfBins);
+Eigen::VectorXd energy::valleau::pDensity(numOfBins + 1);
+Eigen::VectorXd energy::valleau::nDensity(numOfBins + 1);
 int energy::valleau::numOfSamples = 0;
 
 void energy::valleau::update_charge_vector(Particle **particles){
     //Eigen::VectorXd pDensity(numOfBins);
     //Eigen::VectorXd nDensity(numOfBins);
-
 
     for(int i = 0; i < Particle::numOfParticles; i++){
         if(particles[i]->q > 0){
@@ -43,6 +42,7 @@ double energy::valleau::phiw(double z){
 void energy::valleau::update_potential(){
     chargeVector = pDensity - nDensity; //charge vector
     chargeVector = chargeVector/(Base::xL * Base::zL * binWidth * numOfSamples);
+
     //Symmetrize charge vector
     int j = chargeVector.size() - 1;
     double avg;
@@ -54,28 +54,40 @@ void energy::valleau::update_potential(){
     }
     //std::cout << chargeVector << std::endl;
 
+    //Intergrate:
     double dz = 0.05;
     double diffz = 0;
+    double iIt = 0;
+    double jIt = 0;
     int numOfBins = chargeVector.size();
+
     ext.resize(numOfBins);
     ext.setZero();
     for(int i = 0; i < numOfBins; i++){
+        iIt = 0.5 * dz + i * dz;
         for(int j = 0; j < numOfBins; j++){
-            diffz = fabs(j * dz - i * dz);
+            jIt = 0.5 * dz + j * dz;
+            //diffz = fabs(j * dz - i * dz);
+            diffz = fabs(jIt - iIt);
             ext[i] += chargeVector[j] * (-2.0 * PI * diffz - phiw(diffz));
         }
         ext[i] *= Base::lB * dz;
     }
-    //printf("External potential:\n");
-    //std::cout << ext << std::endl;
+    printf("External potential:\n");
+    std::cout << ext << std::endl;
 }
 
+double energy::valleau::get_images(Particle **particles){
+
+    return 0.0;
+}
 
 double energy::valleau::get_energy(Particle **particles){
     double energy = 0;
     double y0, y1, x0, x1;
     double dz = 0.05;
     for(int i = 0; i < Particle::numOfParticles; i++){
+        //Linear interpolation
         x0 = (int)particles[i]->pos[2] / dz;
         x1 = (int)particles[i]->pos[2] / dz + 1;
         y0 = ext[(int)particles[i]->pos[2] / dz];
@@ -89,7 +101,7 @@ double energy::valleau::get_energy(Particle **particles){
             //energy -= ext[(int)particles[i]->pos[2] / 0.1];
         }
     }
-    energy *= Base::lB;
+    //energy *= Base::lB;
     energy += energy::direct::get_energy(particles);
     return energy;
 }

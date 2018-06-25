@@ -1,7 +1,7 @@
 #ifndef Ewald3D_H
 #define Ewald3D_H
 
-#include "base.cpp"
+#include "base.h"
 #include "particle.h"
 #include <vector>
 #include <complex>

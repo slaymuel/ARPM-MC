@@ -79,7 +79,6 @@ double energy::direct::get_central(Particle **particles){
     int k = 0;
     double energy = 0;
     double dist = 0;
-
     for(int i = 0; i < Particle::numOfParticles; i++){
         k = i + 1;
         while(k < Particle::numOfParticles){
@@ -92,6 +91,14 @@ double energy::direct::get_central(Particle **particles){
             energy += particles[i]->q * particles[k]->q * 1/dist;
             k++;
         }  
+        if(particles[i]->com[2] < 0 || particles[i]->com[1] < 0 || particles[i]->com[0] < 0 ||
+                particles[i]->pos[2] < 0 || particles[i]->pos[1] < 0 || particles[i]->pos[0] < 0){
+
+            printf("Error calculating energy, particle was found outside the box..\n");
+            std::cout << particles[i]->com << std::endl;
+            std::cout << particles[i]->pos << std::endl;
+            exit(1);
+        }
     }
 
     return energy;

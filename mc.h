@@ -1,7 +1,7 @@
 #ifndef MC_H
 #define MC_H
 
-#include "base.cpp"
+#include "base.h"
 #include "particle.h"
 #include "ran2_lib.cpp"
 #include "ewald3D.h"
@@ -13,7 +13,7 @@
 class MC{
     public:
         void equilibrate(Particle **particles);
-        static int trans_move(Particle **particles, double dr);
+        //static int trans_move(Particle **particles, double dr);
         static int charge_rot_move(Particle **particles);
         static double get_particle_energy(int pInd, Particle *p, Particle **particles);
         double get_energy(Particle **particles);
@@ -23,7 +23,7 @@ class MC{
         static Ewald3D ewald3D;
         static Ewald2D ewald2D;
         //static Direct direct;
-/*
+
         template<typename E>
         static int trans_move(Particle **particles, double dr, E energy_function){
             double eOld = 0;
@@ -53,8 +53,8 @@ class MC{
             particles[p]->random_move(dr);
             Particle::update_distances(particles, particles[p]);
             //If there is no overlap in new position and it's inside the box
-            if(particles[p]->hard_sphere(particles) && particles[p]->pos[2] > particles[p]->d/2 + Base::wall &&
-                particles[p]->pos[2] < Base::zL - Base::wall - particles[p]->d/2 ){
+            if(particles[p]->hard_sphere(particles) && particles[p]->com[2] > particles[p]->d/2 + Base::wall &&
+                particles[p]->com[2] < Base::zL - Base::wall - particles[p]->d/2 ){
                 //Get new energy
                 //MC::ewald3D.update_reciprocal(_old, particles[p]);
                 eNew = energy_function(particles);
@@ -105,7 +105,7 @@ class MC{
             Base::eCummulative = energy_function(particles);
             for(int i = 0; i < iter; i++){
 
-                if(i % 100 == 0 && i >= 100000 && sample){
+                if(i % 100 == 0 && i >= 1000000 && sample){
                     //rdf->sample_rdf(particles, histo, binWidth);
                     xHist->sampleHisto(particles, 0);
                     yHist->sampleHisto(particles, 1);
@@ -145,7 +145,6 @@ class MC{
             delete yHist;
             delete zHist;
         }
-        */
 };
 
 #endif

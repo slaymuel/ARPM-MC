@@ -256,16 +256,20 @@ int main(int argc, char *argv[])
     //Ewald3D ewald;
 
 
-    /*
+
     std::string energyFunction = "valleau";
     if(energyFunction == "valleau"){
         //MC::run(&ewald.get_energy, particles, dr, iter, true);
-        MC::run(&energy::direct::get_energy, particles, 15, 100000, false);
+        MC::run(&energy::direct::get_energy, particles, 5, 100000, false);
        // energy::valleau::update_charge_vector(particles);
         energy::valleau::update_potential();
 
-        MC::run(&energy::valleau::get_energy, particles, 15, 100000, false);
+        MC::run(&energy::valleau::get_energy, particles, 15, 500000, false);
         energy::valleau::update_potential();
+
+        MC::run(&energy::valleau::get_energy, particles, 15, 500000, false);
+        energy::valleau::update_potential();
+
         //energy::valleau::update_charge_vector(particles);
         //energy::valleau::update_potential();
         MC::run(&energy::valleau::get_energy, particles, dr, iter, true);
@@ -273,7 +277,7 @@ int main(int argc, char *argv[])
         //energy::valleau::update_potential();
         //MC::run(&energy::valleau::get_energy, particles, 0.5, iter);
     }
-*/
+/*
     Base::eCummulative = MC::ewald3D.get_energy(particles);
     //Base::eCummulative = energy::valleau::get_energy(particles);
     double avgTime = 0;
@@ -335,7 +339,7 @@ int main(int argc, char *argv[])
         //printf("Real time: %lf\n", avgTime/(i + 1);
     }
     //////////////////////////////////////////////////////////////////////////////////////////////////////
-
+*/
     printf("Accepted moves: %d\n", Base::acceptedMoves);
     printf("Rejected moves: %d\n", Base::totalMoves - Base::acceptedMoves);
 

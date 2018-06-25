@@ -1,7 +1,7 @@
 #ifndef Levin_H
 #define Levin_H
 
-#include "base.cpp"
+#include "base.h"
 //#include <eigen3/Eigen/Dense>
 #include "particle.h"
 //#include <vector>

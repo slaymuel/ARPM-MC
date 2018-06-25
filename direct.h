@@ -22,7 +22,7 @@
 #ifndef DIRECT_H
 #define DIRECT_H
 
-#include "base.cpp"
+#include "base.h"
 #include "particle.h"
 
 namespace energy{ namespace direct{ 

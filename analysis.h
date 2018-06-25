@@ -1,7 +1,7 @@
 #ifndef ANALYSIS_H
 #define ANALYSIS_H
 
-#include "base.cpp"
+#include "base.h"
 #include "particle.h"
 
 class Analysis: public Base{

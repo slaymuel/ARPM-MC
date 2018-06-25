@@ -1,7 +1,7 @@
 #ifndef PARTICLE_H
 #define PARTICLE_H
 
-#include "base.cpp"
+#include "base.h"
 #include <fstream>
 #include <sstream>
 
