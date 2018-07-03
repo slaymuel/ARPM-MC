@@ -27,6 +27,7 @@
 
 namespace energy{ namespace direct{ 
     double get_energy(Particle **particles);
+    double get_particle_energy(Particle **particles, Particle *p);
     //double get_energy(Particle **particles, Particle *p);
     double get_central(Particle **particles);
     double get_central(Particle **particles, Particle *p);

@@ -19,21 +19,20 @@ Ewald2D MC::ewald2D;
 //Direct MC::direct;
 //Levin MC::levin;
 
-int Particle::numOfParticles = 0;
-double **Particle::distances;
 int Analysis::numOfHisto = 0;
 double Base::xL = 114.862525361502; //172
 double Base::yL = 114.862525361502; //45
 double Base::zL = 45;
-double Base::T = 1000;
+double Base::T = 298;
 double Base::lB;
+double Base::beta;
+double Base::P = 1;
+double Base::volume;
 bool Base::d2 = false;
 double Base::eCummulative = 0;
 double Base::wall = 0;
 int Base::acceptedMoves = 0;
 int Base::totalMoves = 0;
-Eigen::VectorXd energy::valleau::chargeVector;
-Eigen::VectorXd energy::valleau::ext;
 namespace po = boost::program_options;
 
 
@@ -194,11 +193,11 @@ int main(int argc, char *argv[])
     }
     else{
         if(vm.count("density")){
+            numOfParticles = vm["density"].as<double>()/pow(diameter, 3)*(Base::xL * Base::yL * Base::zL);
             if(numOfParticles % 2 != 0){
                 printf("Please choose an even number of particles\n");
                 exit(1);
             }
-            numOfParticles = vm["density"].as<double>()/pow(diameter, 3)*(Base::xL * Base::yL * Base::zL);
             printf("%d particles will be created\n", numOfParticles);
             particles = Particle::create_particles(numOfParticles/2, numOfParticles/2);
             density = (double)numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(diameter, 3);
@@ -211,6 +210,7 @@ int main(int argc, char *argv[])
         particles = Particle::create_particles(vm["nnum"].as<int>(), vm["pnum"].as<int>());
         density = (double)Particle::numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(diameter, 3);
     }
+
     Particle::distances = (double**) malloc(Particle::numOfParticles * sizeof(double*));
     for(int i = 0; i < Particle::numOfParticles; i++){
         Particle::distances[i] = (double*) malloc(Particle::numOfParticles * sizeof(double*));
@@ -223,21 +223,22 @@ int main(int argc, char *argv[])
         mc.equilibrate(particles);
     }
 
-    //Levin levin;
-    //levin.initialize(particles);
-
     //exit(1);
     Analysis *xHist = new Analysis(0.1, Base::xL);
     Analysis *yHist = new Analysis(0.1, Base::yL);
     Analysis *zHist = new Analysis(0.1, Base::zL);
     //Analysis *rdf = new Analysis(0.1, Base::zL);
     Base::set_lB();
-
+    Base::set_beta();
+    Base::volume = Base::xL * Base::yL * Base::zL;
+    
     MC::ewald3D.set_alpha();
     MC::ewald2D.set_alpha();
     MC::ewald3D.initialize(particles);
     MC::ewald2D.initialize();
 
+    energy::levin::initialize(particles);
+    energy::valleau::initialize();
     // overlaps = Particle::get_overlaps(particles);
     // if(overlaps > 0){
     //     printf("System contains overlaps!\n");
@@ -259,23 +260,20 @@ int main(int argc, char *argv[])
 
     std::string energyFunction = "valleau";
     if(energyFunction == "valleau"){
-        //MC::run(&ewald.get_energy, particles, dr, iter, true);
-        MC::run(&energy::direct::get_energy, particles, 5, 100000, false);
-       // energy::valleau::update_charge_vector(particles);
+        
+        MC::run(&energy::direct::get_energy, &energy::direct::get_particle_energy, particles, 5, 20001, false);
+        //MC::run(&energy::direct::get_energy, &energy::direct::get_particle_energy, particles, 15, 5000000, true);
         energy::valleau::update_potential();
-
-        MC::run(&energy::valleau::get_energy, particles, 15, 500000, false);
-        energy::valleau::update_potential();
-
-        MC::run(&energy::valleau::get_energy, particles, 15, 500000, false);
-        energy::valleau::update_potential();
-
-        //energy::valleau::update_charge_vector(particles);
+        
+        //MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, 5, 20001, false);
         //energy::valleau::update_potential();
-        MC::run(&energy::valleau::get_energy, particles, dr, iter, true);
-        //energy::valleau::update_charge_vector(particles);
+        
+        //MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, 15, 1000000, false);
         //energy::valleau::update_potential();
-        //MC::run(&energy::valleau::get_energy, particles, 0.5, iter);
+
+        MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, dr, iter, true);
+        
+        MC::run(&energy::levin::get_energy, &energy::levin::get_particle_energy, particles, dr, iter, true);
     }
 /*
     Base::eCummulative = MC::ewald3D.get_energy(particles);
@@ -326,7 +324,7 @@ int main(int argc, char *argv[])
             //printf("%lf\n", fabs(energy - Base::eCummulative)/fabs(Base::eCummulative));
             printf("Acceptance ratio: %lf\n", (double) Base::acceptedMoves / Base::totalMoves);
             printf("Acceptance ratio for the last 10000 steps: %lf\n\n", (double) prevAccepted / 10000.0);
-            if(fabs(energy - Base::eCummulative) / fabs(energy) > pow(10, -10)) {
+            if(fabs(energy - Base::eCummulative) / fabs(energy) > pow(10, -12)) {
                 printf("Error is too large!\n");
                 printf("Error: %.20lf\n", fabs(energy - Base::eCummulative) / fabs(energy));
                 //exit(1);
@@ -344,9 +342,9 @@ int main(int argc, char *argv[])
     printf("Rejected moves: %d\n", Base::totalMoves - Base::acceptedMoves);
 
     //rdf->save_rdf(histo, bins, binWidth);
-    xHist->saveHisto(outName);
-    yHist->saveHisto(outName);
-    zHist->saveHisto(outName);
+    //xHist->saveHisto(outName);
+    //yHist->saveHisto(outName);
+    //zHist->saveHisto(outName);
     //Write coordinates to file
     printf("Saving output coordinates to: %s\n", outName);
     Particle::write_coordinates(outName, particles);

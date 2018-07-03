@@ -23,6 +23,15 @@ double energy::direct::get_energy(Particle **particles){
     return Base::lB * (replicates + central);
 }
 
+double energy::direct::get_particle_energy(Particle **particles, Particle *p){
+    double energy;
+    double central = get_central(particles, p);
+    double replicates = 0;// 1.0/2.0 * get_replicates(particles);
+
+    //printf("Central box: %lf Replicates: %lf\n", central, replicates);
+    return Base::lB * (replicates + central);
+}
+
 // double energy::direct::get_energy(Particle **particles, Particle *p){
 //     double energy;
 //     double central = get_central(particles, p);

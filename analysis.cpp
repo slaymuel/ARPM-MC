@@ -56,7 +56,7 @@ void Analysis::saveHisto(char outName[]){
         exit(1);
     }
     for(i = 0; i < bins; i++){
-        fprintf(f, "%lf     %lf\n", (double)i * this->binWidth, (double)this->histo[i] * binWidth * Base::xL * Base::yL / (Particle::numOfParticles * this->numberOfSamples));
+        fprintf(f, "%lf     %lf\n", (double)i * this->binWidth, (double)this->histo[i] / (Base::xL * Base::yL * this->binWidth * this->numberOfSamples));
     }
     fclose(f);
 

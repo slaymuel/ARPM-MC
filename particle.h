@@ -12,7 +12,7 @@ class Particle: public Base{
 
         static double **distances;  //Distance matrix
         static int numOfParticles;
-
+        static double oldEnergy;
         double b;   //Length of charge displacement
         double d;   //Diameter of particle
         int q;  //Charge

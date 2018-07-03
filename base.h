@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <time.h>
-#include <math.h>
+#include <cmath>
 #include <float.h>
 #include "constants.h"
 #include <Eigen/Dense>
@@ -19,12 +19,20 @@ class Base{
         static double yL;
         static double zL;
         static double eCummulative;
-        static int acceptedMoves;
-        static int totalMoves;
         static double T;
         static double lB;
         static double wall;
+        static double beta;
+        static double P;
+        static double volume;
+        static int acceptedMoves;
+        static int totalMoves;
+
         static bool d2;
+        static void set_beta(){
+            beta = 1/(KB * T);
+        }
+
         static void set_lB(){
             lB = EC*EC/(4 * PI * VP * 80 * 1e-10 * KB * T);
             //lB = 69.6094879234987;//EC*EC/(4 * PI * VP * 2 * 1e-10 * KB * T);

@@ -3,6 +3,10 @@
 #include <math.h>
 #include "ran2_lib.cpp"
 
+int Particle::numOfParticles = 0;
+double **Particle::distances;
+double Particle::oldEnergy;
+
 //Constructor
 Particle::Particle(bool dummie){
     //Keep track of the number of particles
@@ -84,9 +88,9 @@ void Particle::pbc_xy(Eigen::Vector3d& x){
 // }
 
 void Particle::random_move(double stepSize){
-    this->com[0] += (ran2::get_random()*2 - 1.0) * stepSize;
-    this->com[1] += (ran2::get_random()*2 - 1.0) * stepSize;
-    this->com[2] += (ran2::get_random()*2 - 1.0) * stepSize;
+    this->com[0] += (ran2::get_random()*2.0 - 1.0) * stepSize;
+    this->com[1] += (ran2::get_random()*2.0 - 1.0) * stepSize;
+    this->com[2] += (ran2::get_random()*2.0 - 1.0) * stepSize;
 
     // this->pos[0] = this->com[0] + this->chargeDisp[0];
     // this->pos[1] = this->com[1] + this->chargeDisp[1];
@@ -104,9 +108,9 @@ void Particle::random_move(double stepSize){
 }
 
 void Particle::random_charge_rot(){
-    this->chargeDisp[0] = ran2::get_random() * 2 - 1;
-    this->chargeDisp[1] = ran2::get_random() * 2 - 1;
-    this->chargeDisp[2] = ran2::get_random() * 2 - 1;
+    this->chargeDisp[0] = ran2::get_random() * 2.0 - 1.0;
+    this->chargeDisp[1] = ran2::get_random() * 2.0 - 1.0;
+    this->chargeDisp[2] = ran2::get_random() * 2.0 - 1.0;
     
     this->chargeDisp = this->b * this->chargeDisp.normalized();
     this->pos = this->com + this->chargeDisp;
@@ -148,7 +152,7 @@ double Particle::distance_xy(Particle *p){
     double yP2 = this->pos[1];
     double zP2 = this->pos[2];
 
-    if(xP1 - xP2 < -1 * xL/2){
+    if(xP1 - xP2 < -1.0 * xL/2.0){
         xP2 = xP2 - xL;
     }
     if(xP1 - xP2 > xL/2){
@@ -255,13 +259,13 @@ void Particle::place_particles(Particle **particles){
     int l = 0;
     double random;
     double diameter = particles[0]->d;
-    int numOfColumns = Base::xL/diameter - 1;
-    int numOfRows = Base::yL/diameter - 1;
+    int numOfColumns = Base::xL/diameter - 1.0;
+    int numOfRows = Base::yL/diameter - 1.0;
     int index = 0;
-    int numOfCells = numOfRows * numOfColumns * (Base::zL/diameter - 1);
+    int numOfCells = numOfRows * numOfColumns * (Base::zL/diameter - 1.0);
     double **grid;
     double *temp;
-    temp = (double*)malloc(3*sizeof(double));
+    temp = (double*)malloc(3 * sizeof(double));
     grid = (double**) malloc(numOfCells*sizeof(double*));
 
     printf("Fitting %d particles in box.\n", Particle::numOfParticles);

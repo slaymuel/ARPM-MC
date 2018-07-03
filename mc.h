@@ -9,7 +9,7 @@
 #include "analysis.h"
 #include "valleau.h"
 //#include "direct.h"
-//#include "levin.cpp"
+#include "levin.h"
 class MC{
     public:
         void equilibrate(Particle **particles);
@@ -24,26 +24,57 @@ class MC{
         static Ewald2D ewald2D;
         //static Direct direct;
 
+        template <typename E>
+        static int vol_move(Particle **particles, E energy_function){
+            double vMax = 2.0;
+            double oldEnergy = energy_function(particles);
+            double lnNewLength = std::log(Base::xL) + (ran2::get_random() - 0.5) * vMax;
+            double newVolume = std::exp(lnNewLength);
+            double newLength = cbrt(newVolume);
+
+            for(int i = 0; i < Particle::numOfParticles; i++){
+                particles[i]->pos *= newLength / Base::xL;
+            }
+            double newEnergy = energy_function(particles);
+
+            double prob = exp(-Base::beta * ((newEnergy - oldEnergy) + Base::P * (newVolume - Base::volume) - 
+                                             (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume)/Base::beta));
+
+            if(ran2::get_random() > prob){  //Reject
+                for(int i = 0; i < Particle::numOfParticles; i++){
+                    particles[i]->pos *= Base::xL / newLength;
+                }
+            }
+            else{
+                Base::xL = newLength;
+                Base::yL = newLength;
+                Base::zL = newLength;
+                Base::volume = newVolume;
+                return 1;
+            }
+            return 0;
+        }
+
         template<typename E>
         static int trans_move(Particle **particles, double dr, E energy_function){
-            double eOld = 0;
-            double eNew = 0;
-            double dist = 0;
-            double acceptProp = 0;
+            double eOld = 0.0;
+            double eNew = 0.0;
+            double dist = 0.0;
+            double acceptProp = 0.0;
 
             double random = ran2::get_random();
 
-            double dE = 0;
-            int accepted= 0;
-            double ewald3DEnergy = 0;
-            double ewald2DEnergy = 0;
-            double directEnergy = 0;
+            double dE = 0.0;
+            int accepted= 0.0;
+            double ewald3DEnergy = 0.0;
+            double ewald2DEnergy = 0.0;
+            double directEnergy = 0.0;
             Particle *_old = new Particle(true);
 
             int p =  random * Particle::numOfParticles;
 
             //Calculate old energy
-            eOld = energy_function(particles);
+            eOld = energy_function(particles, particles[p]);
             _old->pos = particles[p]->pos;
             _old->com = particles[p]->com;
             _old->q = particles[p]->q;
@@ -57,7 +88,8 @@ class MC{
                 particles[p]->com[2] < Base::zL - Base::wall - particles[p]->d/2 ){
                 //Get new energy
                 //MC::ewald3D.update_reciprocal(_old, particles[p]);
-                eNew = energy_function(particles);
+                energy::levin::update_f(_old, particles[p]);
+                eNew = energy_function(particles, particles[p]);
 
                 //Accept move?
                 dE = eNew - eOld;
@@ -75,6 +107,7 @@ class MC{
                 }
                 else{   //Reject move
                     //MC::ewald3D.update_reciprocal(particles[p], _old);
+                    energy::levin::update_f(particles[p], _old);
                     particles[p]->pos = _old->pos;
                     particles[p]->com = _old->com;
                     Particle::update_distances(particles, particles[p]);
@@ -91,11 +124,11 @@ class MC{
             return accepted;
         }
 
-        template<typename F>
-        static void run(F&& energy_function, Particle** particles, double dr, int iter, bool sample){
+        template<typename F, typename FP>
+        static void run(F&& energy_function, FP&& particle_energy_function, Particle** particles, double dr, int iter, bool sample){
             double energy_temp;
             int prevAccepted = 0;
-            int outFreq = 1000;
+            int outFreq = 10000;
 
             Analysis *xHist = new Analysis(0.1, Base::xL);
             Analysis *yHist = new Analysis(0.1, Base::yL);
@@ -103,34 +136,36 @@ class MC{
 
             char outName[] = ".txt";
             Base::eCummulative = energy_function(particles);
+            Particle::oldEnergy = Base::eCummulative;
+            printf("\nRunning MC-loop at temperature: %lf, Bjerrum length is %lf\n\n", Base::T, Base::lB);
             for(int i = 0; i < iter; i++){
 
-                if(i % 100 == 0 && i >= 1000000 && sample){
+                if(i % 100 == 0 && i >= 500000 && sample){
                     //rdf->sample_rdf(particles, histo, binWidth);
                     xHist->sampleHisto(particles, 0);
                     yHist->sampleHisto(particles, 1);
                     zHist->sampleHisto(particles, 2);
                 }
 
-                if(trans_move(particles, dr, energy_function)){
+                if(trans_move(particles, dr, particle_energy_function)){
                     prevAccepted++; 
                 }    
 
                 Base::totalMoves++;
-                if(i % 100 && i > 50000 && !sample){
+                if(i % 100 && i > 10000 && !sample){
                     energy::valleau::update_charge_vector(particles);
                 }
 
-                if(i % outFreq == 0 && i != 0){
+                if(i % outFreq == 0){
                     energy_temp = energy_function(particles);
                     //Particle::write_coordinates(outName , particles);
                     printf("Iteration: %d\n", i);
                     printf("Energy: %lf\n", energy_temp);
                     printf("Acceptance ratio: %lf\n", (double)Base::acceptedMoves/Base::totalMoves);
                     printf("Acceptance ratio for the last %i steps: %lf\n\n", outFreq, (double)prevAccepted/outFreq);
-                    if(fabs(energy_temp - Base::eCummulative)/fabs(energy_temp) > pow(10, -12)){
+                    if(std::abs(energy_temp - Base::eCummulative)/std::abs(energy_temp) > std::pow(10, -12)){
                         printf("Error is too large!\n");
-                        printf("Error: %lf\n", fabs(energy_temp - Base::eCummulative)/fabs(energy_temp));
+                        printf("Error: %.12lf\n", std::abs(energy_temp - Base::eCummulative)/std::abs(energy_temp));
                         exit(1);
                     }
                     prevAccepted = 0;
