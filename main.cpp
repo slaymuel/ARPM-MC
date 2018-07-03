@@ -14,7 +14,7 @@
 #include "valleau.h"
 #include "ewald3D.h"
 //Initializers
-Ewald3D MC::ewald3D;
+//Ewald3D MC::ewald3D;
 Ewald2D MC::ewald2D;
 //Direct MC::direct;
 //Levin MC::levin;
@@ -26,7 +26,7 @@ double Base::zL = 45;
 double Base::T = 298;
 double Base::lB;
 double Base::beta;
-double Base::P = 1;
+double Base::P = 1.0;
 double Base::volume;
 bool Base::d2 = false;
 double Base::eCummulative = 0;
@@ -231,11 +231,13 @@ int main(int argc, char *argv[])
     Base::set_lB();
     Base::set_beta();
     Base::volume = Base::xL * Base::yL * Base::zL;
-    
-    MC::ewald3D.set_alpha();
+
+    //MC::ewald3D.set_alpha();
+    //MC::ewald3D.initialize(particles);
     MC::ewald2D.set_alpha();
-    MC::ewald3D.initialize(particles);
     MC::ewald2D.initialize();
+    energy::ewald3D::set_alpha();
+    energy::ewald3D::initialize(particles);
 
     energy::levin::initialize(particles);
     energy::valleau::initialize();
@@ -260,10 +262,10 @@ int main(int argc, char *argv[])
 
     std::string energyFunction = "valleau";
     if(energyFunction == "valleau"){
+        MC::run(&energy::direct::get_energy, &energy::direct::get_particle_energy, particles, 0, 1, false);
+        MC::run(&energy::ewald3D::get_energy, &energy::ewald3D::get_particle_energy, particles, 0, 1, false);
         
-        MC::run(&energy::direct::get_energy, &energy::direct::get_particle_energy, particles, 5, 20001, false);
-        //MC::run(&energy::direct::get_energy, &energy::direct::get_particle_energy, particles, 15, 5000000, true);
-        energy::valleau::update_potential();
+        //energy::valleau::update_potential();
         
         //MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, 5, 20001, false);
         //energy::valleau::update_potential();
@@ -271,9 +273,9 @@ int main(int argc, char *argv[])
         //MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, 15, 1000000, false);
         //energy::valleau::update_potential();
 
-        MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, dr, iter, true);
+        //MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, dr, iter, true);
         
-        MC::run(&energy::levin::get_energy, &energy::levin::get_particle_energy, particles, dr, iter, true);
+        //MC::run(&energy::levin::get_energy, &energy::levin::get_particle_energy, particles, dr, iter, true);
     }
 /*
     Base::eCummulative = MC::ewald3D.get_energy(particles);

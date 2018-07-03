@@ -15,16 +15,15 @@ double energy::direct::norm(T vec){
 }
 
 double energy::direct::get_energy(Particle **particles){
-    double energy;
     double central = get_central(particles);
     double replicates = 1.0/2.0 * get_replicates(particles);
 
-    //printf("Central box: %lf Replicates: %lf\n", central, replicates);
+    printf("Central box: %lf Replicates: %lf\n", central, replicates);
+    printf("Energy: %lf\n", central + replicates);
     return Base::lB * (replicates + central);
 }
 
 double energy::direct::get_particle_energy(Particle **particles, Particle *p){
-    double energy;
     double central = get_central(particles, p);
     double replicates = 0;// 1.0/2.0 * get_replicates(particles);
 
@@ -49,7 +48,6 @@ double energy::direct::get_replicates(Particle **particles){
     int my = rep;
     int mz = rep;
     int count = 0;
-    int numOfRep = 0;
 
     //printf("Calculating energy for %d replicas.\n", (2 * rep+1) * (2 * rep+1) * (2 * rep+1) - 1);
     //#pragma omp parallel for if(rep > 10) reduction(+:energy) private(dist)
@@ -57,7 +55,6 @@ double energy::direct::get_replicates(Particle **particles){
         for(int j = -my; j <= my; j++){
             for(int k = -mz; k <= mz; k++){
                 if(sqrt(i * i + j * j + k * k) <= rep){
-                    numOfRep++;
                     for(int l = 0; l < Particle::numOfParticles; l++){
                         for(int m = 0; m < Particle::numOfParticles; m++){
                             if(i == 0 && j == 0 && k == 0){}
@@ -76,8 +73,8 @@ double energy::direct::get_replicates(Particle **particles){
             }
         }
         count++;
-        //printf("Done: %lf\r", (double)count/(2 * mx + 1) * 100.0);
-        //fflush(stdout);
+        printf("Done: %lf\r", (double)count/(2 * mx + 1) * 100.0);
+        fflush(stdout);
     }
     //printf("\n");
     //printf("Number of replicas: %d\n", numOfRep - 1);
@@ -85,21 +82,17 @@ double energy::direct::get_replicates(Particle **particles){
 }
 
 double energy::direct::get_central(Particle **particles){
-    int k = 0;
     double energy = 0;
     double dist = 0;
+    Eigen::Vector3d disp;
     for(int i = 0; i < Particle::numOfParticles; i++){
-        k = i + 1;
-        while(k < Particle::numOfParticles){
-            // double den[] = {particles[i]->pos[0] - particles[k]->pos[0], 
-            //                 particles[i]->pos[1] - particles[k]->pos[1], 
-            //                 particles[i]->pos[2] - particles[k]->pos[2]};
-            // dist = norm(den);
-            dist = Particle::distances[i][k];
-            //dist = sqrt(particles[i]->distance(particles[k]));
-            energy += particles[i]->q * particles[k]->q * 1/dist;
-            k++;
+        for(int k = i + 1; k < Particle::numOfParticles; k++){
+            disp = particles[i]->pos - particles[k]->pos;
+            dist = disp.norm();
+            //dist = Particle::distances[i][k];
+            energy += particles[i]->q * particles[k]->q / dist;
         }  
+
         if(particles[i]->com[2] < 0 || particles[i]->com[1] < 0 || particles[i]->com[0] < 0 ||
                 particles[i]->pos[2] < 0 || particles[i]->pos[1] < 0 || particles[i]->pos[0] < 0){
 
@@ -108,8 +101,11 @@ double energy::direct::get_central(Particle **particles){
             std::cout << particles[i]->pos << std::endl;
             exit(1);
         }
+        if(particles[i]->com != particles[i]->pos){
+            printf("pos and com are not equal!\n");
+            exit(1);
+        }
     }
-
     return energy;
 }
 

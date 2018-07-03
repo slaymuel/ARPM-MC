@@ -140,7 +140,7 @@ double Particle::distance(Particle *p){
     if(disp[2] > zL/2){
         disp[2] -= zL;
     }
-    return sqrt(disp.dot(disp));
+    return disp.norm();
 }
 
 double Particle::distance_xy(Particle *p){
@@ -438,16 +438,18 @@ Particle** Particle::read_coordinates(std::string name, bool relative = false, b
             } // error
             particles[j] = new Particle();
             //particles[j]->pos = (double*) malloc(3 * sizeof(double));
-
+            particles[j]->chargeDisp.setZero();
             if(relative){
                 particles[j]->pos[0] = Base::xL * x;
                 particles[j]->pos[1] = Base::yL * y;
                 particles[j]->pos[2] = Base::zL * z;
             }
             else{
-                particles[j]->pos[0] = x * nano;
-                particles[j]->pos[1] = y * nano;
-                particles[j]->pos[2] = z * nano + Base::wall;    
+                particles[j]->com[0] = x * nano;
+                particles[j]->com[1] = y * nano;
+                particles[j]->com[2] = z * nano + Base::wall; 
+                particles[j]->pos = particles[j]->com + particles[j]->chargeDisp;
+                //pbc(particles[j]->pos);   
             }
 
             particles[j]->d = 5;
