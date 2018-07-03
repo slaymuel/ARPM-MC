@@ -13,6 +13,7 @@
 #include "direct.h"
 #include "valleau.h"
 #include "ewald3D.h"
+#include "hard_sphere.h"
 //Initializers
 //Ewald3D MC::ewald3D;
 Ewald2D MC::ewald2D;
@@ -262,8 +263,8 @@ int main(int argc, char *argv[])
 
     std::string energyFunction = "valleau";
     if(energyFunction == "valleau"){
-        MC::run(&energy::direct::get_energy, &energy::direct::get_particle_energy, particles, 0, 1, false);
-        MC::run(&energy::ewald3D::get_energy, &energy::ewald3D::get_particle_energy, particles, 0, 1, false);
+        MC::run(&energy::hs::get_energy, &energy::hs::get_particle_energy, particles, dr, iter, false);
+        //MC::run(&energy::ewald3D::get_energy, &energy::ewald3D::get_particle_energy, particles, 0, 1, false);
         
         //energy::valleau::update_potential();
         

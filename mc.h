@@ -26,8 +26,7 @@ class MC{
 
         template <typename E>
         static int vol_move(Particle **particles, E energy_function){
-            /*
-            double vMax = 0.01;
+            double vMax = 0.1;
             double lnNewVolume = std::log(Base::volume) + (ran2::get_random() - 0.5) * vMax;
             double newVolume = std::exp(lnNewVolume);
             double newLength = cbrt(newVolume);
@@ -45,8 +44,8 @@ class MC{
             Base::zL = newLength;
             Particle::update_distances(particles);
             double newEnergy = energy_function(particles);
-
-            double prob = exp(-Base::beta * ((newEnergy - oldEnergy) + Base::P * (newVolume - Base::volume) - 
+            //(0.5 * Base::beta)
+            double prob = exp(-Base::beta * ((newEnergy - oldEnergy) + 1/Base::beta * (newVolume - Base::volume) - 
                                              (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume)/Base::beta));
             //printf("Prob: %lf\n", prob);
             if(ran2::get_random() > prob){  //Reject
@@ -66,7 +65,7 @@ class MC{
                 return 1;
             }
             return 0;
-            */
+            /*
             double dVmax = 1.0;
             double accepted = 0;
             double dV = (ran2::get_random()-0.5)*dVmax;
@@ -75,9 +74,8 @@ class MC{
             double newLength = cbrt(newVolume); //ted2
             double oldLength = Base::xL;
             double dLength = newLength / Base::xL;
-            double oldEnergy = energy_function(particles);
-            //ted = 0.5d0*ted2
-            //tred = 1.d0/ted        
+            //double oldEnergy = energy_function(particles);
+       
             for(int i = 0; i < Particle::numOfParticles; i++){
                 particles[i]->com *= dLength;
                 particles[i]->pos *= dLength;
@@ -86,13 +84,13 @@ class MC{
             Base::yL = newLength;
             Base::zL = newLength;
 
-            Particle::update_distances(particles);
-            double newEnergy = energy_function(particles);
+            //Particle::update_distances(particles);
+            //double newEnergy = energy_function(particles);
 
             double dut = Base::beta * Base::P * 0.000000000000000000000000000001 * dV - Particle::numOfParticles * std::log(newVolume / Base::volume);
 
             if (std::exp(-dut) >= ran2::get_random()){  //accept
-                Base::eCummulative += newEnergy - oldEnergy;
+                //Base::eCummulative += newEnergy - oldEnergy;
                 Base::volume = newVolume;
                 accepted = 1;
                 //printf("volume: %lf\n", Base::volume);
@@ -105,10 +103,11 @@ class MC{
                     Base::yL = oldLength;
                     Base::zL = oldLength;
                     Base::volume = oldVolume;
-                    Particle::update_distances(particles);
+                    //Particle::update_distances(particles);
                 }                
             }
             return accepted;
+            */
         }
 
         template<typename E>
@@ -143,8 +142,8 @@ class MC{
             if(particles[p]->hard_sphere(particles)){// && particles[p]->com[2] > particles[p]->d/2 + Base::wall &&
                 //particles[p]->com[2] < Base::zL - Base::wall - particles[p]->d/2 ){
                 //Get new energy
-                energy::ewald3D::update_reciprocal(_old, particles[p]);
-                energy::levin::update_f(_old, particles[p]);
+                //energy::ewald3D::update_reciprocal(_old, particles[p]);
+                //energy::levin::update_f(_old, particles[p]);
                 eNew = energy_function(particles, particles[p]);
 
                 //Accept move?
@@ -162,8 +161,8 @@ class MC{
                     Base::acceptedMoves++;
                 }
                 else{   //Reject move
-                    energy::ewald3D::update_reciprocal(particles[p], _old);
-                    energy::levin::update_f(particles[p], _old);
+                    //energy::ewald3D::update_reciprocal(particles[p], _old);
+                    //energy::levin::update_f(particles[p], _old);
                     particles[p]->pos = _old->pos;
                     particles[p]->com = _old->com;
                     Particle::update_distances(particles, particles[p]);
@@ -206,7 +205,7 @@ class MC{
                 if(trans_move(particles, dr, particle_energy_function)){
                     prevAccepted++; 
                 }    
-                //vol_move(particles, energy_function);
+                vol_move(particles, energy_function);
                 Base::totalMoves++;
                 if(i % 100 && i > 10000 && !sample){
                     //energy::valleau::update_charge_vector(particles);
