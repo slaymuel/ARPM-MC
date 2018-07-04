@@ -51,22 +51,26 @@ void energy::ewald3D::set_alpha(){
     alpha = 5/Base::xL;
 }
 
+void energy::ewald3D::reset(){
+    kVec.clear();
+    free(resFac);
+    free(kNorm);
+    free(rkVec);
+}
+
 void energy::ewald3D::initialize(Particle **p){
     int i = 0;
     double r = 0;
     double qq = 0;
-    double kx2;
-    double ky2;
-    double kz2;
     double k2 = 0;
     kNumMax = 1000000;
     kNum = 0;
     resFac = (double*) malloc(kNumMax * sizeof(double));
-    int kMax = 12;//8/Base::xL;
+    int kMax = 4;//8/Base::xL;
     //get k-vectors
     double factor = 1;
     std::vector<double> vec(3);
-    printf("Calculating k-vectors");
+    //printf("Calculating k-vectors");
     for(int kx = 0; kx <= kMax; kx++){
         for(int ky = -kMax; ky <= kMax; ky++){
             for(int kz = -kMax; kz <= kMax; kz++){
@@ -87,8 +91,8 @@ void energy::ewald3D::initialize(Particle **p){
             }
         }
     }
-    printf("\n");
-    printf("3D: Found: %d k-vectors\n", kNum);
+    //printf("\n");
+    //printf("3D: Found: %d k-vectors\n", kNum);
     //Calculate norms
     kNorm = (double*) malloc(kNum * sizeof(double));
     for(i = 0; i < kNum; i++){
@@ -187,8 +191,8 @@ double energy::ewald3D::get_energy(Particle **particles){
         //self = alpha/sqrt(PI) * self;
         //printf("Dipole moment: %lf\n", corr);
         //printf("self term: %lf\n", selfTerm);
-        printf("Real: %lf, self: %lf, reciprocal: %lf\n", real, selfTerm/Base::lB, reciprocal);
-        printf("Energy: %lf\n", (real + reciprocal + corr) - selfTerm/Base::lB);
+        //printf("Real: %lf, self: %lf, reciprocal: %lf\n", real, selfTerm/Base::lB, reciprocal);
+        //printf("Energy: %lf\n", (real + reciprocal + corr) - selfTerm/Base::lB);
         return Base::lB * (real + reciprocal + corr) - selfTerm;
         //return Base::lB * (real + reciprocal) - selfTerm;
 }
@@ -199,6 +203,7 @@ double energy::ewald3D::get_particle_energy(Particle **particles, Particle* p){
     double reciprocal = 0;
     //double dipoleMoment[3] = {0, 0, 0};
     Eigen::Vector3d dipoleMoment;
+    dipoleMoment.setZero();
     double corr = 0;
     double distance = 0;
     double energy = 0;
@@ -211,14 +216,20 @@ double energy::ewald3D::get_particle_energy(Particle **particles, Particle* p){
         distance = Particle::distances[p->index][i];
         energy = erfc_x(distance * alpha) / distance;
         real += particles[i]->q * p->q * energy;
+        dipoleMoment += particles[i]->q * particles[i]->pos;
     }
     for(int i = 0; i < p->index; i++){
         distance = Particle::distances[i][p->index];
         energy = erfc_x(distance * alpha) / distance;
         real += particles[i]->q * p->q * energy;
+        dipoleMoment += particles[i]->q * particles[i]->pos;
     }
+    dipoleMoment += particles[p->index]->q * particles[p->index]->pos;
+    corr = dipoleMoment.norm();
+    corr *= corr;
+    corr = 2 * PI * corr/(3 * Base::xL * Base::yL * Base::zL);
     reciprocal = 2 * PI/(Base::xL * Base::yL * Base::zL) * reciprocal;
-    return Base::lB * (real + reciprocal) - selfTerm;
+    return Base::lB * (real + reciprocal + corr) - selfTerm;
 }
 
 

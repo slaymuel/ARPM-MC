@@ -37,6 +37,7 @@ namespace energy { namespace ewald3D{
     double get_particle_energy(Particle **particles, Particle* p);
     double get_self_correction(Particle *p);
     void initialize(Particle **p);
+    void reset();
     void update_reciprocal(Particle *_old, Particle *_new);
     void set_alpha();
 } }

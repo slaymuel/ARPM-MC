@@ -197,7 +197,7 @@ double Particle::com_distance(Particle *p){
     if(disp[2] > zL/2){
         disp[2] -= zL;
     }
-    return disp.dot(disp);
+    return disp.norm();
 }
 
 double Particle::com_distance_xy(Particle *p){
@@ -216,7 +216,7 @@ double Particle::com_distance_xy(Particle *p){
     if(disp[1] > yL/2){
         disp[1] -= yL;
     }
-    return disp.dot(disp);
+    return disp.norm();
 }
 
 int Particle::hard_sphere(Particle **particles){
@@ -226,14 +226,14 @@ int Particle::hard_sphere(Particle **particles){
     for(i = 0; i < Particle::numOfParticles; i++){
         if(Base::wall > 0 || Base::d2){
             if(i != this->index){
-                if(this->com_distance_xy(particles[i]) < (this->d+particles[i]->d)/2*(this->d+particles[i]->d)/2){
+                if(this->com_distance_xy(particles[i]) < (this->d + particles[i]->d) / 2){
                     return 0;
                 }
             }
         }
         else{
             if(i != this->index){
-                if(this->com_distance(particles[i]) < (this->d+particles[i]->d)/2*(this->d+particles[i]->d)/2){
+                if(this->com_distance(particles[i]) < (this->d + particles[i]->d) / 2){
                     return 0;
                 }
             }
@@ -332,7 +332,7 @@ Particle** Particle::create_particles(int nNum, int pNum){
         particles[i] = new Particle();
         particles[i]->index = i;
         particles[i]->d = 5;    //Diameter of particles
-        particles[i]->b = 0; //Length of charge displacement vector
+        particles[i]->b = 1; //Length of charge displacement vector
 
         //Get random center of mass coordinates
         particles[i]->com[0] = (double) rand()/RAND_MAX * Base::xL;
@@ -396,7 +396,7 @@ int Particle::get_overlaps(Particle **particles){
         j = i + 1;
         while(j < Particle::numOfParticles){
             if(i != j){
-                if(particles[i]->com_distance_xy(particles[j]) < (particles[i]->d/2 + particles[j]->d/2) * (particles[i]->d/2 + particles[j]->d/2)){
+                if(particles[i]->com_distance_xy(particles[j]) < (particles[i]->d/2 + particles[j]->d/2)){
                     overlaps++;
                 }
             }

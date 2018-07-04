@@ -24,47 +24,73 @@ class MC{
         static Ewald2D ewald2D;
         //static Direct direct;
 
+
+
+
         template <typename E>
         static int vol_move(Particle **particles, E energy_function){
-            double vMax = 0.1;
+            bool overlap = false;
+            double vMax = 0.01;
             double lnNewVolume = std::log(Base::volume) + (ran2::get_random() - 0.5) * vMax;
             double newVolume = std::exp(lnNewVolume);
             double newLength = cbrt(newVolume);
+            double volFrac = newLength / Base::xL;
             double oldxL = Base::xL;
             double oldyL = Base::yL;
             double oldzL = Base::zL;
 
-            double oldEnergy = energy_function(particles);
             for(int i = 0; i < Particle::numOfParticles; i++){
-                particles[i]->com *= newLength / Base::xL;
-                particles[i]->pos *= newLength / Base::xL;
-            }
-            Base::xL = newLength;
-            Base::yL = newLength;
-            Base::zL = newLength;
-            Particle::update_distances(particles);
-            double newEnergy = energy_function(particles);
-            //(0.5 * Base::beta)
-            double prob = exp(-Base::beta * ((newEnergy - oldEnergy) + 1/Base::beta * (newVolume - Base::volume) - 
-                                             (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume)/Base::beta));
-            //printf("Prob: %lf\n", prob);
-            if(ran2::get_random() > prob){  //Reject
-                Base::xL = oldxL;
-                Base::yL = oldyL;
-                Base::zL = oldzL;
-                for(int i = 0; i < Particle::numOfParticles; i++){
-                    particles[i]->com *= Base::xL / newLength;
-                    particles[i]->pos *= Base::xL / newLength;
+                for(int j = i + 1; j < Particle::numOfParticles; j++){
+                    if(particles[i]->com_distance(particles[j]) * volFrac < particles[i]->d/2 + particles[j]->d/2){
+                        overlap = true;
+                        break;
+                    }
                 }
+                if(overlap){
+                    break;
+                }
+            }
+            if(!overlap){
+                double oldEnergy = energy_function(particles);
+                for(int i = 0; i < Particle::numOfParticles; i++){
+                    particles[i]->com *= volFrac;
+                    particles[i]->pos *= volFrac;
+                }
+                Base::xL = newLength;
+                Base::yL = newLength;
+                Base::zL = newLength;
                 Particle::update_distances(particles);
+                energy::ewald3D::reset();
+                energy::ewald3D::initialize(particles);
+                double newEnergy = energy_function(particles);
+                //(0.5 * Base::beta)
+                double prob = exp(-(newEnergy - oldEnergy) - Base::beta * (100000 * 1e-30 * (newVolume - Base::volume) - 
+                                                (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume)/Base::beta));
+                //printf("Prob: %lf\n", prob);
+                if(ran2::get_random() > prob){  //Reject
+                    
+                    Base::xL = oldxL;
+                    Base::yL = oldyL;
+                    Base::zL = oldzL;
+                    for(int i = 0; i < Particle::numOfParticles; i++){
+                        particles[i]->com *= Base::xL / newLength;
+                        particles[i]->pos *= Base::xL / newLength;
+                    }
+                    Particle::update_distances(particles);
+                    energy::ewald3D::reset();
+                    energy::ewald3D::initialize(particles);
+                }
+                else{                           //Accept
+                    Base::eCummulative += newEnergy - oldEnergy;
+                    Base::volume = newVolume;
+                    //printf("volume: %lf\n", Base::volume);
+                    return 1;
+                }
+                return 0;
             }
-            else{                           //Accept
-                Base::eCummulative += newEnergy - oldEnergy;
-                Base::volume = newVolume;
-                //printf("volume: %lf\n", Base::volume);
-                return 1;
+            else{
+                return 0;
             }
-            return 0;
             /*
             double dVmax = 1.0;
             double accepted = 0;
@@ -110,6 +136,56 @@ class MC{
             */
         }
 
+
+
+        template <typename E>
+        static int charge_rot_move(Particle **particles, E energy_function){
+            double eOld;
+            double eNew;
+            double acceptProb;
+            int r = ran2::get_random() * Particle::numOfParticles;
+            double dE;
+            int accepted = 0;
+            Particle *_old = new Particle(true);
+
+            _old->pos = particles[r]->pos;
+            _old->com = particles[r]->com;
+            _old->chargeDisp = particles[r]->chargeDisp;
+            _old->q = particles[r]->q;
+            _old->index = particles[r]->index;
+            
+            //eOld = MC::direct.get_energy(particles);
+            eOld = energy_function(particles, particles[r]);
+
+            particles[r]->random_charge_rot();
+            Particle::update_distances(particles, particles[r]);
+            energy::ewald3D::update_reciprocal(_old, particles[r]);
+            //eNew = MC::direct.get_energy(particles);
+            eNew = energy_function(particles, particles[r]);
+            dE = eNew - eOld;
+            acceptProb = exp(-1 * dE);
+            double p = ran2::get_random();
+
+            //Accept move
+            if(p <= acceptProb){
+                accepted = 1;
+                Base::eCummulative += dE;
+                Base::acceptedMoves++;
+            }
+            //Reject
+            else{
+                energy::ewald3D::update_reciprocal(particles[r], _old);
+                particles[r]->chargeDisp = _old->chargeDisp;
+                particles[r]->pos = _old->pos;
+                Particle::update_distances(particles, particles[r]);
+            }
+            delete _old;
+            return accepted;
+        }
+
+
+
+
         template<typename E>
         static int trans_move(Particle **particles, double dr, E energy_function){
             double eOld = 0.0;
@@ -142,7 +218,7 @@ class MC{
             if(particles[p]->hard_sphere(particles)){// && particles[p]->com[2] > particles[p]->d/2 + Base::wall &&
                 //particles[p]->com[2] < Base::zL - Base::wall - particles[p]->d/2 ){
                 //Get new energy
-                //energy::ewald3D::update_reciprocal(_old, particles[p]);
+                energy::ewald3D::update_reciprocal(_old, particles[p]);
                 //energy::levin::update_f(_old, particles[p]);
                 eNew = energy_function(particles, particles[p]);
 
@@ -161,7 +237,7 @@ class MC{
                     Base::acceptedMoves++;
                 }
                 else{   //Reject move
-                    //energy::ewald3D::update_reciprocal(particles[p], _old);
+                    energy::ewald3D::update_reciprocal(particles[p], _old);
                     //energy::levin::update_f(particles[p], _old);
                     particles[p]->pos = _old->pos;
                     particles[p]->com = _old->com;
@@ -183,7 +259,11 @@ class MC{
         static void run(F&& energy_function, FP&& particle_energy_function, Particle** particles, double dr, int iter, bool sample){
             double energy_temp;
             int prevAccepted = 0;
-            int outFreq = 10000;
+            int rotAccepted = 0;
+            int volAccepted = 0;
+            int transAccepted = 0;
+            int outFreq = 1000;
+            double random = 0;
 
             Analysis *xHist = new Analysis(0.1, Base::xL);
             Analysis *yHist = new Analysis(0.1, Base::yL);
@@ -202,28 +282,49 @@ class MC{
                     zHist->sampleHisto(particles, 2);
                 }
 
-                if(trans_move(particles, dr, particle_energy_function)){
-                    prevAccepted++; 
-                }    
-                vol_move(particles, energy_function);
+                random = ran2::get_random();
+                if(random <= 7){
+                    if(trans_move(particles, dr, particle_energy_function)){
+                        prevAccepted++; 
+                        transAccepted++;
+                    }
+                }
+
+                random = ran2::get_random();
+                if(random <= 0.3){
+                    if(charge_rot_move(particles, particle_energy_function)){
+                        prevAccepted++;
+                        rotAccepted++;
+                    }
+                }
+
+                random = ran2::get_random();
+                if(random <= 0.1){
+                    if(vol_move(particles, energy_function)){
+                        volAccepted++;
+                    }
+                }
+
                 Base::totalMoves++;
                 if(i % 100 && i > 10000 && !sample){
                     //energy::valleau::update_charge_vector(particles);
                 }
 
                 if(i % outFreq == 0){
+                    Base::volumes.push_back(Base::volume);
                     energy_temp = energy_function(particles);
                     //Particle::write_coordinates(outName , particles);
                     printf("Iteration: %d\n", i);
                     printf("Volume: %lf\n", Base::volume);
                     printf("Energy: %lf\n", energy_temp);
                     printf("Acceptance ratio: %lf\n", (double)Base::acceptedMoves/Base::totalMoves);
-                    printf("Acceptance ratio for the last %i steps: %lf\n\n", outFreq, (double)prevAccepted/outFreq);
-                    if(std::abs(energy_temp - Base::eCummulative)/std::abs(energy_temp) > std::pow(10, -11)){
+                    printf("Acceptance ratio for the last %i steps: %lf\n", outFreq, (double)prevAccepted/outFreq);
+                    if(std::abs(energy_temp - Base::eCummulative)/std::abs(energy_temp) > std::pow(10, -12)){
                         printf("Error is too large!\n");
                         printf("Error: %.12lf\n", std::abs(energy_temp - Base::eCummulative)/std::abs(energy_temp));
                         exit(1);
                     }
+                    printf("Trans moves: %d         Rot moves: %d       Vol moves: %d\n\n", transAccepted, rotAccepted, volAccepted);
                     prevAccepted = 0;
                 }
             }

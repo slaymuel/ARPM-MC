@@ -34,6 +34,7 @@ double Base::eCummulative = 0;
 double Base::wall = 0;
 int Base::acceptedMoves = 0;
 int Base::totalMoves = 0;
+std::vector<double> Base::volumes;
 namespace po = boost::program_options;
 
 
@@ -232,6 +233,7 @@ int main(int argc, char *argv[])
     Base::set_lB();
     Base::set_beta();
     Base::volume = Base::xL * Base::yL * Base::zL;
+    Base::volumes.push_back(Base::volume);
 
     //MC::ewald3D.set_alpha();
     //MC::ewald3D.initialize(particles);
@@ -263,8 +265,8 @@ int main(int argc, char *argv[])
 
     std::string energyFunction = "valleau";
     if(energyFunction == "valleau"){
-        MC::run(&energy::hs::get_energy, &energy::hs::get_particle_energy, particles, dr, iter, false);
-        //MC::run(&energy::ewald3D::get_energy, &energy::ewald3D::get_particle_energy, particles, 0, 1, false);
+        //MC::run(&energy::hs::get_energy, &energy::hs::get_particle_energy, particles, dr, iter, false);
+        MC::run(&energy::ewald3D::get_energy, &energy::ewald3D::get_particle_energy, particles, dr, iter, false);
         
         //energy::valleau::update_potential();
         
@@ -352,6 +354,17 @@ int main(int argc, char *argv[])
     printf("Saving output coordinates to: %s\n", outName);
     Particle::write_coordinates(outName, particles);
     Particle::write_charge_coordinates(outName_charges, particles);
+
+    char volOut[] = "volumes.txt";
+    FILE *f = fopen(volOut, "w");
+    if(f == NULL){
+        printf("Can't open file!\n");
+        exit(1);
+    }
+    for(int i = 0; i < Base::volumes.size(); i++){
+        fprintf(f, "%d      %lf\n",i ,Base::volumes[i]);
+    }
+    fclose(f);
 
     //Clean up allocated memory
     printf("Cleaning up...\n");

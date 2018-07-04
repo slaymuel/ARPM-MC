@@ -18,8 +18,8 @@ double energy::direct::get_energy(Particle **particles){
     double central = get_central(particles);
     double replicates = 1.0/2.0 * get_replicates(particles);
 
-    printf("Central box: %lf Replicates: %lf\n", central, replicates);
-    printf("Energy: %lf\n", central + replicates);
+    //printf("Central box: %lf Replicates: %lf\n", central, replicates);
+    //printf("Energy: %lf\n", central + replicates);
     return Base::lB * (replicates + central);
 }
 
@@ -73,8 +73,8 @@ double energy::direct::get_replicates(Particle **particles){
             }
         }
         count++;
-        printf("Done: %lf\r", (double)count/(2 * mx + 1) * 100.0);
-        fflush(stdout);
+        //printf("Done: %lf\r", (double)count/(2 * mx + 1) * 100.0);
+        //fflush(stdout);
     }
     //printf("\n");
     //printf("Number of replicas: %d\n", numOfRep - 1);
@@ -87,9 +87,9 @@ double energy::direct::get_central(Particle **particles){
     Eigen::Vector3d disp;
     for(int i = 0; i < Particle::numOfParticles; i++){
         for(int k = i + 1; k < Particle::numOfParticles; k++){
-            disp = particles[i]->pos - particles[k]->pos;
-            dist = disp.norm();
-            //dist = Particle::distances[i][k];
+            //disp = particles[i]->pos - particles[k]->pos;
+            //dist = disp.norm();
+            dist = Particle::distances[i][k];
             energy += particles[i]->q * particles[k]->q / dist;
         }  
 
