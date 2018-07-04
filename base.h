@@ -9,6 +9,7 @@
 #include <float.h>
 #include "constants.h"
 #include <Eigen/Dense>
+#include <vector>
 //#include <omp.h>
 
 //#include "Eigen/Dense"
