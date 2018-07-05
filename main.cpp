@@ -73,8 +73,8 @@ int main(int argc, char *argv[])
     int prevAccepted = 0;
     bool nanometers = false;
     int Digs = 14;
-    char outName[] = "output_ewald.gro";
-    char outName_charges[] = "output_ewald_charges.gro";
+    char outName[] = "output_ewald.gro\0";
+    char outName_charges[] = "charges_\0";
     //Analysis
     int bins = 500;
     double binWidth = (Base::xL/2)/bins;
@@ -353,9 +353,11 @@ int main(int argc, char *argv[])
     //Write coordinates to file
     printf("Saving output coordinates to: %s\n", outName);
     Particle::write_coordinates(outName, particles);
+    strcat(outName_charges, outName);
     Particle::write_charge_coordinates(outName_charges, particles);
 
-    char volOut[] = "volumes.txt";
+    char volOut[] = "volumes_\0";
+    strcat(volOut, outName_charges);
     FILE *f = fopen(volOut, "w");
     if(f == NULL){
         printf("Can't open file!\n");
