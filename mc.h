@@ -64,8 +64,8 @@ class MC{
                 energy::ewald3D::initialize(particles);
                 double newEnergy = energy_function(particles);
                 //(0.5 * Base::beta)
-                double prob = exp(-(newEnergy - oldEnergy) - Base::beta * (100000 * 1e-30 * (newVolume - Base::volume) - 
-                                                (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume)/Base::beta));
+                double prob = exp(-(newEnergy - oldEnergy) - Base::beta * 100000 * 1e-27 * (newVolume - Base::volume) - 
+                                                (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume));
                 //printf("Prob: %lf\n", prob);
                 if(ran2::get_random() > prob){  //Reject
                     
@@ -283,11 +283,12 @@ class MC{
                 }
 
                 random = ran2::get_random();
-                if(random <= 7){
+                if(random <= 0.7){
                     if(trans_move(particles, dr, particle_energy_function)){
                         prevAccepted++; 
                         transAccepted++;
                     }
+                    Base::totalMoves++;
                 }
 
                 random = ran2::get_random();
@@ -296,16 +297,19 @@ class MC{
                         prevAccepted++;
                         rotAccepted++;
                     }
+                    Base::totalMoves++;
                 }
 
                 random = ran2::get_random();
-                if(random <= 0.1){
+                if(random <= 0.01){
                     if(vol_move(particles, energy_function)){
+                        prevAccepted++;
                         volAccepted++;
                     }
+                    Base::totalMoves++;
                 }
 
-                Base::totalMoves++;
+                
                 if(i % 100 && i > 10000 && !sample){
                     //energy::valleau::update_charge_vector(particles);
                 }
