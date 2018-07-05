@@ -65,11 +65,10 @@ class MC{
                 energy::ewald3D::initialize(particles);
                 double newEnergy = energy_function(particles);
                 //(0.5 * Base::beta)
-                double prob = exp(-(newEnergy - oldEnergy) - Base::beta * 100000 * 1e-27 * (newVolume - Base::volume) - 
+                double prob = exp(-(newEnergy - oldEnergy) - Base::beta * 100000 * 1e-30 * (newVolume - Base::volume) - 
                                                 (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume));
-                //printf("prob: %lf", prob);
-                //printf("Prob: %lf\n", prob);
-                if(ran2::get_random() > prob && !(prob >= 1)){  //Reject
+
+                if(ran2::get_random() > prob){  //Reject
                     
                     Base::xL = oldxL;
                     Base::yL = oldyL;
@@ -305,7 +304,7 @@ class MC{
                 }
 
                 random = ran2::get_random();
-                if(random <= 0.01){
+                if(random <= 0.1){
                     if(vol_move(particles, energy_function)){
                         prevAccepted++;
                         volAccepted++;
