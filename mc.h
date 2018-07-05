@@ -67,8 +67,9 @@ class MC{
                 //(0.5 * Base::beta)
                 double prob = exp(-(newEnergy - oldEnergy) - Base::beta * 100000 * 1e-27 * (newVolume - Base::volume) - 
                                                 (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume));
+                //printf("prob: %lf", prob);
                 //printf("Prob: %lf\n", prob);
-                if(ran2::get_random() > prob){  //Reject
+                if(ran2::get_random() > prob && !(prob >= 1)){  //Reject
                     
                     Base::xL = oldxL;
                     Base::yL = oldyL;

@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
     //     printf("System contains overlaps!\n");
     //     exit(0);
     // }
-    printf("Box dimensions are x: %lf y: %lf z: %lf\n", Base::xL, Base::yL, Base::zL);
+    printf("\033[34mBox dimensions are x: %lf y: %lf z: %lf\033[30m\n", Base::xL, Base::yL, Base::zL);
     char name[] = "output_equilibrate_ewald.gro";
     char name_charges[] = "output_equilibrate_charges_ewald.gro";
 
