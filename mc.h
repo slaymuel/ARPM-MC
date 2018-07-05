@@ -60,6 +60,7 @@ class MC{
                 Base::yL = newLength;
                 Base::zL = newLength;
                 Particle::update_distances(particles);
+                energy::ewald3D::set_alpha();
                 energy::ewald3D::reset();
                 energy::ewald3D::initialize(particles);
                 double newEnergy = energy_function(particles);
@@ -77,12 +78,14 @@ class MC{
                         particles[i]->pos *= Base::xL / newLength;
                     }
                     Particle::update_distances(particles);
+                    energy::ewald3D::set_alpha();
                     energy::ewald3D::reset();
                     energy::ewald3D::initialize(particles);
                 }
                 else{                           //Accept
                     Base::eCummulative += newEnergy - oldEnergy;
                     Base::volume = newVolume;
+                    Base::acceptedMoves++;
                     //printf("volume: %lf\n", Base::volume);
                     return 1;
                 }
