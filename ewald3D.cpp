@@ -78,6 +78,7 @@ void energy::ewald3D::initialize(Particle **p){
                 if(kx > 0){
                     factor *= 2;
                 }
+
                 vec[0] = (2.0*PI*kx/Base::xL);
                 vec[1] = (2.0*PI*ky/Base::yL);
                 vec[2] = (2.0*PI*kz/Base::zL);

@@ -30,8 +30,9 @@ class MC{
         template <typename E>
         static int vol_move(Particle **particles, E energy_function){
             bool overlap = false;
-            double vMax = 0.01;
+            double vMax = 0.001;
             double lnNewVolume = std::log(Base::volume) + (ran2::get_random() - 0.5) * vMax;
+            //double newVolume = Base::volume + (ran2::get_random() - 0.5) * vMax;
             double newVolume = std::exp(lnNewVolume);
             double newLength = cbrt(newVolume);
             double volFrac = newLength / Base::xL;
@@ -60,15 +61,18 @@ class MC{
                 Base::yL = newLength;
                 Base::zL = newLength;
                 Particle::update_distances(particles);
-                energy::ewald3D::set_alpha();
+                //energy::ewald3D::set_alpha();
                 energy::ewald3D::reset();
                 energy::ewald3D::initialize(particles);
                 double newEnergy = energy_function(particles);
                 //(0.5 * Base::beta)
+                //printf("dU: %lf         dV: %lf         lnV: %lf\n", newEnergy - oldEnergy, 
+                //                                                    Base::beta * 100000 * 1e-30 * (newVolume - Base::volume), 
+                //                                                    (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume));
                 double prob = exp(-(newEnergy - oldEnergy) - Base::beta * (100000 * 1e-30 * (newVolume - Base::volume) - 
                                                 (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume)/Base::beta));
 
-                if(ran2::get_random() > prob){  //Reject
+                if(ran2::get_random() > prob && oldEnergy <= newEnergy){  //Reject
                     
                     Base::xL = oldxL;
                     Base::yL = oldyL;
@@ -78,7 +82,7 @@ class MC{
                         particles[i]->pos *= Base::xL / newLength;
                     }
                     Particle::update_distances(particles);
-                    energy::ewald3D::set_alpha();
+                    //energy::ewald3D::set_alpha();
                     energy::ewald3D::reset();
                     energy::ewald3D::initialize(particles);
                 }
@@ -195,7 +199,6 @@ class MC{
             double eNew = 0.0;
             double dist = 0.0;
             double acceptProp = 0.0;
-
             double random = ran2::get_random();
 
             double dE = 0.0;
@@ -263,11 +266,14 @@ class MC{
             double energy_temp;
             int prevAccepted = 0;
             int rotAccepted = 0;
+            int rotTot = 0;
+            int volTot = 0;
+            int transTot = 0;
             int volAccepted = 0;
             int transAccepted = 0;
-            int outFreq = 1000;
+            int outFreq = 10000;
             double random = 0;
-
+            double rN = 1.0/Particle::numOfParticles;
             Analysis *xHist = new Analysis(0.1, Base::xL);
             Analysis *yHist = new Analysis(0.1, Base::yL);
             Analysis *zHist = new Analysis(0.1, Base::zL);
@@ -286,31 +292,35 @@ class MC{
                 }
 
                 random = ran2::get_random();
-                if(random <= 0.7){
+                //if(random <= 0.7){
+                if(random <= rN){
+                    if(vol_move(particles, energy_function)){
+                        prevAccepted++;
+                        volAccepted++;
+                    }
+                    volTot++;
+                    Base::totalMoves++;
+                }
+                else{
                     if(trans_move(particles, dr, particle_energy_function)){
                         prevAccepted++; 
                         transAccepted++;
                     }
                     Base::totalMoves++;
+                    transTot++;
                 }
 
                 random = ran2::get_random();
-                if(random <= 0.3){
+                if(random <= 0.6){
                     if(charge_rot_move(particles, particle_energy_function)){
                         prevAccepted++;
                         rotAccepted++;
                     }
+                    rotTot++;
                     Base::totalMoves++;
                 }
 
-                random = ran2::get_random();
-                if(random <= 0.05){
-                    if(vol_move(particles, energy_function)){
-                        prevAccepted++;
-                        volAccepted++;
-                    }
-                    Base::totalMoves++;
-                }
+
 
                 
                 if(i % 100 && i > 10000 && !sample){
@@ -326,12 +336,14 @@ class MC{
                     printf("Energy: %lf\n", energy_temp);
                     printf("Acceptance ratio: %lf\n", (double)Base::acceptedMoves/Base::totalMoves);
                     printf("Acceptance ratio for the last %i steps: %lf\n", outFreq, (double)prevAccepted/outFreq);
-                    if(std::abs(energy_temp - Base::eCummulative)/std::abs(energy_temp) > std::pow(10, -12)){
+                    if(std::abs(energy_temp - Base::eCummulative)/std::abs(energy_temp) > std::pow(10, -11)){
                         printf("Error is too large!\n");
                         printf("Error: %.12lf\n", std::abs(energy_temp - Base::eCummulative)/std::abs(energy_temp));
                         exit(1);
                     }
-                    printf("Trans moves: %d         Rot moves: %d       Vol moves: %d\n\n", transAccepted, rotAccepted, volAccepted);
+                    printf("Trans moves: %d, %lf         Rot moves: %d, %lf       Vol moves: %d, %lf\n\n", transAccepted, (double) transAccepted/transTot * 100.0,
+                                                                                                            rotAccepted, (double)rotAccepted/rotTot * 100.0, 
+                                                                                                            volAccepted, (double) volAccepted/volTot * 100.0);
                     prevAccepted = 0;
                 }
             }

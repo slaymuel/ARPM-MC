@@ -30,6 +30,7 @@ class Base{
         static int totalMoves;
         static std::vector<double> volumes;
         static bool d2;
+
         static void set_beta(){
             beta = 1/(KB * T);
         }

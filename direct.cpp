@@ -101,10 +101,10 @@ double energy::direct::get_central(Particle **particles){
             std::cout << particles[i]->pos << std::endl;
             exit(1);
         }
-        if(particles[i]->com != particles[i]->pos){
-            printf("pos and com are not equal!\n");
-            exit(1);
-        }
+        //if(particles[i]->com != particles[i]->pos){
+        //    printf("pos and com are not equal!\n");
+        //    exit(1);
+        //}
     }
     return energy;
 }
