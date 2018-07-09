@@ -30,7 +30,7 @@ class MC{
         template <typename E>
         static int vol_move(Particle **particles, E energy_function){
             bool overlap = false;
-            double vMax = 0.001;
+            double vMax = 0.0005;
             double lnNewVolume = std::log(Base::volume) + (ran2::get_random() - 0.5) * vMax;
             //double newVolume = Base::volume + (ran2::get_random() - 0.5) * vMax;
             double newVolume = std::exp(lnNewVolume);
@@ -69,9 +69,10 @@ class MC{
                 //printf("dU: %lf         dV: %lf         lnV: %lf\n", newEnergy - oldEnergy, 
                 //                                                    Base::beta * 100000 * 1e-30 * (newVolume - Base::volume), 
                 //                                                    (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume));
-                double prob = exp(-(newEnergy - oldEnergy) - Base::beta * (100000 * 1e-30 * (newVolume - Base::volume) - 
-                                                (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume)/Base::beta));
-
+                //double prob = exp(-(newEnergy - oldEnergy) - Base::beta * (100000 * 1e-30 * (newVolume - Base::volume) - 
+                //                                (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume)/Base::beta));
+                double prob = exp(-(newEnergy - oldEnergy) - (0.000025 * (newVolume - Base::volume) - 
+                                                (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume)));
                 if(ran2::get_random() > prob && oldEnergy <= newEnergy){  //Reject
                     
                     Base::xL = oldxL;
@@ -293,22 +294,21 @@ class MC{
 
                 random = ran2::get_random();
                 //if(random <= 0.7){
-                if(random <= rN){
+                if(random <= rN && i > 1000000){
                     if(vol_move(particles, energy_function)){
                         prevAccepted++;
                         volAccepted++;
                     }
                     volTot++;
-                    Base::totalMoves++;
                 }
                 else{
                     if(trans_move(particles, dr, particle_energy_function)){
                         prevAccepted++; 
                         transAccepted++;
                     }
-                    Base::totalMoves++;
                     transTot++;
                 }
+                Base::totalMoves++;
 
                 random = ran2::get_random();
                 if(random <= 0.6){

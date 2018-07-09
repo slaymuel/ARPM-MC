@@ -362,7 +362,7 @@ Particle** Particle::create_particles(int nNum, int pNum){
             strcpy(particles[i]->name, "Na\0");
         }
     }
-    printf("Created %d particles.\n", Particle::numOfParticles);
+    printf("\033[34mCreated %d particles.\033[30m\n", Particle::numOfParticles);
     return particles;
 }
 

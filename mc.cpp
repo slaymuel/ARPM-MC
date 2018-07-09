@@ -225,12 +225,12 @@ void MC::equilibrate(Particle **particles){
             overlaps = Particle::get_overlaps(particles);
             //stepSize = log(abs(prevOverlaps - overlaps) + 3.0);
             //prevOverlaps = overlaps;
-            printf("Overlaps: %d\n", overlaps);
-            //fflush(stdout);
+            printf("Overlaps: %d, iteration: %d\r", overlaps, i);
+            fflush(stdout);
         }
         i++;
     }
-    printf("\n");
+    printf("\n\033[32mEquilibration done\033[30m\n\n");
 }
 
 void MC::disperse(Particle **particles) {

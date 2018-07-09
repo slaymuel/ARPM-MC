@@ -166,8 +166,8 @@ int main(int argc, char *argv[])
     if(vm.count("np")){
         numOfParticles = vm["np"].as<int>();
         if(numOfParticles % 2 != 0){
-            printf("Please choose an even number of particles\n");
-            exit(1);
+            printf("\033[31mIgnoring bad choice of number of particles.\033[30m\n");
+            numOfParticles += 1;
         }
         printf("%d particles will be created\n", numOfParticles);
         particles = Particle::create_particles(numOfParticles/2, numOfParticles/2);
@@ -189,7 +189,6 @@ int main(int argc, char *argv[])
         density = (double)numOfParticles/(Base::xL * Base::yL * (Base::zL - 2 * Base::wall)) * pow(diameter, 3);
         //numOfParticles = vm["density"].as<double>()/pow(diameter, 3)*(Base::xL * Base::yL * Base::zL);
         printf("%d particles will be created\n", numOfParticles);
-        printf("Density is: %lf\n", density);
         particles = Particle::create_particles(numOfParticles/2, numOfParticles/2);
         //mc.equilibrate(particles);
     }
@@ -197,12 +196,10 @@ int main(int argc, char *argv[])
         if(vm.count("density")){
             numOfParticles = vm["density"].as<double>()/pow(diameter, 3)*(Base::xL * Base::yL * Base::zL);
             if(numOfParticles % 2 != 0){
-                printf("Please choose an even number of particles\n");
-                exit(1);
+                numOfParticles += 1;
             }
             printf("%d particles will be created\n", numOfParticles);
             particles = Particle::create_particles(numOfParticles/2, numOfParticles/2);
-            density = (double)numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(diameter, 3);
         }
     }
     if(vm.count("iter")){
@@ -220,8 +217,13 @@ int main(int argc, char *argv[])
     Particle::update_distances(particles);
     //Seed
     srand(time(NULL));
+    if(density == 0){
+        density = (double)numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(5, 3);
+    }
+    printf("\033[34mDensity is: %lf\033[30m\n", density);
 
     if(vm["overlap"].as<bool>()){
+        printf("Removing overlaps...\n");
         mc.equilibrate(particles);
     }
 
