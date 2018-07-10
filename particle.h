@@ -38,7 +38,7 @@ class Particle: public Base{
         static void place_particles(Particle **particles);
         static Particle** create_particles(int nNum, int pNum);
         static Particle** create_dummies(Particle **particles);
-        static void write_coordinates(char name[], Particle **particles);
+        static void write_coordinates(char name[40], Particle **particles);
         static void write_charge_coordinates(char name[], Particle **particles);
         static Particle** read_jan(std::string pName, std::string nName);
         static Particle** read_arpm_jan(std::string fileName);

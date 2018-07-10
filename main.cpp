@@ -73,8 +73,9 @@ int main(int argc, char *argv[])
     int prevAccepted = 0;
     bool nanometers = false;
     int Digs = 14;
-    char outName[] = "output_ewald.gro\0";
-    char outName_charges[] = "charges_\0";
+    char outName[40] = "output_ewald.gro\0";
+    char outName_charges[50] = "charges_\0";
+    std::string outputFile;
     //Analysis
     int bins = 500;
     double binWidth = (Base::xL/2)/bins;
@@ -155,7 +156,8 @@ int main(int argc, char *argv[])
         particles = Particle::read_coordinates_gro(filename);
     }
     if(vm.count("o")){
-        strcpy(outName, vm["o"].as<std::string>().c_str());
+        outputFile = vm["o"].as<std::string>();
+        strcpy(outName, outputFile.c_str());
     }
     if(vm.count("f_jan")){
         particles = Particle::read_jan("coordp_dense.dms", "coordn_dense.dms");
@@ -263,12 +265,17 @@ int main(int argc, char *argv[])
     // ///////////////////////////////         Main MC-loop          ////////////////////////////////////////
     //Ewald3D ewald;
 
-
+    strcat(outName_charges, outputFile.c_str());
+    char volOut[40] = "volumes_\0";
+    strcat(volOut, outputFile.c_str());
+    FILE *f = fopen(volOut, "w");
+    fprintf(f, "");
+    fclose(f);
 
     std::string energyFunction = "valleau";
     if(energyFunction == "valleau"){
         //MC::run(&energy::hs::get_energy, &energy::hs::get_particle_energy, particles, dr, iter, false);
-        MC::run(&energy::ewald3D::get_energy, &energy::ewald3D::get_particle_energy, particles, dr, iter, false);
+        MC::run(&energy::ewald3D::get_energy, &energy::ewald3D::get_particle_energy, particles, dr, iter, false, outputFile);
         
         //energy::valleau::update_potential();
         
@@ -352,23 +359,13 @@ int main(int argc, char *argv[])
     //xHist->saveHisto(outName);
     //yHist->saveHisto(outName);
     //zHist->saveHisto(outName);
+
     //Write coordinates to file
     printf("Saving output coordinates to: %s\n", outName);
     Particle::write_coordinates(outName, particles);
-    strcat(outName_charges, outName);
     Particle::write_charge_coordinates(outName_charges, particles);
 
-    char volOut[] = "volumes_\0";
-    strcat(volOut, outName_charges);
-    FILE *f = fopen(volOut, "w");
-    if(f == NULL){
-        printf("Can't open file!\n");
-        exit(1);
-    }
-    for(int i = 0; i < Base::volumes.size(); i++){
-        fprintf(f, "%d      %lf\n",i ,Base::volumes[i]);
-    }
-    fclose(f);
+    
 
     //Clean up allocated memory
     printf("Cleaning up...\n");

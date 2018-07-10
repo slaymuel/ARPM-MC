@@ -30,7 +30,7 @@ class MC{
         template <typename E>
         static int vol_move(Particle **particles, E energy_function){
             bool overlap = false;
-            double vMax = 0.0005;
+            double vMax = 0.001;
             double lnNewVolume = std::log(Base::volume) + (ran2::get_random() - 0.5) * vMax;
             //double newVolume = Base::volume + (ran2::get_random() - 0.5) * vMax;
             double newVolume = std::exp(lnNewVolume);
@@ -71,7 +71,7 @@ class MC{
                 //                                                    (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume));
                 //double prob = exp(-(newEnergy - oldEnergy) - Base::beta * (100000 * 1e-30 * (newVolume - Base::volume) - 
                 //                                (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume)/Base::beta));
-                double prob = exp(-(newEnergy - oldEnergy) - (0.000025 * (newVolume - Base::volume) - 
+                double prob = exp(-(newEnergy - oldEnergy) - (0.005 * (newVolume - Base::volume) - //0.0000243
                                                 (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume)));
                 if(ran2::get_random() > prob && oldEnergy <= newEnergy){  //Reject
                     
@@ -263,7 +263,7 @@ class MC{
         }
 
         template<typename F, typename FP>
-        static void run(F&& energy_function, FP&& particle_energy_function, Particle** particles, double dr, int iter, bool sample){
+        static void run(F&& energy_function, FP&& particle_energy_function, Particle** particles, double dr, int iter, bool sample, std::string outputFile){
             double energy_temp;
             int prevAccepted = 0;
             int rotAccepted = 0;
@@ -275,9 +275,11 @@ class MC{
             int outFreq = 10000;
             double random = 0;
             double rN = 1.0/Particle::numOfParticles;
+            char volOut[40] = "volumes_\0";
             Analysis *xHist = new Analysis(0.1, Base::xL);
             Analysis *yHist = new Analysis(0.1, Base::yL);
             Analysis *zHist = new Analysis(0.1, Base::zL);
+            strcat(volOut, outputFile.c_str());
 
             char outName[] = ".txt";
             Base::eCummulative = energy_function(particles);
@@ -327,7 +329,7 @@ class MC{
                     //energy::valleau::update_charge_vector(particles);
                 }
 
-                if(i % outFreq == 0){
+                if(i % outFreq == 0 && i != 0){
                     Base::volumes.push_back(Base::volume);
                     energy_temp = energy_function(particles);
                     //Particle::write_coordinates(outName , particles);
@@ -345,6 +347,19 @@ class MC{
                                                                                                             rotAccepted, (double)rotAccepted/rotTot * 100.0, 
                                                                                                             volAccepted, (double) volAccepted/volTot * 100.0);
                     prevAccepted = 0;
+                    if(i % 10000000 == 0){
+                        FILE *f = fopen(volOut, "a");
+                        fprintf(f, "");
+                        if(f == NULL){
+                            printf("Can't open file!\n");
+                            exit(1);
+                        }
+                        for(int j = 0; j < Base::volumes.size(); j++){
+                            fprintf(f, "%d      %lf\n",(i / outFreq) + j, Base::volumes[j]);
+                        }
+                        fclose(f);
+                        Base::volumes.clear();
+                    }
                 }
             }
             if(sample){
