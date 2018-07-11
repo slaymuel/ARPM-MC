@@ -11,12 +11,12 @@ analysis.h
 /Users/samuel/Documents/mc/analysis.h
 
 /Users/samuel/Documents/mc/analysis.h
-base.cpp
-/Users/samuel/Documents/mc/base.cpp
+base.h
+/Users/samuel/Documents/mc/base.h
 particle.h
 /Users/samuel/Documents/mc/particle.h
 
-/Users/samuel/Documents/mc/base.cpp
+/Users/samuel/Documents/mc/base.h
 string.h
 -
 stdio.h
@@ -27,15 +27,15 @@ iostream
 -
 time.h
 -
-math.h
+cmath
 -
 float.h
 -
 constants.h
 /Users/samuel/Documents/mc/constants.h
-eigen3/Eigen/Dense
+Eigen/Dense
 -
-omp.h
+vector
 -
 
 /Users/samuel/Documents/mc/constants.h
@@ -45,8 +45,8 @@ direct.h
 /Users/samuel/Documents/mc/direct.h
 
 /Users/samuel/Documents/mc/direct.h
-base.cpp
-/Users/samuel/Documents/mc/base.cpp
+base.h
+/Users/samuel/Documents/mc/base.h
 particle.h
 /Users/samuel/Documents/mc/particle.h
 
@@ -55,8 +55,8 @@ ewald2D.h
 /Users/samuel/Documents/mc/ewald2D.h
 
 /Users/samuel/Documents/mc/ewald2D.h
-base.cpp
-/Users/samuel/Documents/mc/base.cpp
+base.h
+/Users/samuel/Documents/mc/base.h
 particle.h
 /Users/samuel/Documents/mc/particle.h
 vector
@@ -67,12 +67,10 @@ complex
 /Users/samuel/Documents/mc/ewald3D.cpp
 ewald3D.h
 /Users/samuel/Documents/mc/ewald3D.h
-boost/math/special_functions/erf.hpp
-/Users/samuel/Documents/mc/boost/math/special_functions/erf.hpp
 
 /Users/samuel/Documents/mc/ewald3D.h
-base.cpp
-/Users/samuel/Documents/mc/base.cpp
+base.h
+/Users/samuel/Documents/mc/base.h
 particle.h
 /Users/samuel/Documents/mc/particle.h
 vector
@@ -80,17 +78,23 @@ vector
 complex
 -
 
+/Users/samuel/Documents/mc/hard_sphere.h
+particle.h
+/Users/samuel/Documents/mc/particle.h
+
 /Users/samuel/Documents/mc/levin.cpp
 levin.h
 /Users/samuel/Documents/mc/levin.h
 
 /Users/samuel/Documents/mc/levin.h
-base.cpp
-/Users/samuel/Documents/mc/base.cpp
-eigen3/Eigen/Dense
--
+base.h
+/Users/samuel/Documents/mc/base.h
 particle.h
 /Users/samuel/Documents/mc/particle.h
+direct.h
+/Users/samuel/Documents/mc/direct.h
+valleau.h
+/Users/samuel/Documents/mc/valleau.h
 
 /Users/samuel/Documents/mc/main.cpp
 particle.h
@@ -115,6 +119,10 @@ direct.h
 /Users/samuel/Documents/mc/direct.h
 valleau.h
 /Users/samuel/Documents/mc/valleau.h
+ewald3D.h
+/Users/samuel/Documents/mc/ewald3D.h
+hard_sphere.h
+/Users/samuel/Documents/mc/hard_sphere.h
 
 /Users/samuel/Documents/mc/mc.cpp
 mc.h
@@ -123,8 +131,8 @@ vector
 -
 
 /Users/samuel/Documents/mc/mc.h
-base.cpp
-/Users/samuel/Documents/mc/base.cpp
+base.h
+/Users/samuel/Documents/mc/base.h
 particle.h
 /Users/samuel/Documents/mc/particle.h
 ran2_lib.cpp
@@ -133,6 +141,12 @@ ewald3D.h
 /Users/samuel/Documents/mc/ewald3D.h
 ewald2D.h
 /Users/samuel/Documents/mc/ewald2D.h
+analysis.h
+/Users/samuel/Documents/mc/analysis.h
+valleau.h
+/Users/samuel/Documents/mc/valleau.h
+levin.h
+/Users/samuel/Documents/mc/levin.h
 
 /Users/samuel/Documents/mc/molecule.cpp
 molecule.h
@@ -153,8 +167,8 @@ ran2_lib.cpp
 /Users/samuel/Documents/mc/ran2_lib.cpp
 
 /Users/samuel/Documents/mc/particle.h
-base.cpp
-/Users/samuel/Documents/mc/base.cpp
+base.h
+/Users/samuel/Documents/mc/base.h
 fstream
 -
 sstream
@@ -173,8 +187,12 @@ valleau.h
 /Users/samuel/Documents/mc/valleau.h
 
 /Users/samuel/Documents/mc/valleau.h
-base.cpp
-/Users/samuel/Documents/mc/base.cpp
+base.h
+/Users/samuel/Documents/mc/base.h
 particle.h
 /Users/samuel/Documents/mc/particle.h
+direct.h
+/Users/samuel/Documents/mc/direct.h
+analysis.h
+/Users/samuel/Documents/mc/analysis.h
 

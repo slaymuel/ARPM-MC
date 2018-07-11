@@ -30,15 +30,13 @@ class MC{
         template <typename E>
         static int vol_move(Particle **particles, E energy_function){
             bool overlap = false;
-            double vMax = 0.001;
+            double vMax = 0.0005;
             double lnNewVolume = std::log(Base::volume) + (ran2::get_random() - 0.5) * vMax;
             //double newVolume = Base::volume + (ran2::get_random() - 0.5) * vMax;
             double newVolume = std::exp(lnNewVolume);
             double newLength = cbrt(newVolume);
             double volFrac = newLength / Base::xL;
-            double oldxL = Base::xL;
-            double oldyL = Base::yL;
-            double oldzL = Base::zL;
+            double oldLength = Base::xL;
 
             for(int i = 0; i < Particle::numOfParticles; i++){
                 for(int j = i + 1; j < Particle::numOfParticles; j++){
@@ -51,11 +49,16 @@ class MC{
                     break;
                 }
             }
+
             if(!overlap){
                 double oldEnergy = energy_function(particles);
                 for(int i = 0; i < Particle::numOfParticles; i++){
-                    particles[i]->com *= volFrac;
-                    particles[i]->pos *= volFrac;
+                    particles[i]->oldCom = particles[i]->com;
+                    particles[i]->oldPos = particles[i]->pos;
+
+                    particles[i]->com *= newLength / Base::xL;
+                    particles[i]->pos = particles[i]->com + particles[i]->chargeDisp;
+                    particles[i]->pbc_pos();
                 }
                 Base::xL = newLength;
                 Base::yL = newLength;
@@ -71,16 +74,16 @@ class MC{
                 //                                                    (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume));
                 //double prob = exp(-(newEnergy - oldEnergy) - Base::beta * (100000 * 1e-30 * (newVolume - Base::volume) - 
                 //                                (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume)/Base::beta));
-                double prob = exp(-(newEnergy - oldEnergy) - (0.005 * (newVolume - Base::volume) - //0.0000243
-                                                (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume)));
+                double prob = exp(-(newEnergy - oldEnergy) - 0.0000243 * (newVolume - Base::volume) + // 0.005
+                                                (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume));
                 if(ran2::get_random() > prob && oldEnergy <= newEnergy){  //Reject
                     
-                    Base::xL = oldxL;
-                    Base::yL = oldyL;
-                    Base::zL = oldzL;
+                    Base::xL = oldLength ;
+                    Base::yL = oldLength ;
+                    Base::zL = oldLength ;
                     for(int i = 0; i < Particle::numOfParticles; i++){
-                        particles[i]->com *= Base::xL / newLength;
-                        particles[i]->pos *= Base::xL / newLength;
+                        particles[i]->com = particles[i]->oldCom;
+                        particles[i]->pos = particles[i]->oldPos;
                     }
                     Particle::update_distances(particles);
                     //energy::ewald3D::set_alpha();
@@ -296,7 +299,7 @@ class MC{
 
                 random = ran2::get_random();
                 //if(random <= 0.7){
-                if(random <= rN && i > 1000000){
+                if(random <= rN && i >= 1000000){
                     if(vol_move(particles, energy_function)){
                         prevAccepted++;
                         volAccepted++;
@@ -322,14 +325,11 @@ class MC{
                     Base::totalMoves++;
                 }
 
+                //if(i % 100 && i > 10000 && !sample){
+                //    energy::valleau::update_charge_vector(particles);
+                //}
 
-
-                
-                if(i % 100 && i > 10000 && !sample){
-                    //energy::valleau::update_charge_vector(particles);
-                }
-
-                if(i % outFreq == 0 && i != 0){
+                if(i % outFreq == 0){
                     Base::volumes.push_back(Base::volume);
                     energy_temp = energy_function(particles);
                     //Particle::write_coordinates(outName , particles);
@@ -347,7 +347,7 @@ class MC{
                                                                                                             rotAccepted, (double)rotAccepted/rotTot * 100.0, 
                                                                                                             volAccepted, (double) volAccepted/volTot * 100.0);
                     prevAccepted = 0;
-                    if(i % 10000000 == 0){
+                    if(i % 5000000 == 0){
                         FILE *f = fopen(volOut, "a");
                         fprintf(f, "");
                         if(f == NULL){

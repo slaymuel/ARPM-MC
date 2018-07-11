@@ -19,8 +19,10 @@ class Particle: public Base{
         int index;
         int belongsTo; //Belongs to molecule
         Eigen::Vector3d pos;    //Coordinates of the charge
+        Eigen::Vector3d oldPos;
         Eigen::Vector3d chargeDisp; //Charge vector
         Eigen::Vector3d com;    //Center of mass coordinates
+        Eigen::Vector3d oldCom;
         char name[3];
 
         void random_move(double stepSize);
@@ -44,10 +46,11 @@ class Particle: public Base{
         static Particle** read_arpm_jan(std::string fileName);
         static Particle** read_coordinates(std::string name, bool relative, bool nanometers);
         static Particle** read_coordinates_gro(std::string name);
-
-    private:
-        void pbc(Eigen::Vector3d& x);
+        void pbc_pos();
         void pbc();
+    private:
+
+        void pbc(Eigen::Vector3d& x);
         void pbc_xy(Eigen::Vector3d& x);
         double distance(Particle *p);
 };

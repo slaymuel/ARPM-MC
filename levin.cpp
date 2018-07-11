@@ -17,7 +17,7 @@ double energy::levin::uGamma;
 void energy::levin::initialize(Particle **particles){
     kNumMax = 1000000;
     kNum = 0;
-    kMax = 5;
+    kMax = 12;
     //(eIn - eOut)/(eIn + eOut)
     gamma = -1;//0.95;
     kVectors.resize((2 * kMax + 1) * (2 * kMax + 1) - 1, 2);
@@ -32,7 +32,6 @@ void energy::levin::initialize(Particle **particles){
                 tempVec << x, y;
                 kVectors.row(kNum) = tempVec;
                 kNorms(kNum) = 2 * PI * sqrt(x * x/(Base::xL * Base::xL) + y * y/(Base::yL * Base::yL));
-                //printf("kNorm: %lf\n", kNorms[kNum]);
                 kNum++;
             }
         }
@@ -116,15 +115,20 @@ double energy::levin::get_polarization(){
         ePol += gamma/(kNorms(i) * (1 - gamma * gamma * eFactors(i))) * 
                 (f1(i) * f1(i) + f2(i) * f2(i) + eFactors(i) * (f3(i) * f3(i) + f4(i) * f4(i)) + 
                 2 * gamma * eFactors(i) * (f3(i) * f1(i) + f2(i) * f4(i)));
+
+        //printf("%.15lf     %.15lf\n", gamma/(kNorms(i) * (1 - gamma * gamma * eFactors(i))) * (f1(i) * f1(i) + f2(i) * f2(i) + eFactors(i) * (f3(i) * f3(i) + f4(i) * f4(i))), 
+        //gamma/(kNorms(i) * (1 - gamma * gamma * eFactors(i))) * 2 * gamma * eFactors(i) * (f3(i) * f1(i) + f2(i) * f4(i)));
         //printf("ePol %lf\n", ePol);
     }
+    printf("ePol %lf\n", ePol);
     return ePol;
 }
 
 double energy::levin::get_energy(Particle **particles){
-    double eDir = energy::valleau::get_energy(particles);
+    double eDir = energy::direct::get_energy(particles);
     printf("u_gamma: %.15lf\n", u_gamma(particles));
-    double ePol = (u_gamma(particles) + PI/(80 * Base::xL * Base::xL) * get_polarization()) * Base::lB;
+    printf("normalized pol: %lf\n", PI/(80.0 * Base::xL * Base::xL) * get_polarization());
+    double ePol = (u_gamma(particles) + PI/(80.0 * Base::xL * Base::xL) * get_polarization()) * Base::lB;
     //printf("direct: %lf    polarization: %lf\n", eDir, ePol);
     printf("Levin direct: %lf    polarization: %lf\n", eDir, ePol);
     return eDir + ePol;

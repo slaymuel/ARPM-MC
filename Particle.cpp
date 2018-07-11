@@ -42,6 +42,29 @@ void Particle::pbc(){
     }
 }
 
+void Particle::pbc_pos(){
+    //Translate charges according to periodic boundary conditions
+ 
+    if(this->pos[0] > xL){
+        this->pos[0] = this->pos[0] - xL;
+    }
+    if(this->pos[0] < 0){
+        this->pos[0] = this->pos[0] + xL;
+    }
+    if(this->pos[1] > yL){
+        this->pos[1] = this->pos[1] - yL;
+    }
+    if(this->pos[1] < 0){
+        this->pos[1] = this->pos[1] + yL;
+    }
+    if(this->pos[2] > zL){
+        this->pos[2] = this->pos[2] - zL;
+    }
+    if(this->pos[2] < 0){
+        this->pos[2] = this->pos[2] + zL;
+    }
+}
+
 void Particle::pbc(Eigen::Vector3d& x){
     //Translate particles according to periodic boundary conditions
     if(x[0] > Base::xL){
@@ -108,9 +131,10 @@ void Particle::random_move(double stepSize){
 }
 
 void Particle::random_charge_rot(){
-    this->chargeDisp[0] = ran2::get_random() * 2.0 - 1.0;
-    this->chargeDisp[1] = ran2::get_random() * 2.0 - 1.0;
-    this->chargeDisp[2] = ran2::get_random() * 2.0 - 1.0;
+    double da = 0.4;
+    this->chargeDisp[0] += (ran2::get_random() * 2.0 - 1.0) * da;
+    this->chargeDisp[1] += (ran2::get_random() * 2.0 - 1.0) * da;
+    this->chargeDisp[2] += (ran2::get_random() * 2.0 - 1.0) * da;
     
     this->chargeDisp = this->b * this->chargeDisp.normalized();
     this->pos = this->com + this->chargeDisp;
@@ -332,7 +356,7 @@ Particle** Particle::create_particles(int nNum, int pNum){
         particles[i] = new Particle();
         particles[i]->index = i;
         particles[i]->d = 5;    //Diameter of particles
-        particles[i]->b = 0; //Length of charge displacement vector
+        particles[i]->b = 1; //Length of charge displacement vector
 
         //Get random center of mass coordinates
         particles[i]->com[0] = (double) rand()/RAND_MAX * Base::xL;

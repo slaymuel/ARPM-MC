@@ -272,22 +272,25 @@ int main(int argc, char *argv[])
     fprintf(f, "");
     fclose(f);
 
-    std::string energyFunction = "valleau";
+    std::string energyFunction = "ewald";
     if(energyFunction == "valleau"){
         //MC::run(&energy::hs::get_energy, &energy::hs::get_particle_energy, particles, dr, iter, false);
-        MC::run(&energy::ewald3D::get_energy, &energy::ewald3D::get_particle_energy, particles, dr, iter, false, outputFile);
-        
+
+        //MC::run(&energy::direct::get_energy, &energy::direct::get_particle_energy, particles, 5, 100001, false, outputFile);
         //energy::valleau::update_potential();
         
-        //MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, 5, 20001, false);
+        //MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, 5, 100001, false, outputFile);
         //energy::valleau::update_potential();
         
         //MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, 15, 1000000, false);
         //energy::valleau::update_potential();
 
-        //MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, dr, iter, true);
+        MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, dr, iter, true, outputFile);
         
-        //MC::run(&energy::levin::get_energy, &energy::levin::get_particle_energy, particles, dr, iter, true);
+        MC::run(&energy::levin::get_energy, &energy::levin::get_particle_energy, particles, dr, iter, true, outputFile);
+    }
+    if(energyFunction == "ewald"){
+        MC::run(&energy::ewald3D::get_energy, &energy::ewald3D::get_particle_energy, particles, dr, iter, false, outputFile);
     }
 /*
     Base::eCummulative = MC::ewald3D.get_energy(particles);
