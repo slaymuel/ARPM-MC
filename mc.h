@@ -225,8 +225,9 @@ class MC{
             particles[p]->random_move(dr);
             Particle::update_distances(particles, particles[p]);
             //If there is no overlap in new position and it's inside the box
-            if(particles[p]->hard_sphere(particles)){// && particles[p]->com[2] > particles[p]->d/2 + Base::wall &&
-                //particles[p]->com[2] < Base::zL - Base::wall - particles[p]->d/2 ){
+            if(particles[p]->hard_sphere(particles) && particles[p]->com[2] > particles[p]->d/2 + Base::wall &&
+                particles[p]->com[2] < Base::zL - Base::wall - particles[p]->d/2){
+
                 //Get new energy
                 energy::ewald3D::update_reciprocal(_old, particles[p]);
                 //energy::levin::update_f(_old, particles[p]);
@@ -290,7 +291,7 @@ class MC{
             printf("\nRunning MC-loop at temperature: %lf, Bjerrum length is %lf\n\n", Base::T, Base::lB);
             for(int i = 0; i < iter; i++){
 
-                if(i % 100 == 0 && i >= 500000 && sample){
+                if(i % 100 == 0 && i >= 1000000 && sample){
                     //rdf->sample_rdf(particles, histo, binWidth);
                     xHist->sampleHisto(particles, 0);
                     yHist->sampleHisto(particles, 1);
@@ -299,33 +300,33 @@ class MC{
 
                 random = ran2::get_random();
                 //if(random <= 0.7){
-                if(random <= rN && i >= 1000000){
-                    if(vol_move(particles, energy_function)){
-                        prevAccepted++;
-                        volAccepted++;
-                    }
-                    volTot++;
-                }
-                else{
+                //if(random <= rN){
+                //    if(vol_move(particles, energy_function)){
+                //        prevAccepted++;
+                //        volAccepted++;
+                //    }
+                //    volTot++;
+                //}
+                //else{
                     if(trans_move(particles, dr, particle_energy_function)){
                         prevAccepted++; 
                         transAccepted++;
                     }
                     transTot++;
-                }
+                //}
                 Base::totalMoves++;
 
-                random = ran2::get_random();
-                if(random <= 0.6){
-                    if(charge_rot_move(particles, particle_energy_function)){
-                        prevAccepted++;
-                        rotAccepted++;
-                    }
-                    rotTot++;
-                    Base::totalMoves++;
-                }
+                //random = ran2::get_random();
+                //if(random <= 0.3){
+                //    if(charge_rot_move(particles, particle_energy_function)){
+                //        prevAccepted++;
+                //        rotAccepted++;
+                //    }
+                //    rotTot++;
+                //    Base::totalMoves++;
+                //}
 
-                //if(i % 100 && i > 10000 && !sample){
+                //if(i % 100 == 0 && i > 10000 && !sample){
                 //    energy::valleau::update_charge_vector(particles);
                 //}
 

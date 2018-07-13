@@ -534,6 +534,7 @@ Particle** Particle::read_coordinates_gro(std::string name){
             particles[j]->pos[2] = z * 10;  
 
             particles[j]->d = 5;
+            particles[j]->b = 0;
             particles[j]->index = j;
 
             if(atom == "Cl"){
@@ -787,6 +788,7 @@ void Particle::update_distances(Particle **particles, Particle *p){
 void Particle::update_distances(Particle **particles){
     int k = 0;
     if(Base::wall > 0 || Base::d2){
+        printf("\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!WARNING ONLY USING PBC IN TWO DIMENSIONS!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n");
         for(int i = 0; i < Particle::numOfParticles; i++){
             k = i + 1;
             while(k < Particle::numOfParticles){

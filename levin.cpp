@@ -120,17 +120,17 @@ double energy::levin::get_polarization(){
         //gamma/(kNorms(i) * (1 - gamma * gamma * eFactors(i))) * 2 * gamma * eFactors(i) * (f3(i) * f1(i) + f2(i) * f4(i)));
         //printf("ePol %lf\n", ePol);
     }
-    printf("ePol %lf\n", ePol);
+    //printf("ePol %lf\n", ePol);
     return ePol;
 }
 
 double energy::levin::get_energy(Particle **particles){
     double eDir = energy::direct::get_energy(particles);
-    printf("u_gamma: %.15lf\n", u_gamma(particles));
-    printf("normalized pol: %lf\n", PI/(80.0 * Base::xL * Base::xL) * get_polarization());
-    double ePol = (u_gamma(particles) + PI/(80.0 * Base::xL * Base::xL) * get_polarization()) * Base::lB;
+    //printf("u_gamma: %.15lf\n", u_gamma(particles));
+    //printf("normalized pol: %lf\n", PI/(80.0 * Base::xL * Base::xL) * get_polarization());
+    double ePol = (u_gamma(particles) + PI/(Base::xL * Base::xL) * get_polarization()) * Base::lB;
     //printf("direct: %lf    polarization: %lf\n", eDir, ePol);
-    printf("Levin direct: %lf    polarization: %lf\n", eDir, ePol);
+    //printf("Levin direct: %lf    polarization: %lf\n", eDir, ePol);
     return eDir + ePol;
 }
 

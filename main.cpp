@@ -290,7 +290,7 @@ int main(int argc, char *argv[])
         MC::run(&energy::levin::get_energy, &energy::levin::get_particle_energy, particles, dr, iter, true, outputFile);
     }
     if(energyFunction == "ewald"){
-        MC::run(&energy::ewald3D::get_energy, &energy::ewald3D::get_particle_energy, particles, dr, iter, false, outputFile);
+        MC::run(&energy::ewald3D::get_energy, &energy::ewald3D::get_particle_energy, particles, dr, iter, true, outputFile);
     }
 /*
     Base::eCummulative = MC::ewald3D.get_energy(particles);

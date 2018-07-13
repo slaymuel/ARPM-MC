@@ -147,14 +147,23 @@ double energy::valleau::get_images(Particle **particles){
                         particles[i]->pos[1] - particles[j]->pos[1],
                         particles[i]->pos[2] + (k - 1) * Base::zL + particles[j]->pos[2];
                 distance = disp.norm();
-                energy -= particles[i]->q * particles[j]->q * 1/distance;
-                
+                if(i == j){
+                    energy -= particles[i]->q * particles[j]->q * 1/(distance * 2);
+                }
+                else{
+                    energy -= particles[i]->q * particles[j]->q * 1/distance;
+                }
                 //Left reflections
                 disp << particles[i]->pos[0] - particles[j]->pos[0],
                         particles[i]->pos[1] - particles[j]->pos[1],
                         (k + 1) * Base::zL - particles[i]->pos[2] - particles[j]->pos[2];
                 distance = disp.norm();
-                energy -= particles[i]->q * particles[j]->q * 1/distance;
+                if(i == j){
+                    energy -= particles[i]->q * particles[j]->q * 1/(distance * 2);
+                }
+                else{
+                    energy -= particles[i]->q * particles[j]->q * 1/distance;
+                }
             }
         }
     }
@@ -168,14 +177,23 @@ double energy::valleau::get_images(Particle **particles){
                         particles[i]->pos[1] - particles[j]->pos[1],
                         m * Base::zL + particles[i]->pos[2] - particles[j]->pos[2];
                 distance = disp.norm();
-                energy += particles[i]->q * particles[j]->q * 1/distance;
-
+                if(i == j){
+                    energy += particles[i]->q * particles[j]->q * 1/(distance * 2);
+                }
+                else{
+                    energy += particles[i]->q * particles[j]->q * 1/distance;
+                }
                 //Left reflections
                 disp << particles[i]->pos[0] - particles[j]->pos[0],
                         particles[i]->pos[1] - particles[j]->pos[1],
                         m * Base::zL + particles[j]->pos[2] - particles[i]->pos[2];
                 distance = disp.norm();
-                energy += particles[i]->q * particles[j]->q * 1/distance;
+                if(i == j){
+                    energy += particles[i]->q * particles[j]->q * 1/(distance * 2);
+                }
+                else{
+                    energy += particles[i]->q * particles[j]->q * 1/distance;
+                }
             }
         }
     }
@@ -192,7 +210,7 @@ double energy::valleau::get_particle_images(Particle **particles, Particle *p){
 
     for(int k = 1; k <= numOfReflections; k += 2){  //Uneven reflections of opposite sign
         for(int j = 0; j < Particle::numOfParticles; j++){
- 
+
             //Right reflections
             disp << p->pos[0] - particles[j]->pos[0],
                     p->pos[1] - particles[j]->pos[1],
