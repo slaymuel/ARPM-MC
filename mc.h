@@ -295,7 +295,7 @@ class MC{
             printf("\nRunning MC-loop at temperature: %lf, Bjerrum length is %lf\n\n", Base::T, Base::lB);
             for(int i = 0; i < iter; i++){
 
-                if(i % 10 == 0 && i >= 10000000 && sample){
+                if(i % 1000 == 0 && i >= 10000000 && sample){
                     //rdf->sample_rdf(particles, histo, binWidth);
                     xHist->sampleHisto(particles, 0);
                     yHist->sampleHisto(particles, 1);
