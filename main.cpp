@@ -220,7 +220,7 @@ int main(int argc, char *argv[])
     //Seed
     srand(time(NULL));
     if(density == 0){
-        density = (double)numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(5, 3);
+        density = (double)numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(diameter, 3);
     }
     printf("\033[34mDensity is: %lf\033[30m\n", density);
 
@@ -246,8 +246,9 @@ int main(int argc, char *argv[])
     energy::ewald3D::set_alpha();
     energy::ewald3D::initialize(particles);
 
-    energy::levin::initialize(particles);
-    energy::valleau::initialize();
+    //energy::levin::initialize(particles);
+    //energy::valleau::initialize();
+    
     // overlaps = Particle::get_overlaps(particles);
     // if(overlaps > 0){
     //     printf("System contains overlaps!\n");
@@ -273,24 +274,47 @@ int main(int argc, char *argv[])
     fclose(f);
 
     std::string energyFunction = "ewald";
+
     if(energyFunction == "valleau"){
         //MC::run(&energy::hs::get_energy, &energy::hs::get_particle_energy, particles, dr, iter, false);
 
-        //MC::run(&energy::direct::get_energy, &energy::direct::get_particle_energy, particles, 5, 100001, false, outputFile);
-        //energy::valleau::update_potential();
+        MC::run(&energy::direct::get_energy, &energy::direct::get_particle_energy, particles, 5, 100000, false, outputFile);
+        energy::valleau::update_potential();
         
-        //MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, 5, 100001, false, outputFile);
-        //energy::valleau::update_potential();
+        MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, 5, 100000, false, outputFile);
+        energy::valleau::update_potential();
         
         //MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, 15, 1000000, false);
         //energy::valleau::update_potential();
 
         MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, dr, iter, true, outputFile);
         
-        MC::run(&energy::levin::get_energy, &energy::levin::get_particle_energy, particles, dr, iter, true, outputFile);
+        //MC::run(&energy::levin::get_energy, &energy::levin::get_particle_energy, particles, dr, iter, true, outputFile);
     }
+
     if(energyFunction == "ewald"){
         MC::run(&energy::ewald3D::get_energy, &energy::ewald3D::get_particle_energy, particles, dr, iter, true, outputFile);
+    }
+
+    if(energyFunction == "test"){
+        //MC::run(&energy::direct::get_energy, &energy::direct::get_particle_energy, particles, 5, 100000, false, outputFile);
+        //energy::valleau::update_potential();
+        
+        //MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, 5, 100000, false, outputFile);
+        //energy::valleau::update_potential();
+
+        MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, dr, 0, true, outputFile);
+        MC::run(&energy::levin::get_energy, &energy::levin::get_particle_energy, particles, dr, 0, true, outputFile);
+    }
+
+    if(energyFunction == "levin"){
+        //MC::run(&energy::direct::get_energy, &energy::direct::get_particle_energy, particles, 5, 100000, false, outputFile);
+        //energy::valleau::update_potential();
+        
+        //MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, 5, 100000, false, outputFile);
+        //energy::valleau::update_potential();
+
+        MC::run(&energy::levin::get_energy, &energy::levin::get_particle_energy, particles, dr, iter, true, outputFile);
     }
 /*
     Base::eCummulative = MC::ewald3D.get_energy(particles);

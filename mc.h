@@ -280,9 +280,13 @@ class MC{
             double random = 0;
             double rN = 1.0/Particle::numOfParticles;
             char volOut[40] = "volumes_\0";
+            char histOut[40];
+            strcpy(histOut, outputFile.c_str());
+
             Analysis *xHist = new Analysis(0.1, Base::xL);
             Analysis *yHist = new Analysis(0.1, Base::yL);
             Analysis *zHist = new Analysis(0.1, Base::zL);
+
             strcat(volOut, outputFile.c_str());
 
             char outName[] = ".txt";
@@ -291,7 +295,7 @@ class MC{
             printf("\nRunning MC-loop at temperature: %lf, Bjerrum length is %lf\n\n", Base::T, Base::lB);
             for(int i = 0; i < iter; i++){
 
-                if(i % 100 == 0 && i >= 1000000 && sample){
+                if(i % 10 == 0 && i >= 10000000 && sample){
                     //rdf->sample_rdf(particles, histo, binWidth);
                     xHist->sampleHisto(particles, 0);
                     yHist->sampleHisto(particles, 1);
@@ -326,9 +330,9 @@ class MC{
                 //    Base::totalMoves++;
                 //}
 
-                //if(i % 100 == 0 && i > 10000 && !sample){
-                //    energy::valleau::update_charge_vector(particles);
-                //}
+                if(i % 100 == 0 && i > 10000 && !sample){
+                    energy::valleau::update_charge_vector(particles);
+                }
 
                 if(i % outFreq == 0){
                     Base::volumes.push_back(Base::volume);
@@ -364,9 +368,9 @@ class MC{
                 }
             }
             if(sample){
-                xHist->saveHisto(outName);
-                yHist->saveHisto(outName);
-                zHist->saveHisto(outName);
+                xHist->saveHisto(histOut);
+                yHist->saveHisto(histOut);
+                zHist->saveHisto(histOut);
             }
             delete xHist;
             delete yHist;

@@ -6,6 +6,7 @@
 #include "particle.h"
 #include "direct.h"
 #include "valleau.h"
+#include "ewald3D.h"
 //#include <vector>
 //#include <complex>
 //#include <eigen3/Eigen/Dense>

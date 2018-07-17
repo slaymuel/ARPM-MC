@@ -10,8 +10,8 @@ int energy::valleau::numOfSamples;
 
 
 void energy::valleau::initialize(){
-    energy::valleau::binWidth = 0.05; //Angstrom
-    numOfBins = Base::zL/energy::valleau::binWidth; //number of bins
+    energy::valleau::binWidth = 0.05;
+    numOfBins = Base::zL/energy::valleau::binWidth;
     energy::valleau::pDensity.resize(numOfBins);
     energy::valleau::nDensity.resize(numOfBins);
     energy::valleau::ext.resize(numOfBins);
@@ -45,19 +45,6 @@ double energy::valleau::phiw(double z){
 
     double self = 8.0 * a * std::log((std::sqrt(2.0 * asq + zsq) + a) / std::sqrt(asq + zsq)) - 
                   2.0 * z * (std::asin((asq * asq - zsq * zsq - 2.0 * asq * zsq) / std::pow(asq + zsq, 2.0)) + PI/2.0);
-    /*
-    z = Base::zL - z;
-    zsq = z * z;
-    self += 8.0 * a * log((sqrt(2.0 * asq + zsq) + a) / sqrt(asq + zsq)) - 
-            2.0 * z * (asin((asq * asq - zsq * zsq - 2.0 * asq * zsq) / pow(asq + zsq, 2.0)) + PI/2.0);
-    */
-    /* 
-    s = -1;
-    self = self + 
-        8 * a * log((sqrt(2 * asq+ zsbsq) + a) / sqrt(asq + zsbsq)) - 
-        2 * fabs(z + s * b) * (asin((asq * asq - zsbsq * zsbsq - s * asq * zsbsq) / (asq * asq + 2 * asq * zsbsq  + zsbsq * zsbsq)) +
-        PI/2);
-    */
     return self;
 }
 
@@ -82,7 +69,7 @@ void energy::valleau::update_potential(){
     double diffz = 0;
     double iIt = 0;
     double jIt = 0;
-    double dhs = 5; //hard-sphere diameter
+    double dhs = 1.5; //hard-sphere diameter
     int numOfBins = chargeVector.size();
 
     ext.setZero();
@@ -94,12 +81,10 @@ void energy::valleau::update_potential(){
 
         for(int j = 0; j < numOfBins; j++){
             jIt += dz;
-            //diffz = fabs(j * dz - i * dz);
-            diffz = std::abs(jIt - iIt);
+            diffz = std::fabs(jIt - iIt);
             ext[i] += chargeVector[j] * (-2.0 * PI * diffz - phiw(diffz));
-
+/*
             //First reflection
-            /*
             diffz = jIt + iIt - dhs;
             imgExt[i] += chargeVector[j] * (-2.0 * PI * diffz - phiw(diffz));
             diffz = Base::zL - jIt + (Base::zL - iIt) - dhs;
@@ -109,9 +94,9 @@ void energy::valleau::update_potential(){
             imgExt[i] -= chargeVector[j] * (-2.0 * PI * diffz - phiw(diffz));
             diffz = 2 * Base::zL - jIt + iIt - 2 * dhs;
             imgExt[i] -= chargeVector[j] * (-2.0 * PI * diffz - phiw(diffz));
-            */
+         */   
         }
-        //ext[i] *= Base::lB * dz; 
+ 
     }
     ext = dz * Base::lB * (ext - imgExt);
 
@@ -216,14 +201,23 @@ double energy::valleau::get_particle_images(Particle **particles, Particle *p){
                     p->pos[1] - particles[j]->pos[1],
                     p->pos[2] + (k - 1) * Base::zL + particles[j]->pos[2];
             distance = disp.norm();
-            energy -= p->q * particles[j]->q * 1/distance;
-
+            if(p->index == j){
+                energy -= p->q * particles[j]->q * 1/(distance * 2);
+            }
+            else{
+                energy -= p->q * particles[j]->q * 1/distance;
+            }
             //Left reflections
             disp << p->pos[0] - particles[j]->pos[0],
                     p->pos[1] - particles[j]->pos[1],
                     (k + 1) * Base::zL - p->pos[2] - particles[j]->pos[2];
             distance = disp.norm();
-            energy -= p->q * particles[j]->q * 1/distance;
+             if(p->index == j){
+                energy -= p->q * particles[j]->q * 1/(distance * 2);
+            }
+            else{
+                energy -= p->q * particles[j]->q * 1/distance;
+            }
         }
     }
 
@@ -234,14 +228,24 @@ double energy::valleau::get_particle_images(Particle **particles, Particle *p){
                     p->pos[1] - particles[j]->pos[1],
                     m * Base::zL + p->pos[2] - particles[j]->pos[2];
             distance = disp.norm();
-            energy += p->q * particles[j]->q * 1/distance;
+            if(p->index == j){
+                energy += p->q * particles[j]->q * 1/(distance * 2);
+            }
+            else{
+                energy += p->q * particles[j]->q * 1/distance;
+            }
 
             //Left reflections
             disp << p->pos[0] - particles[j]->pos[0],
                     p->pos[1] - particles[j]->pos[1],
                     m * Base::zL + particles[j]->pos[2] - p->pos[2];
             distance = disp.norm();
-            energy += p->q * particles[j]->q * 1/distance;
+            if(p->index == j){
+                energy += p->q * particles[j]->q * 1/(distance * 2);
+            }
+            else{
+                energy += p->q * particles[j]->q * 1/distance;
+            }
         }
     }
     energy *= Base::lB;
