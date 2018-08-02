@@ -83,7 +83,7 @@ void energy::valleau::update_potential(){
             jIt += dz;
             diffz = std::fabs(jIt - iIt);
             ext[i] += chargeVector[j] * (-2.0 * PI * diffz - phiw(diffz));
-/*
+
             //First reflection
             diffz = jIt + iIt - dhs;
             imgExt[i] += chargeVector[j] * (-2.0 * PI * diffz - phiw(diffz));
@@ -94,7 +94,7 @@ void energy::valleau::update_potential(){
             imgExt[i] -= chargeVector[j] * (-2.0 * PI * diffz - phiw(diffz));
             diffz = 2 * Base::zL - jIt + iIt - 2 * dhs;
             imgExt[i] -= chargeVector[j] * (-2.0 * PI * diffz - phiw(diffz));
-         */   
+            
         }
  
     }
@@ -212,7 +212,7 @@ double energy::valleau::get_particle_images(Particle **particles, Particle *p){
                     p->pos[1] - particles[j]->pos[1],
                     (k + 1) * Base::zL - p->pos[2] - particles[j]->pos[2];
             distance = disp.norm();
-             if(p->index == j){
+            if(p->index == j){
                 energy -= p->q * particles[j]->q * 1/(distance * 2);
             }
             else{

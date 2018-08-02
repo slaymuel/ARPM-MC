@@ -356,7 +356,7 @@ Particle** Particle::create_particles(int nNum, int pNum){
         particles[i] = new Particle();
         particles[i]->index = i;
         particles[i]->d = 5;    //Diameter of particles
-        particles[i]->b = 0; //Length of charge displacement vector
+        particles[i]->b = 1; //Length of charge displacement vector
 
         //Get random center of mass coordinates
         particles[i]->com[0] = (double) rand()/RAND_MAX * Base::xL;

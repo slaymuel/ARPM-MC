@@ -246,9 +246,9 @@ int main(int argc, char *argv[])
     energy::ewald3D::set_alpha();
     energy::ewald3D::initialize(particles);
 
-    //energy::levin::initialize(particles);
-    //energy::valleau::initialize();
-    
+    energy::levin::initialize(particles);
+    energy::valleau::initialize();
+
     // overlaps = Particle::get_overlaps(particles);
     // if(overlaps > 0){
     //     printf("System contains overlaps!\n");
