@@ -13,6 +13,7 @@ class Particle: public Base{
         static double **distances;  //Distance matrix
         static int numOfParticles;
         static double oldEnergy;
+        static int numOfElectrons;
         double b;   //Length of charge displacement
         double d;   //Diameter of particle
         int q;  //Charge
@@ -38,7 +39,8 @@ class Particle: public Base{
         static void update_distances(Particle **particles, Particle *p);
         static int get_overlaps(Particle ** particles);
         static void place_particles(Particle **particles);
-        static Particle** create_particles(int nNum, int pNum);
+        static Particle** create_particles(int nNum, int pNum, int eNum);
+        static void create_electrons(Particle** particles, int num);
         static Particle** create_dummies(Particle **particles);
         static void write_coordinates(char name[40], Particle **particles);
         static void write_charge_coordinates(char name[], Particle **particles);

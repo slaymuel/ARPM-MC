@@ -213,10 +213,10 @@ double energy::valleau::get_particle_images(Particle **particles, Particle *p){
                     (k + 1) * Base::zL - p->pos[2] - particles[j]->pos[2];
             distance = disp.norm();
             if(p->index == j){
-                energy -= p->q * particles[j]->q * 1/(distance * 2);
+                energy -= p->q * particles[j]->q * 1.0/(distance * 2.0);
             }
             else{
-                energy -= p->q * particles[j]->q * 1/distance;
+                energy -= p->q * particles[j]->q * 1.0/distance;
             }
         }
     }
@@ -229,10 +229,10 @@ double energy::valleau::get_particle_images(Particle **particles, Particle *p){
                     m * Base::zL + p->pos[2] - particles[j]->pos[2];
             distance = disp.norm();
             if(p->index == j){
-                energy += p->q * particles[j]->q * 1/(distance * 2);
+                energy += p->q * particles[j]->q * 1.0/(distance * 2.0);
             }
             else{
-                energy += p->q * particles[j]->q * 1/distance;
+                energy += p->q * particles[j]->q * 1.0/distance;
             }
 
             //Left reflections
@@ -241,10 +241,10 @@ double energy::valleau::get_particle_images(Particle **particles, Particle *p){
                     m * Base::zL + particles[j]->pos[2] - p->pos[2];
             distance = disp.norm();
             if(p->index == j){
-                energy += p->q * particles[j]->q * 1/(distance * 2);
+                energy += p->q * particles[j]->q * 1.0/(distance * 2.0);
             }
             else{
-                energy += p->q * particles[j]->q * 1/distance;
+                energy += p->q * particles[j]->q * 1.0/distance;
             }
         }
     }

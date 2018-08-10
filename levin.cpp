@@ -47,23 +47,23 @@ void energy::levin::initialize(Particle **particles){
     for(int i = 0; i < kNum; i++){
         for(int j = 0; j < Particle::numOfParticles; j++){
             factor = 2 * PI/Base::xL * (kVectors(i, 0) * particles[j]->pos[0] + kVectors(i, 1) * particles[j]->pos[1]);
-            f1(i) += particles[j]->q * cos(factor) * exp(-kNorms(i) * particles[j]->pos[2]);
-            f2(i) += particles[j]->q * sin(factor) * exp(-kNorms(i) * particles[j]->pos[2]);
-            f3(i) += particles[j]->q * cos(factor) * exp(kNorms(i) * particles[j]->pos[2]);
-            f4(i) += particles[j]->q * sin(factor) * exp(kNorms(i) * particles[j]->pos[2]);
+            f1(i) += particles[j]->q * std::cos(factor) * std::exp(-kNorms(i) * (particles[j]->pos[2] - Base::wall));
+            f2(i) += particles[j]->q * std::sin(factor) * std::exp(-kNorms(i) * (particles[j]->pos[2] - Base::wall));
+            f3(i) += particles[j]->q * std::cos(factor) * std::exp(kNorms(i) * (particles[j]->pos[2] - Base::wall));
+            f4(i) += particles[j]->q * std::sin(factor) * std::exp(kNorms(i) * (particles[j]->pos[2] - Base::wall));
         }  
     }
     printf("Calculated f-functions\n");
     eFactors = Eigen::ArrayXd::Zero(kNum);
     for(int i = 0; i < kNum; i++){
-        eFactors(i) = exp(-2 * kNorms(i) * Base::zL);
+        eFactors(i) = exp(-2 * kNorms(i) * (Base::zL - 2 * Base::wall));
     }
 
     double dipol = 0;
     for(int i = 0; i < Particle::numOfParticles; i++){
         dipol += particles[i]->q * particles[i]->pos[2];
     }
-    uGamma = -2 * PI/(Base::xL * Base::xL) * (dipol * dipol / (Base::zL));
+    uGamma = -2 * PI/(Base::xL * Base::xL) * (dipol * dipol / (Base::zL - 2 * Base::wall));
     //for(int i = 0; i < kNum; i++){
         //printf("Vec %d: %lf %lf\n", i, kVectors(i,0), kVectors(i,1));
     //}
@@ -77,17 +77,17 @@ void energy::levin::update_f(Particle *_old, Particle *_new){
     for(int i = 0; i < kNum; i++){
         double oldFactor = 2 * PI/Base::xL * (kVectors(i, 0) * _old->pos[0] + kVectors(i, 1) * _old->pos[1]);
         double newFactor = 2 * PI/Base::xL * (kVectors(i, 0) * _new->pos[0] + kVectors(i, 1) * _new->pos[1]);
-        f1(i) -= _old->q * cos(oldFactor) * exp(-kNorms(i) * _old->pos[2]);
-        f1(i) += _new->q * cos(newFactor) * exp(-kNorms(i) * _new->pos[2]);
+        f1(i) -= _old->q * cos(oldFactor) * exp(-kNorms(i) * (_old->pos[2] - Base::wall));
+        f1(i) += _new->q * cos(newFactor) * exp(-kNorms(i) * (_new->pos[2] - Base::wall));
 
-        f2(i) -= _old->q * sin(oldFactor) * exp(-kNorms(i) * _old->pos[2]);
-        f2(i) += _new->q * sin(newFactor) * exp(-kNorms(i) * _new->pos[2]);
+        f2(i) -= _old->q * sin(oldFactor) * exp(-kNorms(i) * (_old->pos[2] - Base::wall));
+        f2(i) += _new->q * sin(newFactor) * exp(-kNorms(i) * (_new->pos[2] - Base::wall));
 
-        f3(i) -= _old->q * cos(oldFactor) * exp(kNorms(i) * _old->pos[2]);
-        f3(i) += _new->q * cos(newFactor) * exp(kNorms(i) * _new->pos[2]);
+        f3(i) -= _old->q * cos(oldFactor) * exp(kNorms(i) * (_old->pos[2] - Base::wall));
+        f3(i) += _new->q * cos(newFactor) * exp(kNorms(i) * (_new->pos[2] - Base::wall));
 
-        f4(i) -= _old->q * sin(oldFactor) * exp(kNorms(i) * _old->pos[2]);
-        f4(i) += _new->q * sin(newFactor) * exp(kNorms(i) * _new->pos[2]);
+        f4(i) -= _old->q * sin(oldFactor) * exp(kNorms(i) * (_old->pos[2] - Base::wall));
+        f4(i) += _new->q * sin(newFactor) * exp(kNorms(i) * (_new->pos[2] - Base::wall));
     }
 }
 
@@ -101,7 +101,7 @@ double energy::levin::u_gamma(Particle **particles){
         chargeProd += particles[i]->q;
     }
     //printf("dipol: %lf, chargeProd: %lf, u_gamma: %lf\n", dipol, chargeProd, -2 * PI/(Base::xL * Base::xL) * (dipol * dipol / Base::zL - chargeProd * dipol));
-    return -2 * PI/(Base::xL * Base::xL) * (dipol * dipol / Base::zL - chargeProd * dipol);
+    return -2 * PI/(Base::xL * Base::xL) * (dipol * dipol / (Base::zL - 2 * Base::wall) - chargeProd * dipol);
 }
 
 
@@ -126,7 +126,7 @@ double energy::levin::get_polarization(){
 
 
 double energy::levin::get_energy(Particle **particles){
-    double eDir = energy::direct::get_energy(particles);
+    double eDir = energy::ewald3D::get_energy(particles);
     printf("u_gamma: %.15lf\n", u_gamma(particles) * Base::lB);
     printf("normalized pol: %lf\n", PI/(Base::xL * Base::xL) * get_polarization() * Base::lB);
     double ePol = (u_gamma(particles) + PI/(Base::xL * Base::xL) * get_polarization())* Base::lB;
@@ -137,7 +137,7 @@ double energy::levin::get_energy(Particle **particles){
 
 
 double energy::levin::get_particle_energy(Particle **particles, Particle *p){
-    double eDir = energy::direct::get_particle_energy(particles, p);
+    double eDir = energy::ewald3D::get_particle_energy(particles, p);
     //printf("u_gamma: %lf    polarization: %lf\n", u_gamma(particles), get_polarization());
     double ePol = (u_gamma(particles) + PI/(Base::xL * Base::xL) * get_polarization()) * Base::lB;
     //printf("direct: %lf    polarization: %lf\n", eDir, ePol);
