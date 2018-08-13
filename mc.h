@@ -422,7 +422,7 @@ class MC{
                 }
                 
                 random = ran2::get_random();
-                if(random <= rN && i > 10000){
+                if(random <= rN && i > 1000000){
                     if(vol_move(particles, energy_function)){
                         prevAccepted++;
                         volAccepted++;
