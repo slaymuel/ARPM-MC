@@ -408,12 +408,12 @@ void Particle::create_electrons(Particle** particles, int num){
         //Get random center of mass coordinates
         particles[i]->com[0] = (double) rand()/RAND_MAX * Base::xL;
         particles[i]->com[1] = (double) rand()/RAND_MAX * Base::yL;
-        if(j < num / 2){
-            particles[i]->com[2] = (double) rand()/RAND_MAX * (Base::zL - 2 * Base::wall) + Base::wall + Base::zL;
-        }
-        else{
-            particles[i]->com[2] = (double) rand()/RAND_MAX * (Base::zL - 2 * Base::wall) + Base::wall - Base::zL;
-        }
+        //if(j < num / 2){
+            particles[i]->com[2] = Base::zL;//(double) rand()/RAND_MAX * (Base::zL - 2 * Base::wall) + Base::wall + Base::zL;
+        //}
+        //else{
+        //    particles[i]->com[2] = (double) rand()/RAND_MAX * (Base::zL - 2 * Base::wall) + Base::wall - Base::zL;
+        //}
 
         //Get random charge displacement vector
         particles[i]->chargeDisp << 0, 0, 0;

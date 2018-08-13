@@ -14,15 +14,20 @@ double energy::imagitron::get_particle_energy(Particle **particles, Particle *p)
         energy += particles[i]->q * p->q * 1.0/Particle::distances[p->index][i];
     }
     if(p->index < Particle::numOfParticles){
-        energy += 2 * PI * 1.0/50.0 * std::fabs(p->pos[2]) * p->q;
+        //energy += 2 * PI * 1.0/10.0 * std::fabs(p->pos[2]) * p->q;
+        energy += p->q * wall_charge(p->pos[2]);
+        if(strcmp(p->name, "e") == 0){
+            printf("Error, electron is affected by wall. Name %s\n", p->name);
+            exit(1);
+        }
     }
-
+/*
     for(int k = 1; k <= numOfReflections; k += 2){
 
         //Reflections created by right hand side electrons
         for(int i = Particle::numOfParticles; i < Particle::numOfParticles + Particle::numOfElectrons / 2; i++){
-            //Left images, uneven, opposite sign
 
+            //Left images, uneven, opposite sign
             disp << p->pos[0] - particles[i]->pos[0],
                     p->pos[1] - particles[i]->pos[1],
                     p->pos[2] + particles[i]->pos[2];//p->pos[2] - ((1 - k) * Base::zL - particles[i]->pos[2]);
@@ -36,7 +41,7 @@ double energy::imagitron::get_particle_energy(Particle **particles, Particle *p)
 
             
             //Right images, even, same sign
-            /*disp << p->pos[0] - particles[i]->pos[0],
+            disp << p->pos[0] - particles[i]->pos[0],
                     p->pos[1] - particles[i]->pos[1],
                     p->pos[2] - (k * Base::zL + particles[i]->pos[2]);
             if(p->index == i){
@@ -44,9 +49,9 @@ double energy::imagitron::get_particle_energy(Particle **particles, Particle *p)
             }
             else{
                 energy += p->q * particles[i]->q * 1.0 / disp.norm();
-            }*/
+            }
         }
-/*
+
         //Reflections created by left hand side electrons    
         for(int i = Particle::numOfParticles + Particle::numOfElectrons / 2; i < Particle::numOfParticles + Particle::numOfElectrons; i++){
             //Left images, even, same sign
@@ -70,9 +75,9 @@ double energy::imagitron::get_particle_energy(Particle **particles, Particle *p)
             else{
                 energy -= p->q * particles[i]->q * 1.0 / disp.norm();
             }
-        }*/
+        }
     }
-   
+   */
     return energy * Base::lB;
 }
 
@@ -84,13 +89,14 @@ double energy::imagitron::get_energy(Particle **particles){
 
     for(int i = 0; i < Particle::numOfParticles + Particle::numOfElectrons; i++){
         if(i < Particle::numOfParticles){
-            energy += 2 * PI * 1.0/50.0 * std::fabs(particles[i]->pos[2]) * particles[i]->q;
+            //energy += 2 * PI * 1.0/10.0 * std::fabs(particles[i]->pos[2]) * particles[i]->q;
+            energy += particles[i]->q * wall_charge(particles[i]->pos[2]);
         }
         for(int j = i + 1; j < Particle::numOfParticles + Particle::numOfElectrons; j++){
             energy += particles[i]->q * particles[j]->q * 1.0/Particle::distances[i][j];
         }
     }
-
+/*
     for(int k = 1; k <= numOfReflections; k += 2){
         for(int j = 0; j < Particle::numOfParticles + Particle::numOfElectrons; j++){
 
@@ -102,7 +108,7 @@ double energy::imagitron::get_energy(Particle **particles){
                         particles[j]->pos[2] + particles[i]->pos[2];//particles[j]->pos[2] - ((1 - k) * Base::zL - particles[i]->pos[2]);
                 //printf("%lf\n", particles[i]->pos[2]);
                 //disp = particles[j]->pos - particles[i]->pos;
-                
+
                 if(j == i){
                     energy -= particles[j]->q * particles[i]->q * 1.0 / (disp.norm() * 2);
                 }
@@ -110,7 +116,7 @@ double energy::imagitron::get_energy(Particle **particles){
                     energy -= particles[j]->q * particles[i]->q * 1.0 / disp.norm();
                 }
 
-                /*
+                
                 //Right images, even, same sign
                 disp << particles[j]->pos[0] - particles[i]->pos[0],
                         particles[j]->pos[1] - particles[i]->pos[1],
@@ -120,10 +126,10 @@ double energy::imagitron::get_energy(Particle **particles){
                 }
                 else{
                     energy += particles[j]->q * particles[i]->q * 1.0 / disp.norm();
-                }*/
+                }
 
             }
-/*
+
             //Reflections created by left hand side electrons    
             for(int i = Particle::numOfParticles + Particle::numOfElectrons / 2; i < Particle::numOfParticles + Particle::numOfElectrons; i++){
                 //Left images, even, same sign
@@ -148,10 +154,21 @@ double energy::imagitron::get_energy(Particle **particles){
                     energy -= particles[j]->q * particles[i]->q * 1.0 / disp.norm();
                 }
 
-            }*/
+            }
 
         }
-    }
+    }*/
 
     return energy * Base::lB;
+}
+
+double energy::imagitron::wall_charge(double z){
+    double a = Base::xL/2.0;
+    double asq = a * a;
+    z = std::fabs(z - Base::zL);
+    double zsq = z * z;//(z + b) * (z + b);
+
+    double self = 8.0 * a * std::log((std::sqrt(2.0 * asq + zsq) + a) / std::sqrt(asq + zsq)) - 
+                  2.0 * z * (std::asin((asq * asq - zsq * zsq - 2.0 * asq * zsq) / std::pow(asq + zsq, 2.0)) + PI/2.0);
+    return 1.0 / 30.0 * self;
 }

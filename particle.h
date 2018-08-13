@@ -50,10 +50,11 @@ class Particle: public Base{
         static Particle** read_coordinates_gro(std::string name);
         void pbc_pos();
         void pbc();
+        static void pbc_xy(Eigen::Vector3d& x);
     private:
 
         void pbc(Eigen::Vector3d& x);
-        void pbc_xy(Eigen::Vector3d& x);
+        
         double distance(Particle *p);
 };
 

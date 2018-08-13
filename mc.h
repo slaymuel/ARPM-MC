@@ -30,7 +30,7 @@ class MC{
         template <typename E>
         static int vol_move(Particle **particles, E energy_function){
             bool overlap = false;
-            double vMax = 0.00025;
+            double vMax = 0.005;
             double lnNewVolume = std::log(Base::volume) + (ran2::get_random() - 0.5) * vMax;
             //double newVolume = Base::volume + (ran2::get_random() - 0.5) * vMax;
             double newVolume = std::exp(lnNewVolume);
@@ -74,7 +74,7 @@ class MC{
                 //                                                    (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume));
                 //double prob = exp(-(newEnergy - oldEnergy) - Base::beta * (100000 * 1e-30 * (newVolume - Base::volume) - 
                 //                                (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume)/Base::beta));
-                double prob = exp(-(newEnergy - oldEnergy) - 0.005 * (newVolume - Base::volume) + //  0.0000243     0.005
+                double prob = exp(-(newEnergy - oldEnergy) - 0.00383374 * (newVolume - Base::volume) + //  0.0000243     0.005
                                                 (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume));
                 if(ran2::get_random() > prob && oldEnergy <= newEnergy){  //Reject
                     
@@ -279,7 +279,7 @@ class MC{
 
                 //Get new energy
                 energy::ewald3D::update_reciprocal(_old, particles[p]);
-                energy::levin::update_f(_old, particles[p]);
+                //energy::levin::update_f(_old, particles[p]);
                 eNew = energy_function(particles, particles[p]);
 
                 //Accept move?
@@ -298,7 +298,7 @@ class MC{
                 }
                 else{   //Reject move
                     energy::ewald3D::update_reciprocal(particles[p], _old);
-                    energy::levin::update_f(particles[p], _old);
+                    //energy::levin::update_f(particles[p], _old);
                     particles[p]->pos = _old->pos;
                     particles[p]->com = _old->com;
                     Particle::update_distances(particles, particles[p]);
@@ -337,12 +337,17 @@ class MC{
             _old->index = particles[p]->index;
 
             //Generate new trial coordinates
-            particles[p]->random_move(dr);
+            //particles[p]->random_move(dr);
+            particles[p]->com[0] += (ran2::get_random()*2.0 - 1.0) * dr;
+            particles[p]->com[1] += (ran2::get_random()*2.0 - 1.0) * dr;
+            Particle::pbc_xy(particles[p]->com);
+            particles[p]->pos = particles[p]->com;
+            Particle::pbc_xy(particles[p]->pos);
             Particle::update_distances(particles, particles[p]);
 
             //If there is no overlap in new position and it's inside the box
-            if((particles[p]->com[2] > Base::wall + Base::zL && particles[p]->com[2] < 2 * Base::zL - Base::wall) || 
-                (particles[p]->com[2] > Base::wall - Base::zL && particles[p]->com[2] < Base::wall)){
+            //if((particles[p]->com[2] > Base::wall + Base::zL && particles[p]->com[2] < 2 * Base::zL - Base::wall) || 
+            //    (particles[p]->com[2] > Base::wall - Base::zL && particles[p]->com[2] < Base::wall)){
 
                 //Get new energy
                 eNew = energy_function(particles, particles[p]);
@@ -366,13 +371,13 @@ class MC{
                     particles[p]->com = _old->com;
                     Particle::update_distances(particles, particles[p]);
                 }
-            }
+            /*}
 
             else{   //Reject move
                 particles[p]->pos = _old->pos;
                 particles[p]->com = _old->com;
                 Particle::update_distances(particles, particles[p]);
-            }
+            }*/
 
             delete _old;
             return accepted;
@@ -415,9 +420,9 @@ class MC{
                     yHist->sampleHisto(particles, 1);
                     zHist->sampleHisto(particles, 2);
                 }
-                /*
+                
                 random = ran2::get_random();
-                if(random <= rN && i > 1000000){
+                if(random <= rN && i > 10000){
                     if(vol_move(particles, energy_function)){
                         prevAccepted++;
                         volAccepted++;
@@ -425,23 +430,23 @@ class MC{
                     volTot++;
                 }
                 else{
-                */
-                    //random = ran2::get_random();
-                    //if(random <= 0.5){
+                
+                //    random = ran2::get_random();
+                //    if(random <= 0.5){
                         if(trans_move(particles, dr, particle_energy_function)){
                             prevAccepted++; 
                             transAccepted++;
                         }
                         transTot++;
-                    //}
-                    /*else{
+                /*    }
+                    else{
                         if(trans_electron_move(particles, dr, particle_energy_function)){
                             prevAccepted++;
                             elAcc++;
                         }
                         elTot++;
                     }*/
-                //}
+                }
                 Base::totalMoves++;
                 /*
                 random = ran2::get_random();
