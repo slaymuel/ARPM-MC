@@ -74,7 +74,7 @@ class MC{
                 //                                                    (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume));
                 //double prob = exp(-(newEnergy - oldEnergy) - Base::beta * (100000 * 1e-30 * (newVolume - Base::volume) - 
                 //                                (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume)/Base::beta));
-                double prob = exp(-(newEnergy - oldEnergy) - 0.00383374 * (newVolume - Base::volume) + //  0.0000243     0.005
+                double prob = exp(-(newEnergy - oldEnergy) - 0.0000243 * (newVolume - Base::volume) + //  0.0000243     0.005      0.00383374
                                                 (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume));
                 if(ran2::get_random() > prob && oldEnergy <= newEnergy){  //Reject
                     
@@ -431,14 +431,14 @@ class MC{
                 }
                 else{
                 
-                //    random = ran2::get_random();
-                //    if(random <= 0.5){
+                    //random = ran2::get_random();
+                    //if(random <= 0.5){
                         if(trans_move(particles, dr, particle_energy_function)){
                             prevAccepted++; 
                             transAccepted++;
                         }
                         transTot++;
-                /*    }
+                    /*}
                     else{
                         if(trans_electron_move(particles, dr, particle_energy_function)){
                             prevAccepted++;
@@ -448,7 +448,7 @@ class MC{
                     }*/
                 }
                 Base::totalMoves++;
-                /*
+                
                 random = ran2::get_random();
                 if(random <= 0.3){
                     if(charge_rot_move(particles, particle_energy_function)){
@@ -458,7 +458,7 @@ class MC{
                     rotTot++;
                     Base::totalMoves++;
                 }
-                */
+                
                 if(i % 100 == 0 && i > 10000 && !sample){
                     energy::valleau::update_charge_vector(particles);
                 }

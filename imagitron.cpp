@@ -14,7 +14,6 @@ double energy::imagitron::get_particle_energy(Particle **particles, Particle *p)
         energy += particles[i]->q * p->q * 1.0/Particle::distances[p->index][i];
     }
     if(p->index < Particle::numOfParticles){
-        //energy += 2 * PI * 1.0/10.0 * std::fabs(p->pos[2]) * p->q;
         energy += p->q * wall_charge(p->pos[2]);
         if(strcmp(p->name, "e") == 0){
             printf("Error, electron is affected by wall. Name %s\n", p->name);
@@ -89,7 +88,6 @@ double energy::imagitron::get_energy(Particle **particles){
 
     for(int i = 0; i < Particle::numOfParticles + Particle::numOfElectrons; i++){
         if(i < Particle::numOfParticles){
-            //energy += 2 * PI * 1.0/10.0 * std::fabs(particles[i]->pos[2]) * particles[i]->q;
             energy += particles[i]->q * wall_charge(particles[i]->pos[2]);
         }
         for(int j = i + 1; j < Particle::numOfParticles + Particle::numOfElectrons; j++){
@@ -165,7 +163,9 @@ double energy::imagitron::get_energy(Particle **particles){
 double energy::imagitron::wall_charge(double z){
     double a = Base::xL/2.0;
     double asq = a * a;
-    z = std::fabs(z - Base::zL);
+    //z = std::fabs(z - Base::zL);
+    z -= Base::zL / 2.0;
+    z = std::fabs(z - Base::zL / 2.0);
     double zsq = z * z;//(z + b) * (z + b);
 
     double self = 8.0 * a * std::log((std::sqrt(2.0 * asq + zsq) + a) / std::sqrt(asq + zsq)) - 
