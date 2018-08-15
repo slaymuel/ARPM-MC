@@ -30,7 +30,7 @@ class MC{
         template <typename E>
         static int vol_move(Particle **particles, E energy_function){
             bool overlap = false;
-            double vMax = 0.005;
+            double vMax = 0.0005;
             double lnNewVolume = std::log(Base::volume) + (ran2::get_random() - 0.5) * vMax;
             //double newVolume = Base::volume + (ran2::get_random() - 0.5) * vMax;
             double newVolume = std::exp(lnNewVolume);
@@ -422,7 +422,7 @@ class MC{
                 }
                 
                 random = ran2::get_random();
-                if(random <= rN && i > 1000000){
+                if(random <= rN){
                     if(vol_move(particles, energy_function)){
                         prevAccepted++;
                         volAccepted++;
@@ -450,7 +450,7 @@ class MC{
                 Base::totalMoves++;
                 
                 random = ran2::get_random();
-                if(random <= 0.3){
+                if(random <= 0.5){
                     if(charge_rot_move(particles, particle_energy_function)){
                         prevAccepted++;
                         rotAccepted++;

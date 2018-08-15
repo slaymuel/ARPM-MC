@@ -132,11 +132,18 @@ void Particle::random_move(double stepSize){
 }
 
 void Particle::random_charge_rot(){
-    double da = 0.4;
-    this->chargeDisp[0] += (ran2::get_random() * 2.0 - 1.0) * da;
-    this->chargeDisp[1] += (ran2::get_random() * 2.0 - 1.0) * da;
-    this->chargeDisp[2] += (ran2::get_random() * 2.0 - 1.0) * da;
-    
+    double da = 0.8;
+    double random = ran2::get_random();
+    if(random >= 0.1){
+        this->chargeDisp[0] += (ran2::get_random() * 2.0 - 1.0) * da;
+        this->chargeDisp[1] += (ran2::get_random() * 2.0 - 1.0) * da;
+        this->chargeDisp[2] += (ran2::get_random() * 2.0 - 1.0) * da;
+    }
+    else{
+        this->chargeDisp[0] = ran2::get_random() * 2.0 - 1.0;
+        this->chargeDisp[1] = ran2::get_random() * 2.0 - 1.0;
+        this->chargeDisp[2] = ran2::get_random() * 2.0 - 1.0;        
+    }
     this->chargeDisp = this->b * this->chargeDisp.normalized();
     this->pos = this->com + this->chargeDisp;
     pbc(this->pos);
@@ -358,7 +365,18 @@ Particle** Particle::create_particles(int nNum, int pNum, int eNum){
         particles[i] = new Particle();
         particles[i]->index = i;
         particles[i]->d = 5;    //Diameter of particles
-        particles[i]->b = 0; //Length of charge displacement vector
+
+        if(i < nNum){
+            particles[i]->q = -1.0;
+            particles[i]->b = 0; //Length of charge displacement vector
+            strcpy(particles[i]->name, "Cl\0");
+        }
+        else{
+            particles[i]->q = 1.0;
+            particles[i]->b = 1.5; //Length of charge displacement vector
+            strcpy(particles[i]->name, "Na\0");
+        }
+        
 
         //Get random center of mass coordinates
         particles[i]->com[0] = (double) rand()/RAND_MAX * Base::xL;
@@ -377,15 +395,6 @@ Particle** Particle::create_particles(int nNum, int pNum, int eNum){
         if(particles[i]->com[2] < particles[i]->d/2 || particles[i]->com[2] > Base::zL - particles[i]->d/2){
             printf("%lf %lf %lf Particle in forbidden area...\n", particles[i]->com[0], particles[i]->com[1], particles[i]->com[2]);
             exit(1);
-        }
-
-        if(i < nNum){
-            particles[i]->q = -1.0;
-            strcpy(particles[i]->name, "Cl\0");
-        }
-        else{
-            particles[i]->q = 1.0;
-            strcpy(particles[i]->name, "Na\0");
         }
     }
     printf("\033[34mCreated %d particles.\033[30m\n", Particle::numOfParticles);
@@ -412,7 +421,7 @@ void Particle::create_electrons(Particle** particles, int num){
             particles[i]->com[2] = Base::zL;//(double) rand()/RAND_MAX * (Base::zL - 2 * Base::wall) + Base::wall + Base::zL;
         //}
         //else{
-        //    particles[i]->com[2] = (double) rand()/RAND_MAX * (Base::zL - 2 * Base::wall) + Base::wall - Base::zL;
+        //    particles[i]->com[2] = 0;//(double) rand()/RAND_MAX * (Base::zL - 2 * Base::wall) + Base::wall - Base::zL;
         //}
 
         //Get random charge displacement vector
