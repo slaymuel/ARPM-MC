@@ -1,5 +1,11 @@
 #include "imagitron.h"
 
+double energy::imagitron::wallCharge;
+
+void energy::imagitron::initialize(){
+    wallCharge = (Particle::numOfElectrons)/(Base::xL * Base::yL);
+}
+
 double energy::imagitron::get_particle_energy(Particle **particles, Particle *p){
     int numOfReflections = 1;
     double energy = 0;
@@ -14,7 +20,14 @@ double energy::imagitron::get_particle_energy(Particle **particles, Particle *p)
         energy += particles[i]->q * p->q * 1.0/Particle::distances[p->index][i];
     }
     if(p->index < Particle::numOfParticles){
+        /*if(p->q < 0){
+            printf("Negative particle\n");
+        }
+        else{
+            printf("Positive particle\n");
+        }*/
         energy += p->q * wall_charge(p->pos[2]);
+        //printf("Total: %lf\n", p->q * wall_charge(p->pos[2]));
         if(strcmp(p->name, "e") == 0){
             printf("Error, electron is affected by wall. Name %s\n", p->name);
             exit(1);
@@ -161,20 +174,22 @@ double energy::imagitron::get_energy(Particle **particles){
 }
 
 double energy::imagitron::wall_charge(double z){
-    double wall = 0;
+    double wall1 = 0;
+    double wall2 = 0;
     double a = Base::xL/2.0;
     double asq = a * a;
     //z = std::fabs(z - Base::zL);
     z -= Base::zL / 2;
+    //printf("z: %lf\n", z);
     double zDiff = z - Base::zL / 2;
     double zsq = zDiff * zDiff;
-    wall += 8.0 * a * std::log((std::sqrt(2.0 * asq + zsq) + a) / std::sqrt(asq + zsq)) - 
-                  2.0 * std::fabs(z) * (std::asin((asq * asq - zsq * zsq - 2.0 * asq * zsq) / std::pow(asq + zsq, 2.0)) + PI/2.0);
+    wall1 = 8.0 * a * std::log((std::sqrt(2.0 * asq + zsq) + a) / std::sqrt(asq + zsq)) - 
+                  2.0 * std::fabs(zDiff) * (std::asin((asq * asq - zsq * zsq - 2.0 * asq * zsq) / std::pow(asq + zsq, 2.0)) + PI/2.0);
 
     zDiff = z + Base::zL / 2;
     zsq = zDiff * zDiff;
-    //wall += 8.0 * a * std::log((std::sqrt(2.0 * asq + zsq) + a) / std::sqrt(asq + zsq)) - 
-    //              2.0 * std::fabs(z) * (std::asin((asq * asq - zsq * zsq - 2.0 * asq * zsq) / std::pow(asq + zsq, 2.0)) + PI/2.0);
-
-    return -1.0 / 30.0 * wall;
+    //wall2 = 8.0 * a * std::log((std::sqrt(2.0 * asq + zsq) + a) / std::sqrt(asq + zsq)) - 
+    //              2.0 * std::fabs(zDiff) * (std::asin((asq * asq - zsq * zsq - 2.0 * asq * zsq) / std::pow(asq + zsq, 2.0)) + PI/2.0);
+    //printf("wall1: %lf, wall2: %lf\n", wall1, wall2);
+    return wallCharge * (wall1 + wall2);
 }

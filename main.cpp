@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
         ("f_jan", po::value<std::string>(), "Coordinates in Jan-format")
         ("f_arpm_jan", po::value<std::string>(), "Coordinates in Jan-ARPM format")
         ("density", po::value<double>(), "Specify density of the system.")
-        ("wall", po::value<double>(), "Insert walls in the z-dimension. Argument increases the box length as zL = 2 * wall")
+        ("wall", po::value<double>()->default_value(0), "Insert walls in the z-dimension. Argument increases the box length as zL = 2 * wall")
         ("box", po::value<std::vector<double> >()->multitoken(), "Box dimensions")
         ("rc", po::value<int>(), "Relative coordinates")
         ("T", po::value<double>(), "Temperature")
@@ -235,9 +235,9 @@ int main(int argc, char *argv[])
     }
 
     //exit(1);
-    Analysis *xHist = new Analysis(0.1, Base::xL);
-    Analysis *yHist = new Analysis(0.1, Base::yL);
-    Analysis *zHist = new Analysis(0.1, Base::zL);
+    Analysis *xHist = new Analysis(0.05, Base::xL);
+    Analysis *yHist = new Analysis(0.05, Base::yL);
+    Analysis *zHist = new Analysis(0.05, Base::zL);
     //Analysis *rdf = new Analysis(0.1, Base::zL);
     Base::set_lB();
     Base::set_beta();
@@ -278,7 +278,7 @@ int main(int argc, char *argv[])
     fprintf(f, "");
     fclose(f);
 
-    std::string energyFunction = "ewald";
+    std::string energyFunction = "electron";
 
     if(energyFunction == "valleau"){
         //MC::run(&energy::hs::get_energy, &energy::hs::get_particle_energy, particles, dr, iter, false);
@@ -317,6 +317,7 @@ int main(int argc, char *argv[])
     }
 
     if(energyFunction == "electron"){
+        energy::imagitron::initialize();
         MC::run(&energy::imagitron::get_energy, &energy::imagitron::get_particle_energy, particles, dr, iter, true, outputFile);
     }
     if(energyFunction == "direct"){

@@ -278,7 +278,7 @@ class MC{
                 particles[p]->com[2] < Base::zL - Base::wall - particles[p]->d/2){
 
                 //Get new energy
-                energy::ewald3D::update_reciprocal(_old, particles[p]);
+                //energy::ewald3D::update_reciprocal(_old, particles[p]);
                 //energy::levin::update_f(_old, particles[p]);
                 eNew = energy_function(particles, particles[p]);
 
@@ -297,7 +297,7 @@ class MC{
                     Base::acceptedMoves++;
                 }
                 else{   //Reject move
-                    energy::ewald3D::update_reciprocal(particles[p], _old);
+                    //energy::ewald3D::update_reciprocal(particles[p], _old);
                     //energy::levin::update_f(particles[p], _old);
                     particles[p]->pos = _old->pos;
                     particles[p]->com = _old->com;
@@ -354,14 +354,14 @@ class MC{
 
                 //Accept move?
                 dE = eNew - eOld;
-                acceptProp = exp(-1*dE);
-                if(acceptProp > 1 || eNew < eOld){
-                    acceptProp = 1;
-                }
+                //acceptProp = exp(-1*dE);
+                //if(acceptProp > 1 || eNew < eOld){
+                //    acceptProp = 1;
+                //}
 
                 double rand = ran2::get_random();
 
-                if(rand <= acceptProp){  //Accept move
+                if(dE < 0){//(rand <= acceptProp){  //Accept move
                     Base::eCummulative += dE; //Update cummulative energy
                     accepted = 1;
                     Base::acceptedMoves++;
@@ -386,6 +386,7 @@ class MC{
         template<typename F, typename FP>
         static void run(F&& energy_function, FP&& particle_energy_function, Particle** particles, double dr, int iter, bool sample, std::string outputFile){
             double energy_temp;
+            double partRatio = (double)Particle::numOfParticles/(Particle::numOfParticles + Particle::numOfElectrons);
             int prevAccepted = 0;
             int rotAccepted = 0;
             int rotTot = 0;
@@ -421,34 +422,34 @@ class MC{
                     zHist->sampleHisto(particles, 2);
                 }
                 
-                random = ran2::get_random();
-                if(random <= rN){
+                /*random = ran2::get_random();
+                if(random <= rN && i > 1000000){
                     if(vol_move(particles, energy_function)){
                         prevAccepted++;
                         volAccepted++;
                     }
                     volTot++;
                 }
-                else{
+                else{*/
                 
-                    //random = ran2::get_random();
-                    //if(random <= 0.5){
+                    random = ran2::get_random();
+                    if(random <= partRatio){
                         if(trans_move(particles, dr, particle_energy_function)){
                             prevAccepted++; 
                             transAccepted++;
                         }
                         transTot++;
-                    /*}
+                    }
                     else{
-                        if(trans_electron_move(particles, dr, particle_energy_function)){
+                        if(trans_electron_move(particles, 1, particle_energy_function)){
                             prevAccepted++;
                             elAcc++;
                         }
                         elTot++;
-                    }*/
-                }
+                    }
+                //}
                 Base::totalMoves++;
-                
+                /*
                 random = ran2::get_random();
                 if(random <= 0.5){
                     if(charge_rot_move(particles, particle_energy_function)){
@@ -458,7 +459,7 @@ class MC{
                     rotTot++;
                     Base::totalMoves++;
                 }
-                
+                */
                 if(i % 100 == 0 && i > 10000 && !sample){
                     energy::valleau::update_charge_vector(particles);
                 }

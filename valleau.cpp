@@ -82,7 +82,7 @@ void energy::valleau::update_potential(){
         for(int j = 0; j < numOfBins; j++){
             jIt += dz;
             diffz = std::fabs(jIt - iIt);
-            ext[i] += chargeVector[j] * (-2.0 * PI * diffz - phiw(diffz));
+            //ext[i] += chargeVector[j] * (-2.0 * PI * diffz - phiw(diffz));
 
             //First reflection
             diffz = jIt + iIt - dhs;
@@ -96,7 +96,6 @@ void energy::valleau::update_potential(){
             imgExt[i] -= chargeVector[j] * (-2.0 * PI * diffz - phiw(diffz));
             
         }
- 
     }
     ext = dz * Base::lB * (ext - imgExt);
 
@@ -118,7 +117,7 @@ void energy::valleau::update_potential(){
 
 
 double energy::valleau::get_images(Particle **particles){
-    int numOfReflections = 8;
+    int numOfReflections = 1;
     double energy = 0;
     double distance = 0;
     Eigen::Vector3d disp;
@@ -127,8 +126,8 @@ double energy::valleau::get_images(Particle **particles){
         for(int i = 0; i < Particle::numOfParticles; i++){
             for(int j = i; j < Particle::numOfParticles; j++){
 
-                //Right reflections
-                disp << particles[i]->pos[0] - particles[j]->pos[0],
+                //Left reflections
+                /*disp << particles[i]->pos[0] - particles[j]->pos[0],
                         particles[i]->pos[1] - particles[j]->pos[1],
                         particles[i]->pos[2] + (k - 1) * Base::zL + particles[j]->pos[2];
                 distance = disp.norm();
@@ -137,8 +136,9 @@ double energy::valleau::get_images(Particle **particles){
                 }
                 else{
                     energy -= particles[i]->q * particles[j]->q * 1/distance;
-                }
-                //Left reflections
+                }*/
+
+                //Right reflections
                 disp << particles[i]->pos[0] - particles[j]->pos[0],
                         particles[i]->pos[1] - particles[j]->pos[1],
                         (k + 1) * Base::zL - particles[i]->pos[2] - particles[j]->pos[2];
@@ -157,7 +157,7 @@ double energy::valleau::get_images(Particle **particles){
         for(int i = 0; i < Particle::numOfParticles; i++){
             for(int j = i; j < Particle::numOfParticles; j++){
 
-                //Right reflections
+                //Left reflections
                 disp << particles[i]->pos[0] - particles[j]->pos[0],
                         particles[i]->pos[1] - particles[j]->pos[1],
                         m * Base::zL + particles[i]->pos[2] - particles[j]->pos[2];
@@ -168,7 +168,8 @@ double energy::valleau::get_images(Particle **particles){
                 else{
                     energy += particles[i]->q * particles[j]->q * 1/distance;
                 }
-                //Left reflections
+
+                //Right reflections
                 disp << particles[i]->pos[0] - particles[j]->pos[0],
                         particles[i]->pos[1] - particles[j]->pos[1],
                         m * Base::zL + particles[j]->pos[2] - particles[i]->pos[2];
@@ -188,7 +189,7 @@ double energy::valleau::get_images(Particle **particles){
 
 
 double energy::valleau::get_particle_images(Particle **particles, Particle *p){
-    int numOfReflections = 8;
+    int numOfReflections = 1;
     double energy = 0;
     double distance = 0;
     Eigen::Vector3d disp;
@@ -196,8 +197,8 @@ double energy::valleau::get_particle_images(Particle **particles, Particle *p){
     for(int k = 1; k <= numOfReflections; k += 2){  //Uneven reflections of opposite sign
         for(int j = 0; j < Particle::numOfParticles; j++){
 
-            //Right reflections
-            disp << p->pos[0] - particles[j]->pos[0],
+            //Left reflections
+            /*disp << p->pos[0] - particles[j]->pos[0],
                     p->pos[1] - particles[j]->pos[1],
                     p->pos[2] + (k - 1) * Base::zL + particles[j]->pos[2];
             distance = disp.norm();
@@ -206,8 +207,9 @@ double energy::valleau::get_particle_images(Particle **particles, Particle *p){
             }
             else{
                 energy -= p->q * particles[j]->q * 1/distance;
-            }
-            //Left reflections
+            }*/
+
+            //Right reflections
             disp << p->pos[0] - particles[j]->pos[0],
                     p->pos[1] - particles[j]->pos[1],
                     (k + 1) * Base::zL - p->pos[2] - particles[j]->pos[2];
@@ -223,7 +225,7 @@ double energy::valleau::get_particle_images(Particle **particles, Particle *p){
 
     for(int m = 2; m <= numOfReflections; m += 2){  //Even reflections of same sign
         for(int j = 0; j < Particle::numOfParticles; j++){
-            //Right reflections
+            //Left reflections
             disp << p->pos[0] - particles[j]->pos[0],
                     p->pos[1] - particles[j]->pos[1],
                     m * Base::zL + p->pos[2] - particles[j]->pos[2];
@@ -235,7 +237,7 @@ double energy::valleau::get_particle_images(Particle **particles, Particle *p){
                 energy += p->q * particles[j]->q * 1.0/distance;
             }
 
-            //Left reflections
+            //Right reflections
             disp << p->pos[0] - particles[j]->pos[0],
                     p->pos[1] - particles[j]->pos[1],
                     m * Base::zL + particles[j]->pos[2] - p->pos[2];
@@ -265,13 +267,13 @@ double energy::valleau::get_energy(Particle **particles){
         y0 = ext[(int)particles[i]->pos[2] / dz];
         y1 = ext[(int)particles[i]->pos[2] / dz + 1];
         if(particles[i]->q > 0){
-            energy += y0 + (particles[i]->pos[2] / dz - x0) * (y1 - y0) / (x1 - x0);
+            //energy += y0 + (particles[i]->pos[2] / dz - x0) * (y1 - y0) / (x1 - x0);
         }
         else{
-            energy -= y0 + (particles[i]->pos[2] / dz - x0) * (y1 - y0) / (x1 - x0);
+            //energy -= y0 + (particles[i]->pos[2] / dz - x0) * (y1 - y0) / (x1 - x0);
         }
     }
-    printf("Valleau dir: %lf    pol: %lf\n", energy::direct::get_energy(particles), get_images(particles));
+    //printf("Valleau dir: %lf    pol: %lf\n", energy::direct::get_energy(particles), get_images(particles));
     energy += energy::direct::get_energy(particles);
     energy += get_images(particles);
     return energy;
@@ -289,10 +291,10 @@ double energy::valleau::get_particle_energy(Particle **particles, Particle *p){
     y0 = ext[(int)p->pos[2] / dz];
     y1 = ext[(int)p->pos[2] / dz + 1];
     if(p->q > 0){
-        energy += y0 + (p->pos[2] / dz - x0) * (y1 - y0) / (x1 - x0);
+        //energy += y0 + (p->pos[2] / dz - x0) * (y1 - y0) / (x1 - x0);
     }
     else{
-        energy -= y0 + (p->pos[2] / dz - x0) * (y1 - y0) / (x1 - x0);
+        //energy -= y0 + (p->pos[2] / dz - x0) * (y1 - y0) / (x1 - x0);
     }
     //printf("dir: %lf    pol: %lf\n", energy::direct::get_particle_energy(particles, p), get_particle_images(particles, p));
     energy += energy::direct::get_particle_energy(particles, p);
