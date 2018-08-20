@@ -235,9 +235,9 @@ int main(int argc, char *argv[])
     }
 
     //exit(1);
-    Analysis *xHist = new Analysis(0.05, Base::xL);
-    Analysis *yHist = new Analysis(0.05, Base::yL);
-    Analysis *zHist = new Analysis(0.05, Base::zL);
+    //Analysis *xHist = new Analysis(0.05, Base::xL);
+    //Analysis *yHist = new Analysis(0.05, Base::yL);
+    //Analysis *zHist = new Analysis(0.05, Base::zL);
     //Analysis *rdf = new Analysis(0.1, Base::zL);
     Base::set_lB();
     Base::set_beta();

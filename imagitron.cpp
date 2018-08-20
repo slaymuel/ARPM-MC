@@ -174,12 +174,12 @@ double energy::imagitron::get_energy(Particle **particles){
 }
 
 double energy::imagitron::wall_charge(double z){
-    double wall1 = 0;
-    double wall2 = 0;
+    double wall1 = 0.0;
+    double wall2 = 0.0;
     double a = Base::xL/2.0;
     double asq = a * a;
     //z = std::fabs(z - Base::zL);
-    z -= Base::zL / 2;
+    z -= Base::zL / 2.0;
     //printf("z: %lf\n", z);
     double zDiff = z - Base::zL / 2;
     double zsq = zDiff * zDiff;

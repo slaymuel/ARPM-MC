@@ -386,7 +386,7 @@ class MC{
         template<typename F, typename FP>
         static void run(F&& energy_function, FP&& particle_energy_function, Particle** particles, double dr, int iter, bool sample, std::string outputFile){
             double energy_temp;
-            double partRatio = (double)Particle::numOfParticles/(Particle::numOfParticles + Particle::numOfElectrons);
+            double partRatio = 1.0/300.0;//(double)Particle::numOfParticles/(Particle::numOfParticles + Particle::numOfElectrons);
             int prevAccepted = 0;
             int rotAccepted = 0;
             int rotTot = 0;

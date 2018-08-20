@@ -418,7 +418,7 @@ void Particle::create_electrons(Particle** particles, int num){
         particles[i]->com[0] = (double) rand()/RAND_MAX * Base::xL;
         particles[i]->com[1] = (double) rand()/RAND_MAX * Base::yL;
         //if(j < num / 2){
-            particles[i]->com[2] = Base::zL;//(double) rand()/RAND_MAX * (Base::zL - 2 * Base::wall) + Base::wall + Base::zL;
+            particles[i]->com[2] = Base::zL + 2.5;//(double) rand()/RAND_MAX * (Base::zL - 2 * Base::wall) + Base::wall + Base::zL;
         //}
         //else{
         //    particles[i]->com[2] = 0;//(double) rand()/RAND_MAX * (Base::zL - 2 * Base::wall) + Base::wall - Base::zL;
