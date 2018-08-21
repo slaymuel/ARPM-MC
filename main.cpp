@@ -221,9 +221,10 @@ int main(int argc, char *argv[])
     for(int i = 0; i < Particle::numOfParticles + Particle::numOfElectrons; i++){
         Particle::distances[i] = (double*) malloc((Particle::numOfParticles + Particle::numOfElectrons) * sizeof(double*));
     }
-    Particle::update_distances(particles);
+    
     //Seed
     srand(time(NULL));
+    
     if(density == 0){
         density = (double)numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(diameter, 3);
     }
@@ -231,9 +232,11 @@ int main(int argc, char *argv[])
 
     if(vm["overlap"].as<bool>()){
         printf("Removing overlaps...\n");
-        mc.equilibrate(particles);
+        //mc.equilibrate(particles);
+        Particle::place_particles(particles);
     }
 
+    Particle::update_distances(particles);
     //exit(1);
     //Analysis *xHist = new Analysis(0.05, Base::xL);
     //Analysis *yHist = new Analysis(0.05, Base::yL);
@@ -278,7 +281,7 @@ int main(int argc, char *argv[])
     fprintf(f, "");
     fclose(f);
 
-    std::string energyFunction = "electron";
+    std::string energyFunction = "ewald";
 
     if(energyFunction == "valleau"){
         //MC::run(&energy::hs::get_energy, &energy::hs::get_particle_energy, particles, dr, iter, false);

@@ -181,7 +181,7 @@ double energy::imagitron::wall_charge(double z){
     //z = std::fabs(z - Base::zL);
     z -= Base::zL / 2.0;
     //printf("z: %lf\n", z);
-    double zDiff = z - Base::zL / 2;
+    double zDiff = z - (Base::zL / 2);
     double zsq = zDiff * zDiff;
     wall1 = 8.0 * a * std::log((std::sqrt(2.0 * asq + zsq) + a) / std::sqrt(asq + zsq)) - 
                   2.0 * std::fabs(zDiff) * (std::asin((asq * asq - zsq * zsq - 2.0 * asq * zsq) / std::pow(asq + zsq, 2.0)) + PI/2.0);

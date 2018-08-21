@@ -274,11 +274,11 @@ class MC{
             particles[p]->random_move(dr);
             Particle::update_distances(particles, particles[p]);
             //If there is no overlap in new position and it's inside the box
-            if(particles[p]->hard_sphere(particles) && particles[p]->com[2] > particles[p]->d/2 + Base::wall &&
-                particles[p]->com[2] < Base::zL - Base::wall - particles[p]->d/2){
+            if(particles[p]->hard_sphere(particles)){// && particles[p]->com[2] > particles[p]->d/2 + Base::wall &&
+                //particles[p]->com[2] < Base::zL - Base::wall - particles[p]->d/2){
 
                 //Get new energy
-                //energy::ewald3D::update_reciprocal(_old, particles[p]);
+                energy::ewald3D::update_reciprocal(_old, particles[p]);
                 //energy::levin::update_f(_old, particles[p]);
                 eNew = energy_function(particles, particles[p]);
 
@@ -297,7 +297,7 @@ class MC{
                     Base::acceptedMoves++;
                 }
                 else{   //Reject move
-                    //energy::ewald3D::update_reciprocal(particles[p], _old);
+                    energy::ewald3D::update_reciprocal(particles[p], _old);
                     //energy::levin::update_f(particles[p], _old);
                     particles[p]->pos = _old->pos;
                     particles[p]->com = _old->com;
@@ -322,7 +322,7 @@ class MC{
             double acceptProp = 0.0;
             double random = ran2::get_random();
             double dE = 0.0;
-            int accepted= 0.0;
+            int accepted= 0;
 
             Particle *_old = new Particle(true);
 
@@ -386,7 +386,7 @@ class MC{
         template<typename F, typename FP>
         static void run(F&& energy_function, FP&& particle_energy_function, Particle** particles, double dr, int iter, bool sample, std::string outputFile){
             double energy_temp;
-            double partRatio = 1.0/300.0;//(double)Particle::numOfParticles/(Particle::numOfParticles + Particle::numOfElectrons);
+            double partRatio = (double)Particle::numOfParticles/(Particle::numOfParticles + Particle::numOfElectrons);
             int prevAccepted = 0;
             int rotAccepted = 0;
             int rotTot = 0;
@@ -432,21 +432,21 @@ class MC{
                 }
                 else{*/
                 
-                    random = ran2::get_random();
-                    if(random <= partRatio){
+                    //random = ran2::get_random();
+                    //if(random <= partRatio){
                         if(trans_move(particles, dr, particle_energy_function)){
                             prevAccepted++; 
                             transAccepted++;
                         }
                         transTot++;
-                    }
-                    else{
-                        if(trans_electron_move(particles, 1, particle_energy_function)){
+                    //}
+                    /*else{
+                        if(trans_electron_move(particles, 1.0, particle_energy_function)){
                             prevAccepted++;
                             elAcc++;
                         }
                         elTot++;
-                    }
+                    }*/
                 //}
                 Base::totalMoves++;
                 /*
@@ -478,10 +478,12 @@ class MC{
                         printf("Error: %.12lf\n", std::abs(energy_temp - Base::eCummulative)/std::abs(energy_temp));
                         exit(1);
                     }
-                    printf("Electrons moves: %lf\n", (double) elAcc/elTot * 100.0);
-                    printf("Trans moves: %d, %lf         Rot moves: %d, %lf       Vol moves: %d, %lf\n\n", transAccepted, (double) transAccepted/transTot * 100.0,
-                                                                                                            rotAccepted, (double)rotAccepted/rotTot * 100.0, 
-                                                                                                            volAccepted, (double) volAccepted/volTot * 100.0);
+
+                    printf("Trans moves: %d, %lf         Rot moves: %d, %lf       Vol moves: %d, %lf        El moves: %d, %lf\n\n", 
+                                                                                                            transAccepted, (double) transAccepted/transTot * 100.0,
+                                                                                                            rotAccepted,   (double) rotAccepted/rotTot * 100.0, 
+                                                                                                            volAccepted,   (double) volAccepted/volTot * 100.0,
+                                                                                                            elAcc,         (double) elAcc/elTot * 100.0);
                     
                     prevAccepted = 0;
                     if(i % 1000000 == 0){

@@ -291,24 +291,24 @@ void Particle::place_particles(Particle **particles){
     int l = 0;
     double random;
     double diameter = particles[0]->d;
-    int numOfColumns = Base::xL/diameter - 1.0;
-    int numOfRows = Base::yL/diameter - 1.0;
+    int numOfColumns = Base::xL/diameter;
+    int numOfRows = Base::yL/diameter;
     int index = 0;
-    int numOfCells = numOfRows * numOfColumns * (Base::zL/diameter - 1.0);
+    int numOfCells = numOfRows * numOfColumns * (Base::zL/diameter);
     double **grid;
     double *temp;
     temp = (double*)malloc(3 * sizeof(double));
-    grid = (double**) malloc(numOfCells*sizeof(double*));
+    grid = (double**) malloc(numOfCells * sizeof(double*));
 
     printf("Fitting %d particles in box.\n", Particle::numOfParticles);
     printf("Number of Cells: %d\n", numOfCells);
 
     //Create grid
-    for(j = 0; j < Base::zL/diameter - 1; j++){
+    for(j = 0; j < Base::zL/diameter; j++){
         for(l = 0; l < numOfRows; l++){
             for(k = 0; k < numOfColumns; k++){    
                 index = l * numOfColumns + k + j * numOfColumns * numOfRows;
-                grid[index] = (double*) malloc(3*sizeof(double));
+                grid[index] = (double*) malloc(3 * sizeof(double));
                 grid[index][0] = k * 5 + diameter/2;
                 grid[index][1] = l * 5 + diameter/2;
                 grid[index][2] = j * 5 + diameter/2;
@@ -321,7 +321,7 @@ void Particle::place_particles(Particle **particles){
     printf("Randomizing cells...\n");
     //Randomize cells
     for(i = 0; i < numOfCells; i++){
-        random = ran2::get_random() * (numOfCells - 1);
+        random = ran2::get_random() * (numOfCells);
         temp[0] = grid[i][0];
         temp[1] = grid[i][1];
         temp[2] = grid[i][2];
@@ -335,10 +335,11 @@ void Particle::place_particles(Particle **particles){
     printf("Setting coordinates...\n");
     //Set particle coordinates
     for(i = 0; i < Particle::numOfParticles; i++){
-        particles[i]->pos[0] = grid[i][0];
-        particles[i]->pos[1] = grid[i][1];
-        particles[i]->pos[2] = grid[i][2];
-        particles[i]->d = diameter;
+        particles[i]->com[0] = grid[i][0];
+        particles[i]->com[1] = grid[i][1];
+        particles[i]->com[2] = grid[i][2];
+        particles[i]->pos = particles[i]->com;
+        /*particles[i]->d = diameter;
         particles[i]->index = i;
 
         if(i % 2 == 0){
@@ -348,7 +349,7 @@ void Particle::place_particles(Particle **particles){
         else{
             particles[i]->q = 1.0;
             strcpy(particles[i]->name, "Na\0");
-        }       
+        }*/       
     }
 }
 
@@ -418,7 +419,7 @@ void Particle::create_electrons(Particle** particles, int num){
         particles[i]->com[0] = (double) rand()/RAND_MAX * Base::xL;
         particles[i]->com[1] = (double) rand()/RAND_MAX * Base::yL;
         //if(j < num / 2){
-            particles[i]->com[2] = Base::zL + 2.5;//(double) rand()/RAND_MAX * (Base::zL - 2 * Base::wall) + Base::wall + Base::zL;
+            particles[i]->com[2] = Base::zL;//(double) rand()/RAND_MAX * (Base::zL - 2 * Base::wall) + Base::wall + Base::zL;
         //}
         //else{
         //    particles[i]->com[2] = 0;//(double) rand()/RAND_MAX * (Base::zL - 2 * Base::wall) + Base::wall - Base::zL;
