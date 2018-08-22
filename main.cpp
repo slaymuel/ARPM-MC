@@ -224,16 +224,18 @@ int main(int argc, char *argv[])
     
     //Seed
     srand(time(NULL));
-    
+
     if(density == 0){
         density = (double)numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(diameter, 3);
     }
     printf("\033[34mDensity is: %lf\033[30m\n", density);
 
+    Particle::update_distances(particles);
+    
     if(vm["overlap"].as<bool>()){
         printf("Removing overlaps...\n");
-        //mc.equilibrate(particles);
-        Particle::place_particles(particles);
+        mc.equilibrate(particles);
+        //Particle::place_particles(particles);
     }
 
     Particle::update_distances(particles);

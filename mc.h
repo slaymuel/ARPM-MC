@@ -78,9 +78,9 @@ class MC{
                                                 (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume));
                 if(ran2::get_random() > prob && oldEnergy <= newEnergy){  //Reject
                     
-                    Base::xL = oldLength ;
-                    Base::yL = oldLength ;
-                    Base::zL = oldLength ;
+                    Base::xL = oldLength;
+                    Base::yL = oldLength;
+                    Base::zL = oldLength;
                     for(int i = 0; i < Particle::numOfParticles; i++){
                         particles[i]->com = particles[i]->oldCom;
                         particles[i]->pos = particles[i]->oldPos;
@@ -165,13 +165,12 @@ class MC{
             _old->q = particles[r]->q;
             _old->index = particles[r]->index;
             
-            //eOld = MC::direct.get_energy(particles);
             eOld = energy_function(particles, particles[r]);
 
             particles[r]->random_charge_rot();
             Particle::update_distances(particles, particles[r]);
             energy::ewald3D::update_reciprocal(_old, particles[r]);
-            //eNew = MC::direct.get_energy(particles);
+
             eNew = energy_function(particles, particles[r]);
             dE = eNew - eOld;
             acceptProb = exp(-1 * dE);
@@ -422,7 +421,7 @@ class MC{
                     zHist->sampleHisto(particles, 2);
                 }
                 
-                /*random = ran2::get_random();
+                random = ran2::get_random();
                 if(random <= rN && i > 1000000){
                     if(vol_move(particles, energy_function)){
                         prevAccepted++;
@@ -430,7 +429,7 @@ class MC{
                     }
                     volTot++;
                 }
-                else{*/
+                else{
                 
                     //random = ran2::get_random();
                     //if(random <= partRatio){
@@ -447,9 +446,9 @@ class MC{
                         }
                         elTot++;
                     }*/
-                //}
+                }
                 Base::totalMoves++;
-                /*
+                
                 random = ran2::get_random();
                 if(random <= 0.5){
                     if(charge_rot_move(particles, particle_energy_function)){
@@ -459,7 +458,7 @@ class MC{
                     rotTot++;
                     Base::totalMoves++;
                 }
-                */
+                
                 if(i % 100 == 0 && i > 10000 && !sample){
                     energy::valleau::update_charge_vector(particles);
                 }

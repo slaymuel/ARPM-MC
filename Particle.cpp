@@ -369,12 +369,12 @@ Particle** Particle::create_particles(int nNum, int pNum, int eNum){
 
         if(i < nNum){
             particles[i]->q = -1.0;
-            particles[i]->b = 0; //Length of charge displacement vector
+            particles[i]->b = 1.0; //Length of charge displacement vector
             strcpy(particles[i]->name, "Cl\0");
         }
         else{
             particles[i]->q = 1.0;
-            particles[i]->b = 0; //Length of charge displacement vector
+            particles[i]->b = 1.0; //Length of charge displacement vector
             strcpy(particles[i]->name, "Na\0");
         }
         
