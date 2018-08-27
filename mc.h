@@ -496,7 +496,8 @@ class MC{
                                                                                                             elAcc,         (double) elAcc/elTot * 100.0);
                     
                     prevAccepted = 0;
-                    if(Base::volumes.size() >= 1000000){
+                    //printf("size: %lu\n", Base::volumes.size());
+                    if(Base::volumes.size() >= 100){
                         FILE *f = fopen(volOut, "a");
                         fprintf(f, "");
                         if(f == NULL){
