@@ -38,12 +38,12 @@ class MC{
             //printf("Old volume %lf\n", Base::volume);
             //printf("New volume %lf\n", newVolume);
             double newLength = cbrt(newVolume);
-            double volFrac = newLength / Base::xL;
+            double lengthFrac = newLength / Base::xL;
             double oldLength = Base::xL;
 
             for(int i = 0; i < Particle::numOfParticles; i++){
                 for(int j = i + 1; j < Particle::numOfParticles; j++){
-                    if(particles[i]->com_distance(particles[j]) * volFrac < particles[i]->d/2 + particles[j]->d/2){
+                    if(particles[i]->com_distance(particles[j]) * lengthFrac < particles[i]->d/2 + particles[j]->d/2){
                         overlap = true;
                         break;
                     }
@@ -55,17 +55,19 @@ class MC{
 
             if(!overlap){
                 double oldEnergy = energy_function(particles);
+
+                Base::xL = newLength;
+                Base::yL = newLength;
+                Base::zL = newLength;
                 for(int i = 0; i < Particle::numOfParticles; i++){
                     particles[i]->oldCom = particles[i]->com;
                     particles[i]->oldPos = particles[i]->pos;
 
-                    particles[i]->com *= newLength / Base::xL;
+                    particles[i]->com *= newLength / oldLength;
                     particles[i]->pos = particles[i]->com + particles[i]->chargeDisp;
                     particles[i]->pbc_pos();
                 }
-                Base::xL = newLength;
-                Base::yL = newLength;
-                Base::zL = newLength;
+
                 Particle::update_distances(particles);
                 //energy::ewald3D::set_alpha();
                 energy::ewald3D::reset();
@@ -77,7 +79,7 @@ class MC{
                 //                                                    (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume));
                 //double prob = exp(-(newEnergy - oldEnergy) - Base::beta * (100000 * 1e-30 * (newVolume - Base::volume) - 
                 //                                (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume)/Base::beta));
-                double prob = exp(-(newEnergy - oldEnergy) - 0.0000243 * (newVolume - Base::volume) + //  0.0000243     0.005      0.00383374
+                double prob = exp(-(newEnergy - oldEnergy) - 0.00243 * (newVolume - Base::volume) + //  0.0000243     0.005      0.00383374
                                                 (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume));
                 if(ran2::get_random() > prob && oldEnergy <= newEnergy){  //Reject
                     
@@ -475,7 +477,9 @@ class MC{
                 }
 
                 if(i % outFreq == 0){
+                    printf("volume: %lf\n", Base::volume);
                     Base::volumes.push_back(Base::volume);
+                    printf("volume: %lf\n", Base::volume);
                     energy_temp = energy_function(particles);
                     //Particle::write_coordinates(outName , particles);
                     printf("Iteration: %d\n", i);
