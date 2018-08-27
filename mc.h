@@ -32,8 +32,11 @@ class MC{
             bool overlap = false;
             double vMax = 0.0005;
             double lnNewVolume = std::log(Base::volume) + (ran2::get_random() - 0.5) * vMax;
+
             //double newVolume = Base::volume + (ran2::get_random() - 0.5) * vMax;
             double newVolume = std::exp(lnNewVolume);
+            //printf("Old volume %lf\n", Base::volume);
+            //printf("New volume %lf\n", newVolume);
             double newLength = cbrt(newVolume);
             double volFrac = newLength / Base::xL;
             double oldLength = Base::xL;
@@ -422,20 +425,29 @@ class MC{
                 }
                 
                 random = ran2::get_random();
-                if(random <= rN && i > 1000000){
+                if(random <= rN){
                     if(vol_move(particles, energy_function)){
                         prevAccepted++;
                         volAccepted++;
                     }
                     volTot++;
                 }
-                else{
+                else if(random < 0.5 + rN){
                 
                     //random = ran2::get_random();
                     //if(random <= partRatio){
-                        if(trans_move(particles, dr, particle_energy_function)){
-                            prevAccepted++; 
-                            transAccepted++;
+                        random = ran2::get_random();
+                        if(random >= 0.1){
+                            if(trans_move(particles, dr, particle_energy_function)){
+                                prevAccepted++; 
+                                transAccepted++;
+                            }
+                        }
+                        else{
+                            if(trans_move(particles, Base::zL, particle_energy_function)){
+                                prevAccepted++; 
+                                transAccepted++;
+                            }
                         }
                         transTot++;
                     //}
@@ -447,17 +459,16 @@ class MC{
                         elTot++;
                     }*/
                 }
-                Base::totalMoves++;
-                
-                random = ran2::get_random();
-                if(random <= 0.5){
+                else{
                     if(charge_rot_move(particles, particle_energy_function)){
                         prevAccepted++;
                         rotAccepted++;
                     }
                     rotTot++;
-                    Base::totalMoves++;
                 }
+                Base::totalMoves++;
+                
+
                 
                 if(i % 100 == 0 && i > 10000 && !sample){
                     energy::valleau::update_charge_vector(particles);
@@ -485,7 +496,7 @@ class MC{
                                                                                                             elAcc,         (double) elAcc/elTot * 100.0);
                     
                     prevAccepted = 0;
-                    if(i % 1000000 == 0){
+                    if(Base::volumes.size() >= 1000000){
                         FILE *f = fopen(volOut, "a");
                         fprintf(f, "");
                         if(f == NULL){

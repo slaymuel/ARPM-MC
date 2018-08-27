@@ -190,8 +190,8 @@ int main(int argc, char *argv[])
         Base::wall = vm["wall"].as<double>();
         numOfParticles = density/pow(diameter, 3) * (Base::xL * Base::yL * (Base::zL - 2 * Base::wall));
         if(numOfParticles % 2 != 0){
-            printf("Please choose an even number of particles\n");
-            exit(1);
+            printf("Uneven number of particles, adding one....\n");
+            numOfParticles += 1;
         }
         density = (double)numOfParticles/(Base::xL * Base::yL * (Base::zL - 2 * Base::wall)) * pow(diameter, 3);
         //numOfParticles = vm["density"].as<double>()/pow(diameter, 3)*(Base::xL * Base::yL * Base::zL);
@@ -231,7 +231,7 @@ int main(int argc, char *argv[])
     printf("\033[34mDensity is: %lf\033[30m\n", density);
 
     Particle::update_distances(particles);
-    
+
     if(vm["overlap"].as<bool>()){
         printf("Removing overlaps...\n");
         mc.equilibrate(particles);

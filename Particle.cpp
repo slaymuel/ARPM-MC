@@ -132,7 +132,7 @@ void Particle::random_move(double stepSize){
 }
 
 void Particle::random_charge_rot(){
-    double da = 0.8;
+    double da = 0.4;
     double random = ran2::get_random();
     if(random >= 0.1){
         this->chargeDisp[0] += (ran2::get_random() * 2.0 - 1.0) * da;
