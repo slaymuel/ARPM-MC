@@ -104,17 +104,10 @@ void Particle::pbc_xy(Eigen::Vector3d& x){
     }
 }
 
-// void Particle::randomMove(){
-//     this->pos[0] += (double) rand()/RAND_MAX*0.5 - 0.25;
-//     this->pos[1] += (double) rand()/RAND_MAX*0.5 - 0.25;
-//     this->pos[2] += (double) rand()/RAND_MAX*0.5 - 0.25;
-//     this->pbc();
-// }
-
 void Particle::random_move(double stepSize){
-    this->com[0] += (ran2::get_random()*2.0 - 1.0) * stepSize;
-    this->com[1] += (ran2::get_random()*2.0 - 1.0) * stepSize;
-    this->com[2] += (ran2::get_random()*2.0 - 1.0) * stepSize;
+    this->com[0] += (ran2::get_random() * 2.0 - 1.0) * stepSize;
+    this->com[1] += (ran2::get_random() * 2.0 - 1.0) * stepSize;
+    this->com[2] += (ran2::get_random() * 2.0 - 1.0) * stepSize;
 
     // this->pos[0] = this->com[0] + this->chargeDisp[0];
     // this->pos[1] = this->com[1] + this->chargeDisp[1];
@@ -369,12 +362,12 @@ Particle** Particle::create_particles(int nNum, int pNum, int eNum){
 
         if(i < nNum){
             particles[i]->q = -1.0;
-            particles[i]->b = 1.0; //Length of charge displacement vector
+            particles[i]->b = 0.0; //Length of charge displacement vector
             strcpy(particles[i]->name, "Cl\0");
         }
         else{
             particles[i]->q = 1.0;
-            particles[i]->b = 1.0; //Length of charge displacement vector
+            particles[i]->b = 0.0; //Length of charge displacement vector
             strcpy(particles[i]->name, "Na\0");
         }
         
@@ -578,17 +571,24 @@ Particle** Particle::read_coordinates_gro(std::string name){
             }
             particles[j] = new Particle();
 
+            particles[j]->d = 5;
+            particles[j]->b = 0;
+
+            particles[j]->index = j;
             particles[j]->com[0] = x * 10;
             particles[j]->com[1] = y * 10;
             particles[j]->com[2] = z * 10;    
 
-            particles[j]->pos[0] = x * 10;
-            particles[j]->pos[1] = y * 10;
-            particles[j]->pos[2] = z * 10;  
+            //Get random charge displacement vector
+            particles[j]->chargeDisp[0] = (double) rand()/RAND_MAX * 2 - 1;
+            particles[j]->chargeDisp[1] = (double) rand()/RAND_MAX * 2 - 1;
+            particles[j]->chargeDisp[2] = (double) rand()/RAND_MAX * 2 - 1;
 
-            particles[j]->d = 5;
-            particles[j]->b = 0;
-            particles[j]->index = j;
+            particles[j]->chargeDisp = particles[j]->b * particles[j]->chargeDisp.normalized();
+            //Calculate position of the charge
+            particles[j]->pos = particles[j]->com + particles[j]->chargeDisp;
+
+
 
             if(atom == "Cl"){
                 strcpy(particles[j]->name, "Cl\0");
@@ -605,6 +605,9 @@ Particle** Particle::read_coordinates_gro(std::string name){
             j++;
         }
         i++;
+    }
+    if(i == 0){
+        printf("Could not open file: %s\n", name.c_str());
     }
     if(c != j){
         printf("Did not read all particles from file, is the second line really the number of particles?\n");

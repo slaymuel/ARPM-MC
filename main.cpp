@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
         printf("%d particles will be created\n", numOfParticles);
         particles = Particle::create_particles(numOfParticles/2, numOfParticles/2, Particle::numOfElectrons);
         //mc.equilibrate(particles);
-        density = (double)numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(diameter, 3);
+        density = (double)numOfParticles/(Base::xL * Base::yL * (Base::zL - 2 * Base::wall)) * pow(diameter, 3);
     }
     if(vm.count("T")){
         Base::T = vm["T"].as<double>();
@@ -226,7 +226,7 @@ int main(int argc, char *argv[])
     srand(time(NULL));
 
     if(density == 0){
-        density = (double)numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(diameter, 3);
+        density = (double)numOfParticles/(Base::xL * Base::yL * (Base::zL - 2 * Base::wall)) * pow(diameter, 3);
     }
     printf("\033[34mDensity is: %lf\033[30m\n", density);
 
@@ -283,15 +283,15 @@ int main(int argc, char *argv[])
     fprintf(f, "");
     fclose(f);
 
-    std::string energyFunction = "ewald";
+    std::string energyFunction = "levin";
 
     if(energyFunction == "valleau"){
         //MC::run(&energy::hs::get_energy, &energy::hs::get_particle_energy, particles, dr, iter, false);
 
-        MC::run(&energy::direct::get_energy, &energy::direct::get_particle_energy, particles, 5, 100000, false, outputFile);
+        MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, 0.1, 1000000, false, outputFile);
         energy::valleau::update_potential();
         
-        MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, 5, 100000, false, outputFile);
+        MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, dr, 1000000, false, outputFile);
         energy::valleau::update_potential();
         
         //MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, 15, 1000000, false);
@@ -312,12 +312,6 @@ int main(int argc, char *argv[])
     }
 
     if(energyFunction == "levin"){
-        //MC::run(&energy::direct::get_energy, &energy::direct::get_particle_energy, particles, 5, 100000, false, outputFile);
-        //energy::valleau::update_potential();
-        
-        //MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, 5, 100000, false, outputFile);
-        //energy::valleau::update_potential();
-
         MC::run(&energy::levin::get_energy, &energy::levin::get_particle_energy, particles, dr, iter, true, outputFile);
     }
 
