@@ -172,4 +172,3 @@ double energy::direct::get_replicates(Particle **particles, Particle *p){
     //printf("Number of replicas: %d\n", numOfRep - 1);
     return energy;
 }
-
