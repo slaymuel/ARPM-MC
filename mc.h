@@ -282,8 +282,8 @@ class MC{
                 particles[p]->com[2] < Base::zL - Base::wall - particles[p]->d/2){
 
                 //Get new energy
-                energy::ewald3D::update_reciprocal(_old, particles[p]);
-                energy::levin::update_f(_old, particles[p]);
+                //energy::ewald3D::update_reciprocal(_old, particles[p]);
+                //energy::levin::update_f(_old, particles[p]);
                 eNew = energy_function(particles, particles[p]);
 
                 //Accept move?
@@ -301,8 +301,8 @@ class MC{
                     Base::acceptedMoves++;
                 }
                 else{   //Reject move
-                    energy::ewald3D::update_reciprocal(particles[p], _old);
-                    energy::levin::update_f(particles[p], _old);
+                    //energy::ewald3D::update_reciprocal(particles[p], _old);
+                    //energy::levin::update_f(particles[p], _old);
                     particles[p]->pos = _old->pos;
                     particles[p]->com = _old->com;
                     Particle::update_distances(particles, particles[p]);

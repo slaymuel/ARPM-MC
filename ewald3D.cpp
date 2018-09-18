@@ -66,7 +66,7 @@ void energy::ewald3D::initialize(Particle **p){
     kNumMax = 1000000;
     kNum = 0;
     resFac = (double*) malloc(kNumMax * sizeof(double));
-    int kMax = 8;//8/Base::xL;
+    int kMax = 4;//8/Base::xL;
     //get k-vectors
     double factor = 1;
     std::vector<double> vec(3);
