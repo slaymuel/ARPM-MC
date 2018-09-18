@@ -118,7 +118,7 @@ void energy::valleau::update_potential(){
 
 
 double energy::valleau::get_images(Particle **particles){
-    int numOfReflections = 2;
+    int numOfReflections = 14;
     double energy = 0;
     double distance = 0;
     Eigen::Vector3d disp;
@@ -221,7 +221,7 @@ double energy::valleau::get_images(Particle **particles){
 
 
 double energy::valleau::get_particle_images(Particle **particles, Particle *p){
-    int numOfReflections = 2;
+    int numOfReflections = 14;
     double energy = 0;
     double distance = 0;
     Eigen::Vector3d disp;
