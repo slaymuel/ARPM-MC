@@ -44,8 +44,8 @@ double energy::direct::get_replicates(Particle **particles){
     double energy = 0;
     double dist = 0;
     int rep = 0;
-    int mx = rep;
-    int my = rep;
+    int mx = 2;
+    int my = 2;
     int mz = rep;
     int count = 0;
 
@@ -138,8 +138,8 @@ double energy::direct::get_replicates(Particle **particles, Particle *p){
     //Eigen::Vector3d disp;
     int rep = 0;
     int mx = rep;
-    int my = rep;
-    int mz = rep;
+    int my = 2;
+    int mz = 2;
 
     //printf("Calculating energy for %d replicas.\n", (2 * rep+1) * (2 * rep+1) * (2 * rep+1) - 1);
     //#pragma omp parallel for if(rep > 10) reduction(+:energy) private(dist)

@@ -17,7 +17,7 @@ double energy::levin::uGamma;
 void energy::levin::initialize(Particle **particles){
     kNumMax = 1000000;
     kNum = 0;
-    kMax = 24;
+    kMax = 12;
     //(eIn - eOut)/(eIn + eOut)
     gamma = -1;//0.95;
     kVectors.resize((2 * kMax + 1) * (2 * kMax + 1) - 1, 2);
@@ -31,7 +31,7 @@ void energy::levin::initialize(Particle **particles){
             if(x != 0 && y != 0){
                 tempVec << x, y;
                 kVectors.row(kNum) = tempVec;
-                kNorms(kNum) = 2.0 * PI * sqrt(x * x/(Base::xL * Base::xL) + y * y/(Base::yL * Base::yL));
+                kNorms(kNum) = 2.0 * PI * sqrt((double)(x * x)/(Base::xL * Base::xL) + (double)(y * y)/(Base::yL * Base::yL));
                 kNum++;
             }
         }
@@ -127,11 +127,11 @@ double energy::levin::get_polarization(){
 
 
 double energy::levin::get_energy(Particle **particles){
-    double eDir = energy::ewald3D::get_energy(particles);
+    double eDir = energy::direct::get_energy(particles);
     //printf("u_gamma: %.15lf\n", u_gamma(particles) * Base::lB);
     //printf("normalized pol: %lf\n", PI/(Base::xL * Base::xL) * get_polarization() * Base::lB);
 
-    double ePol = (u_gamma(particles) + PI/(Base::xL * Base::xL) * get_polarization())* Base::lB;
+    double ePol = (u_gamma(particles) + PI/(Base::xL * Base::xL) * get_polarization()) * Base::lB;
 
     //printf("direct: %lf    polarization: %lf\n", eDir, ePol);
     //printf("Levin direct: %lf    polarization: %lf\n", eDir, ePol);
@@ -140,7 +140,7 @@ double energy::levin::get_energy(Particle **particles){
 
 
 double energy::levin::get_particle_energy(Particle **particles, Particle *p){
-    double eDir = energy::ewald3D::get_particle_energy(particles, p);
+    double eDir = energy::direct::get_particle_energy(particles, p);
     //printf("u_gamma: %lf    polarization: %lf\n", u_gamma(particles), get_polarization());
 
     double ePol = (u_gamma(particles) + PI/(Base::xL * Base::xL) * get_polarization()) * Base::lB;
