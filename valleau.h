@@ -5,6 +5,7 @@
 #include "particle.h"
 #include "direct.h"
 #include "analysis.h"
+#include "ewald3D.h"
 
 namespace energy{ namespace valleau{
     extern Eigen::VectorXd chargeVector;

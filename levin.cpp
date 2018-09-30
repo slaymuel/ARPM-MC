@@ -17,7 +17,7 @@ double energy::levin::uGamma;
 void energy::levin::initialize(Particle **particles){
     kNumMax = 1000000;
     kNum = 0;
-    kMax = 8;
+    kMax = 24;
     //(eIn - eOut)/(eIn + eOut)
     gamma = -1;//0.95;
     kVectors.resize((2 * kMax + 1) * (2 * kMax + 1) - 1, 2);
@@ -112,10 +112,11 @@ double energy::levin::get_polarization(){
     
     for(int i = 0; i < kNum; i++){
         //printf("eFactor: %lf    f1: %lf     f2: %lf     f3: %lf     f4: %lf     kNorm: %lf\n", eFactors(i), f1(i), f2(i), f3(i), f4(i), kNorms(i));
+        
         ePol += -1/(kNorms(i) * (1 - eFactors(i))) * 
                 (f1(i) * f1(i) + f2(i) * f2(i) + eFactors(i) * (f3(i) * f3(i) + f4(i) * f4(i)) - 
                 2 * eFactors(i) * (f3(i) * f1(i) + f2(i) * f4(i)));
-
+                
         //printf("%.15lf     %.15lf\n", gamma/(kNorms(i) * (1 - gamma * gamma * eFactors(i))) * (f1(i) * f1(i) + f2(i) * f2(i) + eFactors(i) * (f3(i) * f3(i) + f4(i) * f4(i))), 
         //        gamma/(kNorms(i) * (1 - gamma * gamma * eFactors(i))) * 2 * gamma * eFactors(i) * (f3(i) * f1(i) + f2(i) * f4(i)));
         //printf("ePol %lf\n", ePol);
@@ -129,7 +130,9 @@ double energy::levin::get_energy(Particle **particles){
     double eDir = energy::ewald3D::get_energy(particles);
     //printf("u_gamma: %.15lf\n", u_gamma(particles) * Base::lB);
     //printf("normalized pol: %lf\n", PI/(Base::xL * Base::xL) * get_polarization() * Base::lB);
+
     double ePol = (u_gamma(particles) + PI/(Base::xL * Base::xL) * get_polarization())* Base::lB;
+
     //printf("direct: %lf    polarization: %lf\n", eDir, ePol);
     //printf("Levin direct: %lf    polarization: %lf\n", eDir, ePol);
     return eDir + ePol;
@@ -139,7 +142,9 @@ double energy::levin::get_energy(Particle **particles){
 double energy::levin::get_particle_energy(Particle **particles, Particle *p){
     double eDir = energy::ewald3D::get_particle_energy(particles, p);
     //printf("u_gamma: %lf    polarization: %lf\n", u_gamma(particles), get_polarization());
+
     double ePol = (u_gamma(particles) + PI/(Base::xL * Base::xL) * get_polarization()) * Base::lB;
+    
     //printf("direct: %lf    polarization: %lf\n", eDir, ePol);
     return eDir + ePol;
 }

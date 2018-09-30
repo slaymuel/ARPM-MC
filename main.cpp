@@ -15,6 +15,7 @@
 #include "ewald3D.h"
 #include "hard_sphere.h"
 #include "imagitron.h"
+#include "img_rep.h"
 //Initializers
 //Ewald3D MC::ewald3D;
 Ewald2D MC::ewald2D;
@@ -114,7 +115,8 @@ int main(int argc, char *argv[])
         ("dr", po::value<double>(), "Size of MC step")
         ("2d", po::bool_switch()->default_value(false), "System only extends in the x and y dimenstions")
         ("overlap", po::bool_switch()->default_value(false), "Remove Overlaps")
-        ("electrons", po::value<int>()->default_value(0), "Number of electrons");
+        ("electrons", po::value<int>()->default_value(0), "Number of electrons")
+        ("imgrep", po::bool_switch()->default_value(false), "Image replicates in 3DEwald");
     
     po::variables_map vm;        
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -170,7 +172,19 @@ int main(int argc, char *argv[])
     if(vm.count("electrons")){
         Particle::numOfElectrons = vm["electrons"].as<int>();
     }
-    if(vm.count("np")){
+    if(vm.count("np") && vm["imgrep"].as<bool>()){
+        numOfParticles = vm["np"].as<int>() * 5;
+        if(numOfParticles % 2 != 0){
+            printf("\033[31mIgnoring bad choice of number of particles.\033[30m\n");
+            numOfParticles += 5;
+        }
+        printf("%d particles will be created\n", numOfParticles);
+        particles = Particle::create_particles(numOfParticles/10, numOfParticles/10, Particle::numOfElectrons);
+        energy::imgrep::set_positions(particles);
+        //mc.equilibrate(particles);
+        density = (double)numOfParticles/(Base::xL * Base::yL * (Base::zL - 2 * Base::wall)) * pow(diameter, 3);
+    }
+    else if(vm.count("np")){
         numOfParticles = vm["np"].as<int>();
         if(numOfParticles % 2 != 0){
             printf("\033[31mIgnoring bad choice of number of particles.\033[30m\n");
@@ -216,6 +230,8 @@ int main(int argc, char *argv[])
         particles = Particle::create_particles(vm["nnum"].as<int>(), vm["pnum"].as<int>(), Particle::numOfElectrons);
         density = (double)Particle::numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(diameter, 3);
     }
+    printf("\033[34mBox dimensions are x: %lf y: %lf z: %lf\033[30m\n", Base::xL, Base::yL, Base::zL);
+    printf("num of particles including images: %d\n", Particle::numOfParticles);
 
     Particle::distances = (double**) malloc((Particle::numOfParticles + Particle::numOfElectrons) * sizeof(double*));
     for(int i = 0; i < Particle::numOfParticles + Particle::numOfElectrons; i++){
@@ -237,6 +253,12 @@ int main(int argc, char *argv[])
         mc.equilibrate(particles);
         //Particle::place_particles(particles);
     }
+
+    char name[] = "output_equilibrate_ewald.gro";
+    char name_charges[] = "output_equilibrate_charges_ewald.gro";
+
+    Particle::write_coordinates(name, particles);
+    Particle::write_charge_coordinates(name_charges, particles);
 
     Particle::update_distances(particles);
     //exit(1);
@@ -264,12 +286,7 @@ int main(int argc, char *argv[])
     //     printf("System contains overlaps!\n");
     //     exit(0);
     // }
-    printf("\033[34mBox dimensions are x: %lf y: %lf z: %lf\033[30m\n", Base::xL, Base::yL, Base::zL);
-    char name[] = "output_equilibrate_ewald.gro";
-    char name_charges[] = "output_equilibrate_charges_ewald.gro";
 
-    Particle::write_coordinates(name, particles);
-    Particle::write_charge_coordinates(name_charges, particles);
     //Update cumulative energy
     int energyOut = 0;
 

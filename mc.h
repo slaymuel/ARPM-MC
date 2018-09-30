@@ -8,6 +8,7 @@
 #include "ewald2D.h"
 #include "analysis.h"
 #include "valleau.h"
+#include "img_rep.h"
 //#include "direct.h"
 #include "levin.h"
 class MC{
@@ -276,13 +277,15 @@ class MC{
 
             //Generate new trial coordinates
             particles[p]->random_move(dr);
+            //energy::imgrep::update_position(particles, particles[p]);
             Particle::update_distances(particles, particles[p]);
             //If there is no overlap in new position and it's inside the box
             if(particles[p]->hard_sphere(particles) && particles[p]->com[2] > particles[p]->d/2 + Base::wall &&
                 particles[p]->com[2] < Base::zL - Base::wall - particles[p]->d/2){
 
+                
                 //Get new energy
-                //energy::ewald3D::update_reciprocal(_old, particles[p]);
+                energy::ewald3D::update_reciprocal(_old, particles[p]);
                 //energy::levin::update_f(_old, particles[p]);
                 eNew = energy_function(particles, particles[p]);
 
@@ -301,7 +304,8 @@ class MC{
                     Base::acceptedMoves++;
                 }
                 else{   //Reject move
-                    //energy::ewald3D::update_reciprocal(particles[p], _old);
+                    //energy::imgrep::update_position(particles, _old);
+                    energy::ewald3D::update_reciprocal(particles[p], _old);
                     //energy::levin::update_f(particles[p], _old);
                     particles[p]->pos = _old->pos;
                     particles[p]->com = _old->com;
@@ -312,6 +316,7 @@ class MC{
             else{   //Reject move
                 particles[p]->pos = _old->pos;
                 particles[p]->com = _old->com;
+                //energy::imgrep::update_position(particles, particles[p]);
                 Particle::update_distances(particles, particles[p]);
             }
 
@@ -407,9 +412,9 @@ class MC{
             char histOut[40];
             strcpy(histOut, outputFile.c_str());
 
-            Analysis *xHist = new Analysis(0.1, Base::xL);
-            Analysis *yHist = new Analysis(0.1, Base::yL);
-            Analysis *zHist = new Analysis(0.1, Base::zL);
+            Analysis *xHist = new Analysis(0.05, Base::xL);
+            Analysis *yHist = new Analysis(0.05, Base::yL);
+            Analysis *zHist = new Analysis(0.05, Base::zL);
 
             strcat(volOut, outputFile.c_str());
 

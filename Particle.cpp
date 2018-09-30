@@ -391,7 +391,7 @@ Particle** Particle::create_particles(int nNum, int pNum, int eNum){
             exit(1);
         }
     }
-    printf("\033[34mCreated %d particles.\033[30m\n", Particle::numOfParticles);
+    printf("\033[34mCreated %d particles.\033[30m\n", num);
     create_electrons(particles, eNum);
 
     return particles;
@@ -846,8 +846,10 @@ void Particle::update_distances(Particle **particles){
     if(Base::wall > 0 || Base::d2){
         printf("\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!WARNING ONLY USING PBC IN TWO DIMENSIONS!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n");
         for(int i = 0; i < Particle::numOfParticles + Particle::numOfElectrons; i++){
+            //printf("i = %d\n", i);
             k = i + 1;
             while(k < Particle::numOfParticles + Particle::numOfElectrons){
+                //printf("k = %d\n", k);
                 Particle::distances[i][k] = particles[i]->distance_xy(particles[k]);
                 k++;
             }
