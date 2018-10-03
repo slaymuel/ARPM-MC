@@ -358,7 +358,7 @@ Particle** Particle::create_particles(int nNum, int pNum, int eNum){
     for(i = 0; i < num; i++){
         particles[i] = new Particle();
         particles[i]->index = i;
-        particles[i]->d = 5;    //Diameter of particles
+        particles[i]->d = 5.0;    //Diameter of particles
 
         if(i < nNum){
             particles[i]->q = -1.0;
@@ -367,7 +367,7 @@ Particle** Particle::create_particles(int nNum, int pNum, int eNum){
         }
         else{
             particles[i]->q = 1.0;
-            particles[i]->b = 0.0; //Length of charge displacement vector
+            particles[i]->b = 2.0; //Length of charge displacement vector
             strcpy(particles[i]->name, "Na\0");
         }
         

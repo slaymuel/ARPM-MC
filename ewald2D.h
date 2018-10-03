@@ -6,14 +6,18 @@
 #include <vector>
 #include <complex>
 
-class Ewald2D{
-    public:
-        Ewald2D();
+namespace energy{ namespace ewald2D{
+
+        extern std::vector< std::vector<double> > kVec;
+        extern double *kNorm;
+        extern int kNum;
+        extern double alpha;
+
         double get_energy(Particle **particles);
+        double get_particle_energy(Particle **particles, Particle *p);
         void initialize();
         void set_alpha();
 
-    private:
         template<typename T>
         T erfc_x( T x );
 
@@ -28,10 +32,7 @@ class Ewald2D{
         double get_reciprocal(Particle *p1, Particle *p2);
         double get_real(Particle *p1, Particle *p2);
         double dipole_correction(Particle *p);
-        std::vector< std::vector<double> > kVec;
-        double *kNorm;
-        int kNum;
-        double alpha;
-};
+
+} }
 
 #endif

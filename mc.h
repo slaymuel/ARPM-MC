@@ -22,7 +22,6 @@ class MC{
         /*template<typename F>
         static void run(F&& energy_function, Particle** particles, int iter);*/
         //static Ewald3D ewald3D;
-        static Ewald2D ewald2D;
         //static Direct direct;
 
 
@@ -267,25 +266,37 @@ class MC{
             Particle *_old = new Particle(true);
 
             int p =  random * Particle::numOfParticles;
-
+            //#pragma omp parallel
+            //{
             //Calculate old energy
-            eOld = energy_function(particles, particles[p]);
-            _old->pos = particles[p]->pos;
-            _old->com = particles[p]->com;
-            _old->q = particles[p]->q;
-            _old->index = particles[p]->index;
+            //    #pragma omp single
+            //    {
+            //        #pragma omp task default(shared)
+                        eOld = energy_function(particles, particles[p]);
+                    _old->pos = particles[p]->pos;
+                    _old->com = particles[p]->com;
+                    _old->q = particles[p]->q;
+                    _old->index = particles[p]->index;
 
-            //Generate new trial coordinates
-            particles[p]->random_move(dr);
-            //energy::imgrep::update_position(particles, particles[p]);
-            Particle::update_distances(particles, particles[p]);
+                    //Generate new trial coordinates
+                    particles[p]->random_move(dr);
+                    //energy::imgrep::update_position(particles, particles[p]);
+                    Particle::update_distances(particles, particles[p]);
+            //        #pragma omp task default(shared)
+            //        {
+            //            energy::ewald3D::update_reciprocal(_old, particles[p]);
+                        //energy::levin::update_f(_old, particles[p]);
+            //            eNew = energy_function(particles, particles[p]);
+            //        }
+            //    }
+            //}
             //If there is no overlap in new position and it's inside the box
             if(particles[p]->hard_sphere(particles) && particles[p]->com[2] > particles[p]->d/2 + Base::wall &&
                 particles[p]->com[2] < Base::zL - Base::wall - particles[p]->d/2){
 
                 
                 //Get new energy
-                energy::ewald3D::update_reciprocal(_old, particles[p]);
+                //energy::ewald3D::update_reciprocal(_old, particles[p]);
                 //energy::levin::update_f(_old, particles[p]);
                 eNew = energy_function(particles, particles[p]);
 
@@ -305,7 +316,7 @@ class MC{
                 }
                 else{   //Reject move
                     //energy::imgrep::update_position(particles, _old);
-                    energy::ewald3D::update_reciprocal(particles[p], _old);
+                    //energy::ewald3D::update_reciprocal(particles[p], _old);
                     //energy::levin::update_f(particles[p], _old);
                     particles[p]->pos = _old->pos;
                     particles[p]->com = _old->com;
@@ -406,6 +417,7 @@ class MC{
             int elAcc = 0;
             int elTot = 0;
             int outFreq = 10000;
+            int k = 0;
             double random = 0;
             double rN = 1.0/Particle::numOfParticles;
             char volOut[40] = "volumes_\0";
@@ -441,8 +453,9 @@ class MC{
                 }
                 else if(random < 0.5 + rN){
                 */
-                    //random = ran2::get_random();
+                    random = ran2::get_random();
                     //if(random <= partRatio){
+                    if(random <= 0.5){
                         //random = ran2::get_random();
                         //if(random >= 0.1){
                             if(trans_move(particles, dr, particle_energy_function)){
@@ -465,14 +478,14 @@ class MC{
                         }
                         elTot++;
                     }*/
-                /*}
+                }
                 else{
                     if(charge_rot_move(particles, particle_energy_function)){
                         prevAccepted++;
                         rotAccepted++;
                     }
                     rotTot++;
-                }*/
+                }
                 Base::totalMoves++;
                 
 
@@ -482,7 +495,9 @@ class MC{
                 }
 
                 if(i % outFreq == 0){
-                    Base::volumes.push_back(Base::volume);
+                    //Base::volumes.push_back(Base::volume);
+                    Base::volumes[k] = Base::volume;
+                    k++;
                     energy_temp = energy_function(particles);
                     //Particle::write_coordinates(outName , particles);
                     printf("Iteration: %d\n", i);
@@ -490,7 +505,7 @@ class MC{
                     printf("Energy: %lf\n", energy_temp);
                     printf("Acceptance ratio: %lf\n", (double)Base::acceptedMoves/Base::totalMoves);
                     printf("Acceptance ratio for the last %i steps: %lf\n", outFreq, (double)prevAccepted/outFreq);
-                    if(std::abs(energy_temp - Base::eCummulative)/std::abs(energy_temp) > std::pow(10, -9)){
+                    if(std::abs(energy_temp - Base::eCummulative)/std::abs(energy_temp) > std::pow(10, -10)){
                         printf("Error is too large!\n");
                         printf("Error: %.12lf\n", std::abs(energy_temp - Base::eCummulative)/std::abs(energy_temp));
                         exit(1);
@@ -504,18 +519,19 @@ class MC{
                     
                     prevAccepted = 0;
                     //printf("size: %lu\n", Base::volumes.size());
-                    if(Base::volumes.size() >= 100){
+                    if(k == 100){
                         FILE *f = fopen(volOut, "a");
                         fprintf(f, "");
                         if(f == NULL){
                             printf("Can't open file!\n");
                             exit(1);
                         }
-                        for(int j = 0; j < Base::volumes.size(); j++){
+                        for(int j = 0; j < k; j++){
                             fprintf(f, "%d      %lf\n",(i / outFreq) + j, Base::volumes[j]);
                         }
                         fclose(f);
-                        Base::volumes.clear();
+                        k = 0;
+                        //Base::volumes.clear();
                     }
                 }
             }

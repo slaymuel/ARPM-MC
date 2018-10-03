@@ -13,12 +13,13 @@
 #include "direct.h"
 #include "valleau.h"
 #include "ewald3D.h"
+#include "ewald2D.h"
 #include "hard_sphere.h"
 #include "imagitron.h"
 #include "img_rep.h"
 //Initializers
 //Ewald3D MC::ewald3D;
-Ewald2D MC::ewald2D;
+
 //Direct MC::direct;
 //Levin MC::levin;
 
@@ -36,7 +37,7 @@ double Base::eCummulative = 0;
 double Base::wall = 0;
 int Base::acceptedMoves = 0;
 int Base::totalMoves = 0;
-std::vector<double> Base::volumes;
+std::vector<double> Base::volumes(100);
 namespace po = boost::program_options;
 
 
@@ -271,10 +272,8 @@ int main(int argc, char *argv[])
     Base::volume = Base::xL * Base::yL * Base::zL;
     Base::volumes.push_back(Base::volume);
 
-    //MC::ewald3D.set_alpha();
-    //MC::ewald3D.initialize(particles);
-    MC::ewald2D.set_alpha();
-    MC::ewald2D.initialize();
+    energy::ewald2D::set_alpha();
+    energy::ewald2D::initialize();
     energy::ewald3D::set_alpha();
     energy::ewald3D::initialize(particles);
 
@@ -321,6 +320,10 @@ int main(int argc, char *argv[])
 
     if(energyFunction == "ewald"){
         MC::run(&energy::ewald3D::get_energy, &energy::ewald3D::get_particle_energy, particles, dr, iter, true, outputFile);
+    }
+
+    if(energyFunction == "ewald2d"){
+        MC::run(&energy::ewald2D::get_energy, &energy::ewald2D::get_particle_energy, particles, dr, iter, true, outputFile);
     }
 
     if(energyFunction == "test"){
