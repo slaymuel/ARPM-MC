@@ -296,7 +296,7 @@ class MC{
 
                 
                 //Get new energy
-                //energy::ewald3D::update_reciprocal(_old, particles[p]);
+                energy::ewald3D::update_reciprocal(_old, particles[p]);
                 //energy::levin::update_f(_old, particles[p]);
                 eNew = energy_function(particles, particles[p]);
 
@@ -316,7 +316,7 @@ class MC{
                 }
                 else{   //Reject move
                     //energy::imgrep::update_position(particles, _old);
-                    //energy::ewald3D::update_reciprocal(particles[p], _old);
+                    energy::ewald3D::update_reciprocal(particles[p], _old);
                     //energy::levin::update_f(particles[p], _old);
                     particles[p]->pos = _old->pos;
                     particles[p]->com = _old->com;
