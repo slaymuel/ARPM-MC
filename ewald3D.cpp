@@ -197,8 +197,8 @@ double energy::ewald3D::get_energy(Particle **particles){
         //printf("self term: %lf\n", selfTerm);
         //printf("Real: %lf, self: %lf, reciprocal: %lf\n", real, selfTerm/Base::lB, reciprocal);
         //printf("Energy: %lf\n", (real + reciprocal + corr) - selfTerm/Base::lB);
-        return Base::lB * (real + reciprocal + corr) - selfTerm;
-        //return Base::lB * (real + reciprocal) - selfTerm;
+        //return Base::lB * (real + reciprocal + corr) - selfTerm;    //vacuum
+        return Base::lB * (real + reciprocal) - selfTerm;   //tinfoil
 }
 
 double energy::ewald3D::get_particle_energy(Particle **particles, Particle* p){
@@ -239,8 +239,8 @@ double energy::ewald3D::get_particle_energy(Particle **particles, Particle* p){
     corr *= corr;
     corr = 2 * PI * corr/(3 * Base::xL * Base::yL * Base::zL);
     reciprocal = 2 * PI/(Base::xL * Base::yL * Base::zL) * reciprocal;
-    return Base::lB * (real + reciprocal + corr) - selfTerm;
-    //return Base::lB * (real + reciprocal) - selfTerm;
+    //return Base::lB * (real + reciprocal + corr) - selfTerm;    //vacuum
+    return Base::lB * (real + reciprocal) - selfTerm;   //tinfoil
 }
 
 
