@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
         iter= vm["iter"].as<int>();
     }
     if(vm.count("pnum")){
-        particles = Particle::create_particles(vm["nnum"].as<int>(), vm["pnum"].as<int>(), Particle::numOfElectrons);
+        particles = Particle::create_particles(vm["nnum"].as<int>(), vm["pnum"].as<int>(), vm["electrons"].as<int>());
         density = (double)Particle::numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(diameter, 3);
     }
     printf("\033[34mBox dimensions are x: %lf y: %lf z: %lf\033[30m\n", Base::xL, Base::yL, Base::zL);

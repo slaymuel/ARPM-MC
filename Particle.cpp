@@ -180,13 +180,13 @@ double Particle::distance_xy(Particle *p){
     if(xP1 - xP2 < -1.0 * xL/2.0){
         xP2 = xP2 - xL;
     }
-    if(xP1 - xP2 > xL/2){
+    if(xP1 - xP2 > xL/2.0){
         xP2 = xP2 + xL;
     }
-    if(yP1 - yP2 < -1 * yL/2){
+    if(yP1 - yP2 < -1.0 * yL/2.0){
         yP2 = yP2 - yL;
     }
-    if(yP1 - yP2 > yL/2){
+    if(yP1 - yP2 > yL/2.0){
         yP2 = yP2 + yL;
     }
     return sqrt(pow((xP1 - xP2), 2) + pow((yP1 - yP2), 2) + pow((zP1 - zP2), 2));
@@ -572,7 +572,6 @@ Particle** Particle::read_coordinates_gro(std::string name){
             particles[j] = new Particle();
 
             particles[j]->d = 5;
-            particles[j]->b = 0;
 
             particles[j]->index = j;
             particles[j]->com[0] = x * 10;
@@ -584,24 +583,23 @@ Particle** Particle::read_coordinates_gro(std::string name){
             particles[j]->chargeDisp[1] = (double) rand()/RAND_MAX * 2 - 1;
             particles[j]->chargeDisp[2] = (double) rand()/RAND_MAX * 2 - 1;
 
-            particles[j]->chargeDisp = particles[j]->b * particles[j]->chargeDisp.normalized();
-            //Calculate position of the charge
-            particles[j]->pos = particles[j]->com + particles[j]->chargeDisp;
-
-
-
             if(atom == "Cl"){
                 strcpy(particles[j]->name, "Cl\0");
+                particles[j]->b = 0;
                 particles[j]->q = -1.0;
             }
             else if(atom == "Na"){
                 strcpy(particles[j]->name, "Na\0");
+                particles[j]->b = 2;
                 particles[j]->q = 1.0;            
             }
             else{
                 printf("Atom is not Na or Cl!\n");
                 exit(1);
             }
+            particles[j]->chargeDisp = particles[j]->b * particles[j]->chargeDisp.normalized();
+            //Calculate position of the charge
+            particles[j]->pos = particles[j]->com + particles[j]->chargeDisp;
             j++;
         }
         i++;
