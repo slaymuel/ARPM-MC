@@ -239,6 +239,7 @@ double energy::ewald3D::get_particle_energy(Particle **particles, Particle* p){
     corr *= corr;
     corr = 2.0 * PI * corr/(3.0 * Base::xL * Base::yL * Base::zL);
     reciprocal = 2.0 * PI/(Base::xL * Base::yL * Base::zL) * reciprocal;
+
     //return Base::lB * (real + reciprocal + corr) - selfTerm;    //vacuum
     return Base::lB * (real + reciprocal) - selfTerm;   //tinfoil
 }
