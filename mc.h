@@ -79,7 +79,7 @@ class MC{
                 //                                                    (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume));
                 //double prob = exp(-(newEnergy - oldEnergy) - Base::beta * (100000 * 1e-30 * (newVolume - Base::volume) - 
                 //                                (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume)/Base::beta));
-                double prob = exp(-(newEnergy - oldEnergy) - 0.0000243 * (newVolume - Base::volume) + //  0.00243     0.005      0.00383374
+                double prob = exp(-(newEnergy - oldEnergy) - 0.000024305278638 * (newVolume - Base::volume) + //  0.0000243     0.005      0.00383374 0.000024305278638
                                                 (Particle::numOfParticles + 1) * std::log(newVolume / Base::volume));
                 if(ran2::get_random() > prob && oldEnergy <= newEnergy){  //Reject
                     
