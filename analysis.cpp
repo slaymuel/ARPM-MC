@@ -56,7 +56,7 @@ void Analysis::saveHisto(char outName[]){
         exit(1);
     }
     for(i = 0; i < bins; i++){
-        fprintf(f, "%lf     %lf\n", (double)i * this->binWidth, (double)this->histo[i] / (Base::xL * Base::yL * this->binWidth * this->numberOfSamples));
+        fprintf(f, "%lf     %.15lf\n", (double)i * this->binWidth, (double)this->histo[i] / (Base::xL * Base::yL * this->binWidth * this->numberOfSamples));
     }
     fclose(f);
 
@@ -67,7 +67,7 @@ void Analysis::saveHisto(char outName[]){
         exit(1);
     }
     for(i = 0; i < bins; i++){
-        fprintf(pf, "%lf     %lf\n", (double)i * this->binWidth, (double)this->pHisto[i] / (Base::xL * Base::yL * this->binWidth * this->numberOfSamples));
+        fprintf(pf, "%lf     %.15lf\n", (double)i * this->binWidth, (double)this->pHisto[i] / (Base::xL * Base::yL * this->binWidth * this->numberOfSamples));
     }
     fclose(pf);
 
@@ -78,7 +78,7 @@ void Analysis::saveHisto(char outName[]){
         exit(1);
     }
     for(i = 0; i < bins; i++){
-        fprintf(nf, "%lf     %lf\n", (double)i * this->binWidth, (double)this->nHisto[i] / (Base::xL * Base::yL * this->binWidth * this->numberOfSamples));
+        fprintf(nf, "%lf     %.15lf\n", (double)i * this->binWidth, (double)this->nHisto[i] / (Base::xL * Base::yL * this->binWidth * this->numberOfSamples));
     }
     fclose(nf);
 }

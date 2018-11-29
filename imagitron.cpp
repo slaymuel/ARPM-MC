@@ -188,8 +188,8 @@ double energy::imagitron::wall_charge(double z){
 
     zDiff = z + Base::zL / 2;
     zsq = zDiff * zDiff;
-    //wall2 = 8.0 * a * std::log((std::sqrt(2.0 * asq + zsq) + a) / std::sqrt(asq + zsq)) - 
-    //              2.0 * std::fabs(zDiff) * (std::asin((asq * asq - zsq * zsq - 2.0 * asq * zsq) / std::pow(asq + zsq, 2.0)) + PI/2.0);
+    wall2 = 8.0 * a * std::log((std::sqrt(2.0 * asq + zsq) + a) / std::sqrt(asq + zsq)) - 
+                  2.0 * std::fabs(zDiff) * (std::asin((asq * asq - zsq * zsq - 2.0 * asq * zsq) / std::pow(asq + zsq, 2.0)) + PI/2.0);
     //printf("wall1: %lf, wall2: %lf\n", wall1, wall2);
     return wallCharge * (wall1 + wall2);
 }

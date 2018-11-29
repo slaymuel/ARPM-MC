@@ -37,7 +37,7 @@ double Base::eCummulative = 0;
 double Base::wall = 0;
 int Base::acceptedMoves = 0;
 int Base::totalMoves = 0;
-std::vector<double> Base::volumes(100);
+std::vector<double> Base::volumes(1001);
 namespace po = boost::program_options;
 
 

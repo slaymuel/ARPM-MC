@@ -411,12 +411,12 @@ void Particle::create_electrons(Particle** particles, int num){
         //Get random center of mass coordinates
         particles[i]->com[0] = (double) rand()/RAND_MAX * Base::xL;
         particles[i]->com[1] = (double) rand()/RAND_MAX * Base::yL;
-        //if(j < num / 2){
+        if(j < num / 2){
             particles[i]->com[2] = Base::zL;//(double) rand()/RAND_MAX * (Base::zL - 2 * Base::wall) + Base::wall + Base::zL;
-        //}
-        //else{
-        //    particles[i]->com[2] = 0;//(double) rand()/RAND_MAX * (Base::zL - 2 * Base::wall) + Base::wall - Base::zL;
-        //}
+        }
+        else{
+            particles[i]->com[2] = 0;//(double) rand()/RAND_MAX * (Base::zL - 2 * Base::wall) + Base::wall - Base::zL;
+        }
 
         //Get random charge displacement vector
         particles[i]->chargeDisp << 0, 0, 0;
@@ -862,4 +862,17 @@ void Particle::update_distances(Particle **particles){
             }
         }
     }
+}
+
+bool Particle::wall_2d(){
+    //particles[p]->com[2] > particles[p]->d/2 + Base::wall && particles[p]->com[2] < Base::zL - Base::wall - particles[p]->d/2
+    
+    bool inside;
+    //if(this->q < 0){
+        (this->com[2] > this->d/2 + Base::wall && this->com[2] < Base::zL - Base::wall - this->d/2) ? inside = true : inside = false;
+    //}
+    //else{
+        (this->com[2] > this->d/2 - 1.75 + Base::wall && this->com[2] < Base::zL - Base::wall - this->d/2 + 1.75) ? inside = true : inside = false;
+    //}
+    return inside;
 }

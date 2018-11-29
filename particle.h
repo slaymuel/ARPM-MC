@@ -35,6 +35,7 @@ class Particle: public Base{
         double com_distance_xy(Particle *p);
         double distance_xy(Particle *p);
         double distance_z(Particle *p);
+        bool wall_2d();
         static void update_distances(Particle **particles);
         static void update_distances(Particle **particles, Particle *p);
         static int get_overlaps(Particle ** particles);
