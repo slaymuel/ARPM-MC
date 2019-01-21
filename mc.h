@@ -446,9 +446,9 @@ class MC{
                 
 
                 
-                if(i % 100 == 0 && i > 10000 && !sample){
+                /*if(i % 100 == 0 && i > 10000 && !sample){
                     energy::valleau::update_charge_vector(particles);
-                }
+                }*/
 
                 if(i % outFreq == 0){
                     //Base::volumes.push_back(Base::volume);
