@@ -4,9 +4,9 @@
 int energy::ewald3D::kNumMax;
 double energy::ewald3D::selfTerm;
 std::vector< std::vector<double> > energy::ewald3D::kVec;
-std::complex<double> *energy::ewald3D::rkVec;
-double *energy::ewald3D::kNorm;
-double *energy::ewald3D::resFac;
+std::complex<double> *energy::ewald3D::rkVec = NULL;
+double *energy::ewald3D::kNorm = NULL;
+double *energy::ewald3D::resFac = NULL;
 double energy::ewald3D::alpha;
 int energy::ewald3D::kNum;
 
@@ -48,7 +48,7 @@ double energy::ewald3D::norm(T x){
 }
 
 void energy::ewald3D::set_alpha(){
-    alpha = 8.0 / Base::xL;
+    alpha = 8.0 / Base::xL; //8.0 / alpha
 }
 
 void energy::ewald3D::reset(){
@@ -66,7 +66,7 @@ void energy::ewald3D::initialize(Particle **p){
     kNumMax = 1000000;
     kNum = 0;
     resFac = (double*) malloc(kNumMax * sizeof(double));
-    int kMax = 11;//8/Base::xL;
+    int kMax = 8;//8/Base::xL;
     //get k-vectors
     double factor = 1;
     std::vector<double> vec(3);
@@ -176,10 +176,10 @@ double energy::ewald3D::get_energy(Particle **particles){
                 for(int j = i + 1; j < Particle::numOfParticles; j++){
                     distance = Particle::distances[i][j];
 
-                    if(distance <= 25){
+                    //if(distance <= 25){
                         energy = erfc_x(distance * alpha) / distance;
                         real += particles[i]->q * particles[j]->q * energy;
-                    }
+                    //}
                 }
                 
                 dipoleMoment += particles[i]->q * particles[i]->pos;
@@ -190,13 +190,14 @@ double energy::ewald3D::get_energy(Particle **particles){
 
         corr = dipoleMoment.norm();
         corr *= corr;
-        corr = 2.0 * PI * corr/(3.0 * Base::xL * Base::yL * Base::zL);
+        corr = 2.0 * PI / (3.0 * Base::xL * Base::yL * Base::zL) * corr;
         reciprocal = 2.0 * PI/(Base::xL * Base::yL * Base::zL) * reciprocal;
         //self = alpha/sqrt(PI) * self;
         //printf("Dipole moment: %lf\n", corr);
         //printf("self term: %lf\n", selfTerm);
         //printf("Real: %lf, self: %lf, reciprocal: %lf\n", real, selfTerm/Base::lB, reciprocal);
-        //printf("Energy: %lf\n", (real + reciprocal + corr) - selfTerm/Base::lB);
+        //printf("Tinfoil Energy: %.10lf\n", (real + reciprocal) - selfTerm/Base::lB);
+        //printf("Vacuum Energy: %.10lf\n", (real + reciprocal + corr) - selfTerm/Base::lB);
         //return Base::lB * (real + reciprocal + corr) - selfTerm;    //vacuum
         return Base::lB * (real + reciprocal) - selfTerm;   //tinfoil
 }
@@ -219,19 +220,19 @@ double energy::ewald3D::get_particle_energy(Particle **particles, Particle* p){
     for(int i = p->index + 1; i < Particle::numOfParticles; i++){
         distance = Particle::distances[p->index][i];
 
-        if(distance <= 25){
+        //if(distance <= 25){
             energy = erfc_x(distance * alpha) / distance;
             real += particles[i]->q * p->q * energy;
-        }
+        //}
         dipoleMoment += particles[i]->q * particles[i]->pos;
     }
     for(int i = 0; i < p->index; i++){
         distance = Particle::distances[i][p->index];
         
-        if(distance <= 25){
+        //if(distance <= 25){
             energy = erfc_x(distance * alpha) / distance;
             real += particles[i]->q * p->q * energy;
-        }
+        //}
         dipoleMoment += particles[i]->q * particles[i]->pos;
     }
     dipoleMoment += particles[p->index]->q * particles[p->index]->pos;

@@ -248,7 +248,7 @@ class MC{
             //    }
             //}
             //If there is no overlap in new position and it's inside the box
-            if(particles[p]->hard_sphere(particles)){// && particles[p]->wall_2d()){
+            if(particles[p]->hard_sphere(particles) && particles[p]->wall_2d()){
 
                 //Get new energy
                 energy::ewald3D::update_reciprocal(_old, particles[p]);
@@ -399,7 +399,7 @@ class MC{
                     zHist->sampleHisto(particles, 2);
                 }
                 
-                random = ran2::get_random();
+                /*random = ran2::get_random();
                 if(random <= rN && i > 1000000){
                     if(vol_move(particles, energy_function)){
                         prevAccepted++;
@@ -407,7 +407,7 @@ class MC{
                     }
                     volTot++;
                 }
-                else if(random < 0.5 + rN){
+                else if(random < 0.5 + rN){*/
                 
                     //random = ran2::get_random();
                     //if(random <= partRatio){
@@ -434,14 +434,14 @@ class MC{
                         }
                         elTot++;
                     }*/
-                }
+                /*}
                 else{
                     if(charge_rot_move(particles, particle_energy_function)){
                         prevAccepted++;
                         rotAccepted++;
                     }
                     rotTot++;
-                }
+                }*/
                 Base::totalMoves++;
                 
 

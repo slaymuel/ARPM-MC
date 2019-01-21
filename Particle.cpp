@@ -366,8 +366,8 @@ Particle** Particle::create_particles(int nNum, int pNum, int eNum){
             strcpy(particles[i]->name, "Cl\0");
         }
         else{
-            particles[i]->q = 1.0;
-            particles[i]->b = 2.0; //Length of charge displacement vector
+            particles[i]->q = 2.0;
+            particles[i]->b = 0.0; //Length of charge displacement vector
             strcpy(particles[i]->name, "Na\0");
         }
         
@@ -590,7 +590,7 @@ Particle** Particle::read_coordinates_gro(std::string name){
             }
             else if(atom == "Na"){
                 strcpy(particles[j]->name, "Na\0");
-                particles[j]->b = 2;
+                particles[j]->b = 0;
                 particles[j]->q = 1.0;            
             }
             else{
@@ -868,11 +868,11 @@ bool Particle::wall_2d(){
     //particles[p]->com[2] > particles[p]->d/2 + Base::wall && particles[p]->com[2] < Base::zL - Base::wall - particles[p]->d/2
     
     bool inside;
-    //if(this->q < 0){
+    if(this->q < 0){
         (this->com[2] > this->d/2 + Base::wall && this->com[2] < Base::zL - Base::wall - this->d/2) ? inside = true : inside = false;
-    //}
-    //else{
-        (this->com[2] > this->d/2 - 1.75 + Base::wall && this->com[2] < Base::zL - Base::wall - this->d/2 + 1.75) ? inside = true : inside = false;
-    //}
+    }
+    else{
+        (this->com[2] > this->d/2 - 2.0 + Base::wall && this->com[2] < Base::zL - Base::wall - this->d/2 + 2.0) ? inside = true : inside = false;
+    }
     return inside;
 }
