@@ -382,7 +382,7 @@ class MC{
 
             Analysis *xHist = new Analysis(0.1, Base::xL);
             Analysis *yHist = new Analysis(0.1, Base::yL);
-            Analysis *zHist = new Analysis(0.1, Base::zL);
+            Analysis *zHist = new Analysis(0.1, Base::zLBox);
 
             strcat(volOut, outputFile.c_str());
 
@@ -390,9 +390,9 @@ class MC{
             Base::eCummulative = energy_function(particles);
             Particle::oldEnergy = Base::eCummulative;
             printf("\nRunning MC-loop at temperature: %lf, Bjerrum length is %lf\n\n", Base::T, Base::lB);
-            for(int i = 0; i < iter; i++){
+            for(int i = 0; i <= iter; i++){
 
-                if(i % 100 == 0 && i >= 100000 && sample){
+                if(i % 100 == 0 && i >= 500000 && sample){
                     //rdf->sample_rdf(particles, histo, binWidth);
                     xHist->sampleHisto(particles, 0);
                     yHist->sampleHisto(particles, 1);
@@ -461,7 +461,7 @@ class MC{
                     printf("Energy: %lf\n", energy_temp);
                     printf("Acceptance ratio: %lf\n", (double)Base::acceptedMoves/Base::totalMoves);
                     printf("Acceptance ratio for the last %i steps: %lf\n", outFreq, (double)prevAccepted/outFreq);
-                    if(std::abs(energy_temp - Base::eCummulative)/std::abs(energy_temp) > std::pow(10, -10)){
+                    if(std::abs(energy_temp - Base::eCummulative)/std::abs(energy_temp) > std::pow(10, -9)){
                         printf("Error is too large!\n");
                         printf("Error: %.12lf\n", std::abs(energy_temp - Base::eCummulative)/std::abs(energy_temp));
                         exit(1);

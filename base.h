@@ -19,6 +19,7 @@ class Base{
         static double xL;
         static double yL;
         static double zL;
+        static double zLBox;
         static double eCummulative;
         static double T;
         static double lB;
@@ -32,7 +33,7 @@ class Base{
         static bool d2;
 
         static void set_beta(){
-            beta = 1/(KB * T);
+            beta = 1.0 / (KB * T);
         }
 
         static void set_lB(){

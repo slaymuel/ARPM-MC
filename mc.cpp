@@ -209,15 +209,15 @@ void MC::equilibrate(Particle **particles){
         // oldPos[2] = particles[p]->com[2];
         particles[p]->random_move(5);
         Particle::update_distances(particles, particles[p]);
-        if(!particles[p]->hard_sphere(particles) || particles[p]->com[2] < particles[p]->d/2 + Base::wall || 
-                                        particles[p]->com[2] > Base::zL - Base::wall - particles[p]->d/2){
+        if(!particles[p]->hard_sphere(particles) || particles[p]->com[2] < -Base::zLBox / 2.0 + particles[p]->d / 2.0 ||
+                                                    particles[p]->com[2] > Base::zLBox / 2.0 - particles[p]->d / 2.0){
             particles[p]->com = oldCom;
             particles[p]->pos = oldPos;
             Particle::update_distances(particles, particles[p]);
         }
 
-        else if(particles[p]->com[2] < 0 || particles[p]->com[1] < 0 || particles[p]->com[0] < 0){
-            printf("Failed to equilibrate system, a particle was found outside the box...\n");
+        else if(particles[p]->com[2] < -Base::zLBox / 2.0 + particles[p]->d / 2.0 || particles[p]->com[1] < -Base::yL / 2.0 || particles[p]->com[0] < -Base::xL / 2.0){
+            printf("Failed to equilibrate system, a particle was found outside the box, %lf, %lf, %lf...\n", particles[p]->com[0], particles[p]->com[1], particles[p]->com[2]);
             exit(1);
         }
 

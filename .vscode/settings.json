@@ -40,6 +40,8 @@
         "core": "cpp",
         "cctype": "cpp",
         "cstdlib": "cpp",
-        "cwctype": "cpp"
+        "cwctype": "cpp",
+        "limits": "cpp",
+        "random": "cpp"
     }
 }

@@ -44,9 +44,9 @@ double energy::direct::get_replicates(Particle **particles){
     double energy = 0;
     double dist = 0;
     int rep = 0;
-    int mx = 2;
-    int my = 2;
-    int mz = rep;
+    int mx = rep;
+    int my = rep;
+    int mz = 0;
     int count = 0;
 
     //printf("Calculating energy for %d replicas.\n", (2 * rep+1) * (2 * rep+1) * (2 * rep+1) - 1);
@@ -64,7 +64,7 @@ double energy::direct::get_replicates(Particle **particles){
                                                 particles[l]->pos[2] - particles[m]->pos[2] + k * Base::zL};
                                 dist = norm(den);
                                 //if(dist <= (rep + 1) * Base::xL){//(dist >= Base::xL && dist <= rep * Base::xL){
-                                energy += particles[m]->q * particles[l]->q * 1/dist;
+                                energy += particles[m]->q * particles[l]->q * 1.0 / dist;
                                 //}
                             }
                         }
@@ -118,14 +118,14 @@ double energy::direct::get_central(Particle **particles, Particle *p){
     //{
     for(int i = 0; i < p->index; i++){
         dist = Particle::distances[i][p->index];
-        energy += particles[i]->q * p->q * 1/dist;
+        energy += particles[i]->q * p->q * 1.0 / dist;
     }
     //}
     //#pragma omp parallel for reduction(+:energy) private(lenergy, dist)
     //{
     for(int i = p->index + 1; i < Particle::numOfParticles; i++){
         dist = Particle::distances[p->index][i];
-        energy += particles[i]->q * p->q * 1/dist;
+        energy += particles[i]->q * p->q * 1.0 / dist;
     }
     //}
     return energy;
@@ -138,8 +138,8 @@ double energy::direct::get_replicates(Particle **particles, Particle *p){
     //Eigen::Vector3d disp;
     int rep = 0;
     int mx = rep;
-    int my = 2;
-    int mz = 2;
+    int my = rep;
+    int mz = 0;
 
     //printf("Calculating energy for %d replicas.\n", (2 * rep+1) * (2 * rep+1) * (2 * rep+1) - 1);
     //#pragma omp parallel for if(rep > 10) reduction(+:energy) private(dist)
@@ -156,7 +156,7 @@ double energy::direct::get_replicates(Particle **particles, Particle *p){
                                             p->pos[2] - particles[l]->pos[2] + k * Base::zL};
                             dist = norm(den);
                             //if(dist <= (rep + 1) * Base::xL){//(dist >= Base::xL && dist <= rep * Base::xL){
-                            energy += p->q * particles[l]->q * 1/dist;
+                            energy += p->q * particles[l]->q * 1.0 / dist;
                             //}
                         }
                     }

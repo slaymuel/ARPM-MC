@@ -3,7 +3,7 @@
 Analysis::Analysis(double binWidth, double dLength){
     this->numberOfSamples = 0;
     this->binWidth = binWidth;
-    this->bins = dLength/binWidth;//zL/binWidth;
+    this->bins = dLength / binWidth;//zL/binWidth;
     this->histo = (int*)malloc(this->bins * sizeof(int));
     this->pHisto = (int*)malloc(this->bins * sizeof(int));
     this->nHisto = (int*)malloc(this->bins * sizeof(int));
@@ -21,12 +21,12 @@ void Analysis::sampleHisto(Particle **particles, int d){
     int i = 0;
     double dist = 0;
     for(i = 0; i < Particle::numOfParticles; i++){
-        this->histo[(int)(particles[i]->pos[d]/binWidth)]++;
+        //this->histo[(int)(particles[i]->pos[d] / binWidth)]++;
         if(particles[i]->q < 0){
-            this->nHisto[(int)(particles[i]->pos[d]/binWidth)]++;
+            this->nHisto[(int)( (particles[i]->pos[d] + Base::zLBox / 2.0) / binWidth )]++;
         }
         else if(particles[i]->q > 0){
-            this->pHisto[(int)(particles[i]->pos[d]/binWidth)]++;
+            this->pHisto[(int)( (particles[i]->pos[d] + Base::zLBox / 2.0) / binWidth )]++;
         }
     }
     this->numberOfSamples++;

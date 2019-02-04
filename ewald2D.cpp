@@ -1,11 +1,12 @@
 #include "ewald2D.h"
+#include "omp.h"
 std::vector< std::vector<double> > energy::ewald2D::kVec;
 double *energy::ewald2D::kNorm;
 int energy::ewald2D::kNum;
 double energy::ewald2D::alpha;
 
 void energy::ewald2D::set_alpha(){
-    alpha = 5/Base::xL;
+    alpha = 5.0 / Base::xL;
 }
 
 template<typename T>
@@ -88,7 +89,7 @@ double energy::ewald2D::f(double norm, double zDist){
     f = exp(norm * zDist) * erfc_x(alpha * zDist + norm/(2 * alpha)) +
         exp(-norm * zDist) * erfc_x(-alpha * zDist + norm/(2 * alpha));
 
-    return f/(2 * norm);
+    return f/(2.0 * norm);
 }
 
 double energy::ewald2D::g(Particle *p1, Particle *p2){
@@ -142,11 +143,13 @@ double energy::ewald2D::get_particle_energy(Particle **particles, Particle *p){
     double gE = 0;
     int k = 0;
 
+    double stime = omp_get_wtime();
     for(int i = p->index + 1; i < Particle::numOfParticles; i++){
         distance = Particle::distances[p->index][i];
         real += particles[i]->q * p->q * erfc_x(alpha * distance)/distance;
 
     }
+    
     for(int i = 0; i < p->index; i++){
         distance = Particle::distances[i][p->index];
         real += particles[i]->q * p->q * erfc_x(alpha * distance)/distance;
@@ -159,13 +162,14 @@ double energy::ewald2D::get_particle_energy(Particle **particles, Particle *p){
             //reci += particles[i]->q * particles[j]->q * get_reciprocal(particles[i], particles[j]);
             gE += particles[i]->q * particles[j]->q * g(particles[i], particles[j]);
         }
-        dipCorr += dipole_correction(particles[i]);
+        //dipCorr += dipole_correction(particles[i]);
         self += get_self_correction(particles[i]);
         //printf("Rec: %lf g: %lf: reci: %lf Done: %lf\r", reciprocal, gE, reci,(double)i/Particle::numOfParticles * 100);
         //fflush(stdout);
     }
     reciprocal = (reciprocal - gE) * PI/(Base::xL * Base::yL);
-    dipCorr = -2 * PI/(Base::xL * Base::yL * Base::zL) * dipCorr * dipCorr;
+    
+    //dipCorr = -2 * PI/(Base::xL * Base::yL * Base::zL) * dipCorr * dipCorr;
     self = alpha/sqrt(PI) * self;
     energy = (real + reciprocal - self);// + dipCorr);
     //printf("Real: %lf, self: %lf, reciprocal: %lf dipCorr: %lf\n", real * Base::lB, self, reciprocal, dipCorr);
@@ -201,7 +205,7 @@ double energy::ewald2D::get_energy(Particle **particles){
             //reci += particles[i]->q * particles[j]->q * get_reciprocal(particles[i], particles[j]);
             gE += particles[i]->q * particles[j]->q * g(particles[i], particles[j]);
         }
-        dipCorr += dipole_correction(particles[i]);
+        //dipCorr += dipole_correction(particles[i]);
         self += get_self_correction(particles[i]);
         //printf("Rec: %lf g: %lf: reci: %lf Done: %lf\r", reciprocal, gE, reci,(double)i/Particle::numOfParticles * 100);
         //fflush(stdout);

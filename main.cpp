@@ -27,6 +27,7 @@ int Analysis::numOfHisto = 0;
 double Base::xL = 114.862525361502; //172
 double Base::yL = 114.862525361502; //45
 double Base::zL = 45;
+double Base::zLBox = 45;
 double Base::T = 298;
 double Base::lB;
 double Base::beta;
@@ -132,20 +133,25 @@ int main(int argc, char *argv[])
         std::cout << desc << "\n";
         exit(1);
     }
+
     if(vm.count("box")){
         std::vector<double> box(3);
         box = vm["box"].as<std::vector<double> >();
         Base::xL = box[0];
         Base::yL = box[1];
         Base::zL = box[2];
+        Base::zLBox = Base::zL;
     }
+
     if(vm.count("wall")){
         Base::wall = vm["wall"].as<double>();
-        Base::zL += 2 * Base::wall;
+        Base::zL += 2.0 * Base::wall;
     }
+
     if(vm.count("nm")){
         nanometers = true;
     }
+
     if(vm.count("f")){
         bool relative = false;
         if(vm.count("rc")){
@@ -155,24 +161,30 @@ int main(int argc, char *argv[])
         std::string filename = vm["f"].as<std::string>().c_str();
         particles = Particle::read_coordinates(filename, relative, nanometers);
     }
+
     if(vm.count("f_gro")){
         std::cout << "Opening " << vm["f_gro"].as<std::string>() << std::endl;
         std::string filename = vm["f_gro"].as<std::string>().c_str();
         particles = Particle::read_coordinates_gro(filename);
     }
+
     if(vm.count("o")){
         outputFile = vm["o"].as<std::string>();
         strcpy(outName, outputFile.c_str());
     }
+
     if(vm.count("f_jan")){
         particles = Particle::read_jan("coordp_dense.dms", "coordn_dense.dms");
     }
+
     if(vm.count("f_arpm_jan")){
         particles = Particle::read_arpm_jan("coord");
     }
+
     if(vm.count("electrons")){
         Particle::numOfElectrons = vm["electrons"].as<int>();
     }
+
     if(vm.count("np") && vm["imgrep"].as<bool>()){
         numOfParticles = vm["np"].as<int>() * 5;
         if(numOfParticles % 2 != 0){
@@ -185,6 +197,7 @@ int main(int argc, char *argv[])
         //mc.equilibrate(particles);
         density = (double)numOfParticles/(Base::xL * Base::yL * (Base::zL - 2 * Base::wall)) * pow(diameter, 3);
     }
+
     else if(vm.count("np")){
         numOfParticles = vm["np"].as<int>();
         if(numOfParticles % 2 != 0){
@@ -196,10 +209,12 @@ int main(int argc, char *argv[])
         //mc.equilibrate(particles);
         density = (double)numOfParticles/(Base::xL * Base::yL * (Base::zL - 2 * Base::wall)) * pow(diameter, 3);
     }
+
     if(vm.count("T")){
         Base::T = vm["T"].as<double>();
         T = Base::T;
     }
+
     if(vm.count("wall") && vm.count("density")){
         density = vm["density"].as<double>();
         Base::wall = vm["wall"].as<double>();
@@ -214,6 +229,7 @@ int main(int argc, char *argv[])
         particles = Particle::create_particles(numOfParticles/2, numOfParticles/2, Particle::numOfElectrons);
         //mc.equilibrate(particles);
     }
+    
     else{
         if(vm.count("density")){
             numOfParticles = vm["density"].as<double>()/pow(diameter, 3)*(Base::xL * Base::yL * Base::zL);
@@ -224,13 +240,16 @@ int main(int argc, char *argv[])
             particles = Particle::create_particles(numOfParticles/2, numOfParticles/2, Particle::numOfElectrons);
         }
     }
+
     if(vm.count("iter")){
         iter= vm["iter"].as<int>();
     }
+
     if(vm.count("pnum")){
         particles = Particle::create_particles(vm["nnum"].as<int>(), vm["pnum"].as<int>(), vm["electrons"].as<int>());
         density = (double)Particle::numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(diameter, 3);
     }
+
     printf("\033[34mBox dimensions are x: %lf y: %lf z: %lf\033[30m\n", Base::xL, Base::yL, Base::zL);
     printf("num of particles including images: %d\n", Particle::numOfParticles);
 
