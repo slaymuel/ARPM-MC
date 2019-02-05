@@ -48,7 +48,7 @@ double energy::ewald3D::norm(T x){
 }
 
 void energy::ewald3D::set_alpha(){
-    alpha = 8.0 / Base::xL; //8.0 / alpha
+    alpha = 16.0 / Base::xL; //8.0 / alpha
 }
 
 void energy::ewald3D::reset(){
@@ -66,18 +66,18 @@ void energy::ewald3D::initialize(Particle **p){
     kNumMax = 1000000;
     kNum = 0;
     resFac = (double*) malloc(kNumMax * sizeof(double));
-    int kMax = 4;//8/Base::xL;
+    int kMax = 10;//8/Base::xL;
     //get k-vectors
     double factor = 1;
     std::vector<double> vec(3);
     //printf("Calculating k-vectors");
-    for(int kx = 0; kx <= kMax; kx++){
+    for(int kx = -kMax; kx <= kMax; kx++){
         for(int ky = -kMax; ky <= kMax; ky++){
             for(int kz = -kMax; kz <= kMax; kz++){
                 factor = 1.0;
-                if(kx > 0){
-                    factor *= 2;
-                }
+                //if(kx > 0){
+                //    factor *= 2;
+                //}
 
                 vec[0] = (2.0 * PI * kx / Base::xL);
                 vec[1] = (2.0 * PI * ky / Base::yL);
@@ -177,10 +177,10 @@ double energy::ewald3D::get_energy(Particle **particles){
                 for(int j = i + 1; j < Particle::numOfParticles; j++){
                     distance = Particle::distances[i][j];
 
-                    //if(distance <= 25){
+                    if(distance <= 10){
                         energy = erfc_x(distance * alpha) / distance;
                         real += particles[i]->q * particles[j]->q * energy;
-                    //}
+                    }
                 }
                 
                 dipoleMoment += particles[i]->q * particles[i]->pos;
@@ -220,19 +220,19 @@ double energy::ewald3D::get_particle_energy(Particle **particles, Particle* p){
     for(int i = p->index + 1; i < Particle::numOfParticles; i++){
         distance = Particle::distances[p->index][i];
 
-        //if(distance <= 25){
+        if(distance <= 10){
             energy = erfc_x(distance * alpha) / distance;
             real += particles[i]->q * p->q * energy;
-        //}
+        }
         dipoleMoment += particles[i]->q * particles[i]->pos;
     }
     for(int i = 0; i < p->index; i++){
         distance = Particle::distances[i][p->index];
         
-        //if(distance <= 25){
+        if(distance <= 10){
             energy = erfc_x(distance * alpha) / distance;
             real += particles[i]->q * p->q * energy;
-        //}
+        }
         dipoleMoment += particles[i]->q * particles[i]->pos;
     }
     dipoleMoment += particles[p->index]->q * particles[p->index]->pos;

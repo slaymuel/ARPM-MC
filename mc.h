@@ -131,7 +131,7 @@ class MC{
 
             particles[r]->random_charge_rot();
             Particle::update_distances(particles, particles[r]);
-            energy::ewald3D::update_reciprocal(_old, particles[r]);
+            //energy::ewald3D::update_reciprocal(_old, particles[r]);
 
             eNew = energy_function(particles, particles[r]);
             dE = eNew - eOld;
@@ -146,7 +146,7 @@ class MC{
             }
             //Reject
             else{
-                energy::ewald3D::update_reciprocal(particles[r], _old);
+                //energy::ewald3D::update_reciprocal(particles[r], _old);
                 particles[r]->chargeDisp = _old->chargeDisp;
                 particles[r]->pos = _old->pos;
                 Particle::update_distances(particles, particles[r]);
@@ -380,8 +380,8 @@ class MC{
             char histOut[40];
             strcpy(histOut, outputFile.c_str());
 
-            Analysis *xHist = new Analysis(0.1, Base::xL);
-            Analysis *yHist = new Analysis(0.1, Base::yL);
+            //Analysis *xHist = new Analysis(0.1, Base::xL);
+            //Analysis *yHist = new Analysis(0.1, Base::yL);
             Analysis *zHist = new Analysis(0.1, Base::zLBox);
 
             strcat(volOut, outputFile.c_str());
@@ -394,8 +394,8 @@ class MC{
 
                 if(i % 100 == 0 && i >= 500000 && sample){
                     //rdf->sample_rdf(particles, histo, binWidth);
-                    xHist->sampleHisto(particles, 0);
-                    yHist->sampleHisto(particles, 1);
+                    //xHist->sampleHisto(particles, 0);
+                    //yHist->sampleHisto(particles, 1);
                     zHist->sampleHisto(particles, 2);
                 }
                 
@@ -404,14 +404,14 @@ class MC{
                     if(vol_move(particles, energy_function)){
                         prevAccepted++;
                         volAccepted++;
-                    }
+                    } 
                     volTot++;
                 }
                 else if(random < 0.5 + rN){*/
                 
                     //random = ran2::get_random();
                     //if(random <= partRatio){
-                    //if(random <= 0.9){
+                    //if(random <= 0.6){
                         //random = ran2::get_random();
                         //if(random <= rE){
                             if(trans_move(particles, dr, particle_energy_function)){
@@ -492,12 +492,12 @@ class MC{
                 }
             }
             if(sample){
-                xHist->saveHisto(histOut);
-                yHist->saveHisto(histOut);
+                //xHist->saveHisto(histOut);
+                //yHist->saveHisto(histOut);
                 zHist->saveHisto(histOut);
             }
-            delete xHist;
-            delete yHist;
+            //delete xHist;
+            //delete yHist;
             delete zHist;
         }
 };

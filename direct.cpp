@@ -93,14 +93,14 @@ double energy::direct::get_central(Particle **particles){
             energy += particles[i]->q * particles[k]->q / dist;
         }  
 
-        if(particles[i]->com[2] < 0 || particles[i]->com[1] < 0 || particles[i]->com[0] < 0 ||
+        /*if(particles[i]->com[2] < 0 || particles[i]->com[1] < 0 || particles[i]->com[0] < 0 ||
                 particles[i]->pos[2] < 0 || particles[i]->pos[1] < 0 || particles[i]->pos[0] < 0){
 
             printf("Error calculating energy, particle was found outside the box..\n");
             std::cout << particles[i]->com << std::endl;
             std::cout << particles[i]->pos << std::endl;
             exit(1);
-        }
+        }*/
         //if(particles[i]->com != particles[i]->pos){
         //    printf("pos and com are not equal!\n");
         //    exit(1);
