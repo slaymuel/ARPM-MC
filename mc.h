@@ -26,6 +26,14 @@ class MC{
 
 
 
+        template <typename E>
+        static int grand_move(Particle **particles, E energy_function){
+            int r = ran2::get_random() * Particle::numOfParticles;
+            //Delete particle
+            Particle::numOfParticles--;
+            //Add particle
+            Particle::numOfParticles++;
+        }
 
         template <typename E>
         static int vol_move(Particle **particles, E energy_function){

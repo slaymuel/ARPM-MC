@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
     }
 
     if(vm.count("f_jan")){
-        particles = Particle::read_jan("coordp_dense.dms", "coordn_dense.dms");
+        particles = Particle::read_jan("coordp_1", "coordn_1");
     }
 
     if(vm.count("f_arpm_jan")){

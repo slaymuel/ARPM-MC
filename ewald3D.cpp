@@ -48,7 +48,7 @@ double energy::ewald3D::norm(T x){
 }
 
 void energy::ewald3D::set_alpha(){
-    alpha = 8.0 / Base::xL; //8.0 / alpha
+    alpha = 3.0 / Base::xL; //8.0 / alpha
 }
 
 void energy::ewald3D::reset(){
@@ -199,7 +199,7 @@ double energy::ewald3D::get_energy(Particle **particles){
         //self = alpha/sqrt(PI) * self;
         //printf("Dipole moment: %lf\n", corr);
         //printf("self term: %lf\n", selfTerm);
-        //printf("Real: %lf, self: %lf, reciprocal: %lf\n", real, selfTerm/Base::lB, reciprocal);
+        printf("Real: %lf, self: %lf, reciprocal: %lf\n", real * Base::lB, selfTerm, reciprocal * Base::lB);
         //printf("Tinfoil Energy: %.10lf\n", (real + reciprocal) - selfTerm/Base::lB);
         //printf("Vacuum Energy: %.10lf\n", (real + reciprocal + corr) - selfTerm/Base::lB);
         return Base::lB * (real + reciprocal + corr) - selfTerm;    //vacuum

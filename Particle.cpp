@@ -649,12 +649,13 @@ Particle** Particle::read_jan(std::string pName, std::string nName){
             particles[j] = new Particle();
             //particles[j]->pos = (double*) malloc(3 * sizeof(double));
 
-            particles[j]->pos[0] = x + Base::xL/2;
-            particles[j]->pos[1] = y + Base::yL/2;
-            particles[j]->pos[2] = z + Base::wall - 2.5;
+            particles[j]->pos[0] = x;
+            particles[j]->pos[1] = y;
+            particles[j]->pos[2] = z - Base::zLBox / 2.0 - 2.5;
             particles[j]->com = particles[j]->pos;
 
             particles[j]->d = 5;
+            particles[j]->b = 0;
             particles[j]->index = j;
             
             strcpy(particles[j]->name, "Na\0");
@@ -677,12 +678,13 @@ Particle** Particle::read_jan(std::string pName, std::string nName){
             particles[j] = new Particle();
             //particles[j]->pos = (double*) malloc(3 * sizeof(double));
 
-            particles[j]->pos[0] = x + Base::xL/2;
-            particles[j]->pos[1] = y + Base::yL/2;
-            particles[j]->pos[2] = z + Base::wall - 2.5;
+            particles[j]->pos[0] = x;
+            particles[j]->pos[1] = y;
+            particles[j]->pos[2] = z - Base::zLBox / 2.0 - 2.5;
             particles[j]->com = particles[j]->pos;
 
             particles[j]->d = 5;
+            particles[j]->b = 0;
             particles[j]->index = j;
             
             strcpy(particles[j]->name, "Cl\0");
