@@ -13,22 +13,11 @@
 #include "levin.h"
 class MC{
     public:
-        //void equilibrate(Particle **particles);
-        void equilibrate(std::vector<Particle> &particles);
-        //static int trans_move(Particle **particles, double dr);
-        static int charge_rot_move(Particle **particles);
-        static double get_particle_energy(int pInd, Particle *p, Particle **particles);
-        double get_energy(Particle **particles);
-        void disperse(Particle **particles);
-        /*template<typename F>
-        static void run(F&& energy_function, Particle** particles, int iter);*/
-        //static Ewald3D ewald3D;
-        //static Direct direct;
-
-
+        std::vector<Particle> particles;
+        void equilibrate();
 
         template <typename E>
-        static int grand_move(Particle **particles, E energy_function){
+        int grand_move(E energy_function){
             int random = ran2::get_random();
 
 
@@ -36,6 +25,8 @@ class MC{
             if(random < 0.5){
                 Particle::numOfParticles--;
                 int r = ran2::get_random() * Particle::numOfParticles;
+                particles.erase(particles.begin() + r);
+
             }
 
 
@@ -47,7 +38,7 @@ class MC{
         }
 
         template <typename E>
-        static int vol_move(Particle **particles, E energy_function){
+        int vol_move(E energy_function){
             bool overlap = false;
             double vMax = 0.00025;
             double lnNewVolume = std::log(Base::volume) + (ran2::get_random() - 0.5) * vMax;
@@ -62,7 +53,7 @@ class MC{
 
             for(int i = 0; i < Particle::numOfParticles; i++){
                 for(int j = i + 1; j < Particle::numOfParticles; j++){
-                    if(particles[i]->com_distance(particles[j]) * lengthFrac < particles[i]->d/2 + particles[j]->d/2){
+                    if(particles[i].com_distance(particles[j]) * lengthFrac < particles[i].d/2 + particles[j].d/2){
                         overlap = true;
                         break;
                     }
@@ -79,12 +70,12 @@ class MC{
                 Base::yL = newLength;
                 Base::zL = newLength;
                 for(int i = 0; i < Particle::numOfParticles; i++){
-                    particles[i]->oldCom = particles[i]->com;
-                    particles[i]->oldPos = particles[i]->pos;
+                    particles[i].oldCom = particles[i].com;
+                    particles[i].oldPos = particles[i].pos;
 
-                    particles[i]->com *= newLength / oldLength;
-                    particles[i]->pos = particles[i]->com + particles[i]->chargeDisp;
-                    particles[i]->pbc_pos();
+                    particles[i].com *= newLength / oldLength;
+                    particles[i].pos = particles[i].com + particles[i].chargeDisp;
+                    particles[i].pbc_pos();
                 }
 
                 Particle::update_distances(particles);
@@ -106,8 +97,8 @@ class MC{
                     Base::yL = oldLength;
                     Base::zL = oldLength;
                     for(int i = 0; i < Particle::numOfParticles; i++){
-                        particles[i]->com = particles[i]->oldCom;
-                        particles[i]->pos = particles[i]->oldPos;
+                        particles[i].com = particles[i].oldCom;
+                        particles[i].pos = particles[i].oldPos;
                     }
                     Particle::update_distances(particles);
                     //energy::ewald3D::set_alpha();
@@ -131,24 +122,24 @@ class MC{
 
 
         template <typename E>
-        static int charge_rot_move(Particle **particles, E energy_function){
+        int charge_rot_move(E energy_function){
             double eOld;
             double eNew;
             double acceptProb;
             int r = ran2::get_random() * Particle::numOfParticles;
             double dE;
             int accepted = 0;
-            Particle *_old = new Particle(true);
+            Particle _old = new Particle(true);
 
-            _old->pos = particles[r]->pos;
-            _old->com = particles[r]->com;
-            _old->chargeDisp = particles[r]->chargeDisp;
-            _old->q = particles[r]->q;
-            _old->index = particles[r]->index;
+            _old.pos = particles[r].pos;
+            _old.com = particles[r].com;
+            _old.chargeDisp = particles[r].chargeDisp;
+            _old.q = particles[r].q;
+            _old.index = particles[r].index;
             
             eOld = energy_function(particles, particles[r]);
 
-            particles[r]->random_charge_rot();
+            particles[r].random_charge_rot();
             Particle::update_distances(particles, particles[r]);
             //energy::ewald3D::update_reciprocal(_old, particles[r]);
 
@@ -166,16 +157,16 @@ class MC{
             //Reject
             else{
                 //energy::ewald3D::update_reciprocal(particles[r], _old);
-                particles[r]->chargeDisp = _old->chargeDisp;
-                particles[r]->pos = _old->pos;
+                particles[r].chargeDisp = _old.chargeDisp;
+                particles[r].pos = _old.pos;
                 Particle::update_distances(particles, particles[r]);
             }
-            delete _old;
+            //delete _old;
             return accepted;
         }
 
         template <typename E>
-        static int charge_disp_move(std::vector<Particle> &particles, E energy_function){
+        int charge_disp_move(E energy_function){
             double eOld;
             double eNew;
             double acceptProb;
@@ -227,7 +218,7 @@ class MC{
 
 
         template<typename E>
-        static int trans_move(std::vector<Particle> &particles, double dr, E energy_function){
+        int trans_move(double dr, E energy_function){
             double eOld = 0.0;
             double eNew = 0.0;
             double dist = 0.0;
@@ -311,7 +302,7 @@ class MC{
         }
 
         template<typename E>
-        static int trans_electron_move(Particle **particles, double dr, E energy_function){
+        int trans_electron_move(double dr, E energy_function){
             double eOld = 0.0;
             double eNew = 0.0;
             double acceptProp = 0.0;
@@ -319,30 +310,30 @@ class MC{
             double dE = 0.0;
             int accepted= 0;
 
-            Particle *_old = new Particle(true);
+            Particle _old = new Particle(true);
 
             int p =  random * Particle::numOfElectrons;
             p += Particle::numOfParticles;
 
             //Calculate old energy
             eOld = energy_function(particles, particles[p]);
-            _old->pos = particles[p]->pos;
-            _old->com = particles[p]->com;
-            _old->q = particles[p]->q;
-            _old->index = particles[p]->index;
+            _old.pos = particles[p].pos;
+            _old.com = particles[p].com;
+            _old.q = particles[p].q;
+            _old.index = particles[p].index;
 
             //Generate new trial coordinates
-            //particles[p]->random_move(dr);
-            particles[p]->com[0] += (ran2::get_random() * 2.0 - 1.0) * dr;
-            particles[p]->com[1] += (ran2::get_random() * 2.0 - 1.0) * dr;
-            Particle::pbc_xy(particles[p]->com);
-            particles[p]->pos = particles[p]->com;
-            Particle::pbc_xy(particles[p]->pos);
+            //particles[p].random_move(dr);
+            particles[p].com[0] += (ran2::get_random() * 2.0 - 1.0) * dr;
+            particles[p].com[1] += (ran2::get_random() * 2.0 - 1.0) * dr;
+            Particle::pbc_xy(particles[p].com);
+            particles[p].pos = particles[p].com;
+            Particle::pbc_xy(particles[p].pos);
             Particle::update_distances(particles, particles[p]);
 
             //If there is no overlap in new position and it's inside the box
-            //if((particles[p]->com[2] > Base::wall + Base::zL && particles[p]->com[2] < 2 * Base::zL - Base::wall) || 
-            //    (particles[p]->com[2] > Base::wall - Base::zL && particles[p]->com[2] < Base::wall)){
+            //if((particles[p].com[2] > Base::wall + Base::zL && particles[p].com[2] < 2 * Base::zL - Base::wall) || 
+            //    (particles[p].com[2] > Base::wall - Base::zL && particles[p].com[2] < Base::wall)){
 
                 //Get new energy
                 eNew = energy_function(particles, particles[p]);
@@ -362,8 +353,8 @@ class MC{
                     Base::acceptedMoves++;
                 }
                 else{   //Reject move
-                    particles[p]->pos = _old->pos;
-                    particles[p]->com = _old->com;
+                    particles[p].pos = _old.pos;
+                    particles[p].com = _old.com;
                     Particle::update_distances(particles, particles[p]);
                 }
             /*}
@@ -374,12 +365,12 @@ class MC{
                 Particle::update_distances(particles, particles[p]);
             }*/
 
-            delete _old;
+            //delete _old;
             return accepted;
         }
 
         template<typename F, typename FP>
-        static void run(F&& energy_function, FP&& particle_energy_function, std::vector<Particle> &particles, double dr, int iter, bool sample, std::string outputFile){
+        void run(F&& energy_function, FP&& particle_energy_function, double dr, int iter, bool sample, std::string outputFile){
             double energy_temp;
             double partRatio = (double)Particle::numOfParticles/(Particle::numOfParticles + Particle::numOfElectrons);
             int prevAccepted = 0;
@@ -434,7 +425,7 @@ class MC{
                     //if(random <= 0.6){
                         //random = ran2::get_random();
                         //if(random <= rE){
-                            if(trans_move(particles, dr, particle_energy_function)){
+                            if(trans_move(dr, particle_energy_function)){
                                 prevAccepted++; 
                                 transAccepted++;
                             }

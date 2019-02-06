@@ -268,10 +268,11 @@ int main(int argc, char *argv[])
     printf("\033[34mDensity is: %lf\033[30m\n", density);
 
     Particle::update_distances(particles);
-
+    mc.particles = particles;
+    
     if(vm["overlap"].as<bool>()){
         printf("Removing overlaps...\n");
-        mc.equilibrate(particles);
+        mc.equilibrate();
         //Particle::place_particles(particles);
     }
 
@@ -314,21 +315,20 @@ int main(int argc, char *argv[])
     FILE *f = fopen(volOut, "w");
     fprintf(f, "");
     fclose(f);
-
     std::string energyFunction = "ewald";
-
+    //MC mc;
     if(energyFunction == "valleau"){
         /*energy::valleau::initialize();
-        MC::run(&energy::hs::get_energy, &energy::hs::get_particle_energy, particles, dr, iter, false);
+        //MC::run(&energy::hs::get_energy, &energy::hs::get_particle_energy, particles, dr, iter, false);
 
         MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, 0.1, 1000000, false, outputFile);
         energy::valleau::update_potential();
         
         MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, dr, 1000000, false, outputFile);
-        energy::valleau::update_potential();*/
+        energy::valleau::update_potential();
         
         //MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, 15, 1000000, false);
-        //energy::valleau::update_potential();
+        //energy::valleau::update_potential();*/
 
         //MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, dr, iter, true, outputFile);
         
@@ -338,13 +338,13 @@ int main(int argc, char *argv[])
     if(energyFunction == "ewald"){
         energy::ewald3D::set_alpha();
         energy::ewald3D::initialize(particles);
-        MC::run(&energy::ewald3D::get_energy, &energy::ewald3D::get_particle_energy, particles, dr, iter, true, outputFile);
+        mc.run(&energy::ewald3D::get_energy, &energy::ewald3D::get_particle_energy, dr, iter, true, outputFile);
     }
 
     if(energyFunction == "ewald2d"){
-        //energy::ewald2D::set_alpha();
-        //energy::ewald2D::initialize();
-        //MC::run(&energy::ewald2D::get_energy, &energy::ewald2D::get_particle_energy, particles, dr, iter, true, outputFile);
+       /* energy::ewald2D::set_alpha();
+        energy::ewald2D::initialize();
+        MC::run(&energy::ewald2D::get_energy, &energy::ewald2D::get_particle_energy, particles, dr, iter, true, outputFile);*/
     }
 
     if(energyFunction == "test"){

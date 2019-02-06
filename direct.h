@@ -26,13 +26,13 @@
 #include "particle.h"
 
 namespace energy{ namespace direct{ 
-    double get_energy(Particle **particles);
-    double get_particle_energy(Particle **particles, Particle *p);
+    double get_energy(std::vector<Particle> &particles);
+    double get_particle_energy(std::vector<Particle> &particles, Particle &p);
     //double get_energy(Particle **particles, Particle *p);
-    double get_central(Particle **particles);
-    double get_central(Particle **particles, Particle *p);
-    double get_replicates(Particle **particles);
-    double get_replicates(Particle **particles, Particle *p);
+    double get_central(std::vector<Particle> &particles);
+    double get_central(std::vector<Particle> &particles, Particle &p);
+    double get_replicates(std::vector<Particle> &particles);
+    double get_replicates(std::vector<Particle> &particles, Particle &p);
     template<typename T>
     double norm(T vec);
 } }

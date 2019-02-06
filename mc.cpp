@@ -187,7 +187,7 @@ int MC::trans_move(Particle **particles, double dr){
 */
 
 //void MC::equilibrate(Particle **particles){
-void MC::equilibrate(std::vector<Particle> &particles){
+void MC::equilibrate(){
     int overlaps = 1;
     int prevOverlaps = 500000;
     int i = 0;
