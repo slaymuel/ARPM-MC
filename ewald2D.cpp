@@ -1,6 +1,6 @@
 #include "ewald2D.h"
 #include "omp.h"
-std::vector< std::vector<double> > energy::ewald2D::kVec;
+std::vector< Eigen::Vector3d > energy::ewald2D::kVec;
 double *energy::ewald2D::kNorm;
 int energy::ewald2D::kNum;
 double energy::ewald2D::alpha;
@@ -48,17 +48,17 @@ void energy::ewald2D::initialize(){
     int ky = 0;
     int kz = 0;
     double k2 = 0;
-    int kMax = 3;//8/Base::xL;
+    int kMax = 5;//8/Base::xL;
 
     //get k-vectors
-    std::vector<double> vec(3);
+    Eigen::Vector3d vec;
 
     for(kx = -kMax; kx <= kMax; kx++){
         for(ky = -kMax; ky <= kMax; ky++){
             vec[0] = (2.0 * PI * kx/Base::xL);
             vec[1] = (2.0 * PI * ky/Base::yL);
             vec[2] = 0;
-            k2 = dot(vec, vec);
+            k2 = vec.dot(vec);
             if(fabs(k2) > 1e-5){// && fabs(k2) < kMax){
                 kVec.push_back(vec);
                 kNum++;
@@ -89,14 +89,14 @@ double energy::ewald2D::f(double norm, double zDist){
     f = exp(norm * zDist) * erfc_x(alpha * zDist + norm/(2 * alpha)) +
         exp(-norm * zDist) * erfc_x(-alpha * zDist + norm/(2 * alpha));
 
-    return f/(2.0 * norm);
+    return f / (2.0 * norm);
 }
 
 double energy::ewald2D::g(Particle *p1, Particle *p2){
     //double zDist = sqrt(p1->distance_z(p2));
-    double zDist = p1->distance_z(p2);
+    double zDist = p1->pos[2] - p2->pos[2];
     double g = 0;
-    g = zDist * erf_x(alpha * zDist) + exp(-(zDist*zDist*alpha*alpha))/(alpha * sqrt(PI));
+    g = zDist * erf_x(alpha * zDist) + exp(-(zDist * zDist * alpha * alpha)) / (alpha * sqrt(PI));
 
     return g;
 }
@@ -104,17 +104,23 @@ double energy::ewald2D::g(Particle *p1, Particle *p2){
 double energy::ewald2D::get_reciprocal(Particle *p1, Particle *p2){
     double energy = 0;
     //double distance = p1->distance(p2);
-    std::vector<double> dispVec(3);
+    //std::vector<double> dispVec(3);
     std::complex<double> rk;
-    dispVec[0] = p1->pos[0] - p2->pos[0];
-    dispVec[1] = p1->pos[1] - p2->pos[1];
-    dispVec[2] = p1->pos[2] - p2->pos[2];
+    double zDist = p1->pos[2] - p2->pos[2];
+    Eigen::Vector3d dispVec = p1->pos - p2->pos;
+    //dispVec[0] = p1->pos[0] - p2->pos[0];
+    //dispVec[1] = p1->pos[1] - p2->pos[1];
+    //dispVec[2] = p1->pos[2] - p2->pos[2];
     
  
     for(int i = 0; i < kNum; i++){
-        rk.imag(std::sin(dot(dispVec, kVec[i])));
-        rk.real(std::cos(dot(dispVec, kVec[i])));
-        energy += rk.real() * f(kNorm[i], p1->distance_z(p2));
+        rk.imag(std::sin(dispVec.dot(kVec[i])));
+        rk.real(std::cos(dispVec.dot(kVec[i])));
+    
+        energy += rk.real() * (exp(kNorm[i] * zDist) * erfc_x(alpha * zDist + kNorm[i]/(2 * alpha)) +
+            exp(-kNorm[i] * zDist) * erfc_x(-alpha * zDist + kNorm[i]/(2 * alpha))) / (2.0 * kNorm[i]);
+
+        //energy += rk.real() * f(kNorm[i], p1->pos[2] - p2->pos[2]);
     }
     return energy;
 }
@@ -146,21 +152,24 @@ double energy::ewald2D::get_particle_energy(Particle **particles, Particle *p){
     double stime = omp_get_wtime();
     for(int i = p->index + 1; i < Particle::numOfParticles; i++){
         distance = Particle::distances[p->index][i];
-        real += particles[i]->q * p->q * erfc_x(alpha * distance)/distance;
+        real += particles[i]->q * p->q * erfc_x(alpha * distance) / distance;
 
     }
     
     for(int i = 0; i < p->index; i++){
         distance = Particle::distances[i][p->index];
-        real += particles[i]->q * p->q * erfc_x(alpha * distance)/distance;
+        real += particles[i]->q * p->q * erfc_x(alpha * distance) / distance;
     }
 
     for(int i = 0; i < Particle::numOfParticles; i++){
 
         for(int j = 0; j < Particle::numOfParticles; j++){
-            reciprocal += particles[i]->q * particles[j]->q * get_reciprocal(particles[i], particles[j]) * 1/2;
+            double zDist = particles[i]->pos[2] - particles[j]->pos[2];
+            reciprocal += particles[i]->q * particles[j]->q * get_reciprocal(particles[i], particles[j]) * 1.0 / 2.0;
+
             //reci += particles[i]->q * particles[j]->q * get_reciprocal(particles[i], particles[j]);
-            gE += particles[i]->q * particles[j]->q * g(particles[i], particles[j]);
+            gE += particles[i]->q * particles[j]->q * (zDist * erf_x(alpha * zDist) + exp(-(zDist * zDist * alpha * alpha)) / (alpha * sqrt(PI)));
+            //gE += particles[i]->q * particles[j]->q * g(particles[i], particles[j]);
         }
         //dipCorr += dipole_correction(particles[i]);
         self += get_self_correction(particles[i]);
@@ -170,7 +179,7 @@ double energy::ewald2D::get_particle_energy(Particle **particles, Particle *p){
     reciprocal = (reciprocal - gE) * PI/(Base::xL * Base::yL);
     
     //dipCorr = -2 * PI/(Base::xL * Base::yL * Base::zL) * dipCorr * dipCorr;
-    self = alpha/sqrt(PI) * self;
+    self = alpha / sqrt(PI) * self;
     energy = (real + reciprocal - self);// + dipCorr);
     //printf("Real: %lf, self: %lf, reciprocal: %lf dipCorr: %lf\n", real * Base::lB, self, reciprocal, dipCorr);
     return energy * Base::lB;
@@ -201,9 +210,11 @@ double energy::ewald2D::get_energy(Particle **particles){
         }
 
         for(int j = 0; j < Particle::numOfParticles; j++){
-            reciprocal += particles[i]->q * particles[j]->q * get_reciprocal(particles[i], particles[j]) * 1/2;
+            double zDist = particles[i]->pos[2] - particles[j]->pos[2];
+            reciprocal += particles[i]->q * particles[j]->q * get_reciprocal(particles[i], particles[j]) * 1.0 / 2.0;
             //reci += particles[i]->q * particles[j]->q * get_reciprocal(particles[i], particles[j]);
-            gE += particles[i]->q * particles[j]->q * g(particles[i], particles[j]);
+            //gE += particles[i]->q * particles[j]->q * g(particles[i], particles[j]);
+            gE += particles[i]->q * particles[j]->q * (zDist * erf_x(alpha * zDist) + exp(-(zDist * zDist * alpha * alpha)) / (alpha * sqrt(PI)));
         }
         //dipCorr += dipole_correction(particles[i]);
         self += get_self_correction(particles[i]);

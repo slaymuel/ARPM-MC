@@ -8,7 +8,7 @@
 
 namespace energy{ namespace ewald2D{
 
-        extern std::vector< std::vector<double> > kVec;
+        extern std::vector< Eigen::Vector3d > kVec;
         extern double *kNorm;
         extern int kNum;
         extern double alpha;

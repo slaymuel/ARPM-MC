@@ -223,6 +223,7 @@ class MC{
             Particle *_old = new Particle(true);
 
             int p =  random * Particle::numOfParticles;
+
             //#pragma omp parallel
             //{
             //Calculate old energy

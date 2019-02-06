@@ -48,7 +48,7 @@ double energy::ewald3D::norm(T x){
 }
 
 void energy::ewald3D::set_alpha(){
-    alpha = 16.0 / Base::xL; //8.0 / alpha
+    alpha = 8.0 / Base::xL; //8.0 / alpha
 }
 
 void energy::ewald3D::reset(){
@@ -66,7 +66,8 @@ void energy::ewald3D::initialize(Particle **p){
     kNumMax = 1000000;
     kNum = 0;
     resFac = (double*) malloc(kNumMax * sizeof(double));
-    int kMax = 10;//8/Base::xL;
+    int kMax = 9;//8/Base::xL;
+    double recCut = 5;
     //get k-vectors
     double factor = 1;
     std::vector<double> vec(3);
@@ -82,13 +83,15 @@ void energy::ewald3D::initialize(Particle **p){
                 vec[0] = (2.0 * PI * kx / Base::xL);
                 vec[1] = (2.0 * PI * ky / Base::yL);
                 vec[2] = (2.0 * PI * kz / Base::zL);
-                k2 = dot(vec, vec);
+                //if(vec[0] * vec[0] + vec[1] * vec[1] + vec[2] * vec[2] < recCut * recCut){ //Spherical reciprocal space cutoff
+                    k2 = dot(vec, vec);
 
-                if(fabs(k2) > 1e-5){// && fabs(k2) < kMax) {
-                    kVec.push_back(vec);
-                    resFac[kNum] = factor * exp(-k2/(4.0 * alpha * alpha))/k2;
-                    kNum++;
-                }
+                    if(fabs(k2) > 1e-5){// && fabs(k2) < kMax) {
+                        kVec.push_back(vec);
+                        resFac[kNum] = factor * exp(-k2/(4.0 * alpha * alpha))/k2;
+                        kNum++;
+                    }
+                //}
             }
         }
     }
@@ -177,10 +180,10 @@ double energy::ewald3D::get_energy(Particle **particles){
                 for(int j = i + 1; j < Particle::numOfParticles; j++){
                     distance = Particle::distances[i][j];
 
-                    if(distance <= 10){
+                    //if(distance <= 10){
                         energy = erfc_x(distance * alpha) / distance;
                         real += particles[i]->q * particles[j]->q * energy;
-                    }
+                    //}
                 }
                 
                 dipoleMoment += particles[i]->q * particles[i]->pos;
@@ -220,19 +223,19 @@ double energy::ewald3D::get_particle_energy(Particle **particles, Particle* p){
     for(int i = p->index + 1; i < Particle::numOfParticles; i++){
         distance = Particle::distances[p->index][i];
 
-        if(distance <= 10){
+        //if(distance <= 10){
             energy = erfc_x(distance * alpha) / distance;
             real += particles[i]->q * p->q * energy;
-        }
+        //}
         dipoleMoment += particles[i]->q * particles[i]->pos;
     }
     for(int i = 0; i < p->index; i++){
         distance = Particle::distances[i][p->index];
         
-        if(distance <= 10){
+        //if(distance <= 10){
             energy = erfc_x(distance * alpha) / distance;
             real += particles[i]->q * p->q * energy;
-        }
+        //}
         dipoleMoment += particles[i]->q * particles[i]->pos;
     }
     dipoleMoment += particles[p->index]->q * particles[p->index]->pos;
