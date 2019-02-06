@@ -13,7 +13,8 @@
 #include "levin.h"
 class MC{
     public:
-        void equilibrate(Particle **particles);
+        //void equilibrate(Particle **particles);
+        void equilibrate(std::vector<Particle> &particles);
         //static int trans_move(Particle **particles, double dr);
         static int charge_rot_move(Particle **particles);
         static double get_particle_energy(int pInd, Particle *p, Particle **particles);
@@ -28,11 +29,21 @@ class MC{
 
         template <typename E>
         static int grand_move(Particle **particles, E energy_function){
-            int r = ran2::get_random() * Particle::numOfParticles;
+            int random = ran2::get_random();
+
+
             //Delete particle
-            Particle::numOfParticles--;
+            if(random < 0.5){
+                Particle::numOfParticles--;
+                int r = ran2::get_random() * Particle::numOfParticles;
+            }
+
+
             //Add particle
-            Particle::numOfParticles++;
+            else{
+                Particle::numOfParticles++;
+            }
+            
         }
 
         template <typename E>
@@ -164,28 +175,28 @@ class MC{
         }
 
         template <typename E>
-        static int charge_disp_move(Particle **particles, E energy_function){
+        static int charge_disp_move(std::vector<Particle> &particles, E energy_function){
             double eOld;
             double eNew;
             double acceptProb;
             int r = ran2::get_random() * Particle::numOfParticles;
             double dE;
             int accepted = 0;
-            Particle *_old = new Particle(true);
+            Particle _old = new Particle(true);
 
-            _old->pos = particles[r]->pos;
-            _old->com = particles[r]->com;
-            _old->chargeDisp = particles[r]->chargeDisp;
-            _old->q = particles[r]->q;
-            _old->index = particles[r]->index;
-            _old->b = particles[r]->b;
+            _old.pos = particles[r].pos;
+            _old.com = particles[r].com;
+            _old.chargeDisp = particles[r].chargeDisp;
+            _old.q = particles[r].q;
+            _old.index = particles[r].index;
+            _old.b = particles[r].b;
 
             //eOld = MC::direct.get_energy(particles);
             eOld = energy_function(particles, particles[r]);
 
-            particles[r]->b += (ran2::get_random() - 0.5) * 0.1;
-            particles[r]->chargeDisp = particles[r]->chargeDisp.normalized() * particles[r]->b;
-            particles[r]->pos = particles[r]->com + particles[r]->chargeDisp;
+            particles[r].b += (ran2::get_random() - 0.5) * 0.1;
+            particles[r].chargeDisp = particles[r].chargeDisp.normalized() * particles[r].b;
+            particles[r].pos = particles[r].com + particles[r].chargeDisp;
 
             Particle::update_distances(particles, particles[r]);
             energy::ewald3D::update_reciprocal(_old, particles[r]);
@@ -204,19 +215,19 @@ class MC{
             //Reject
             else{
                 energy::ewald3D::update_reciprocal(particles[r], _old);
-                particles[r]->chargeDisp = _old->chargeDisp;
-                particles[r]->pos = _old->pos;
-                particles[r]->b = _old->b;
+                particles[r].chargeDisp = _old.chargeDisp;
+                particles[r].pos = _old.pos;
+                particles[r].b = _old.b;
                 Particle::update_distances(particles, particles[r]);
             }
-            delete _old;
+            //delete _old;
             return accepted;
         }
 
 
 
         template<typename E>
-        static int trans_move(Particle **particles, double dr, E energy_function){
+        static int trans_move(std::vector<Particle> &particles, double dr, E energy_function){
             double eOld = 0.0;
             double eNew = 0.0;
             double dist = 0.0;
@@ -228,7 +239,7 @@ class MC{
             double ewald3DEnergy = 0.0;
             double ewald2DEnergy = 0.0;
             double directEnergy = 0.0;
-            Particle *_old = new Particle(true);
+            Particle _old = new Particle(true);
 
             int p =  random * Particle::numOfParticles;
 
@@ -239,13 +250,13 @@ class MC{
             //    {
             //        #pragma omp task default(shared)
                         eOld = energy_function(particles, particles[p]);
-                    _old->pos = particles[p]->pos;
-                    _old->com = particles[p]->com;
-                    _old->q = particles[p]->q;
-                    _old->index = particles[p]->index;
+                    _old.pos = particles[p].pos;
+                    _old.com = particles[p].com;
+                    _old.q = particles[p].q;
+                    _old.index = particles[p].index;
 
                     //Generate new trial coordinates
-                    particles[p]->random_move(dr);
+                    particles[p].random_move(dr);
                     //energy::imgrep::update_position(particles, particles[p]);
                     Particle::update_distances(particles, particles[p]);
             //        #pragma omp task default(shared)
@@ -257,7 +268,7 @@ class MC{
             //    }
             //}
             //If there is no overlap in new position and it's inside the box
-            if(particles[p]->hard_sphere(particles) && particles[p]->wall_2d()){
+            if(particles[p].hard_sphere(particles) && particles[p].wall_2d()){
 
                 //Get new energy
                 energy::ewald3D::update_reciprocal(_old, particles[p]);
@@ -282,20 +293,20 @@ class MC{
                     //energy::imgrep::update_position(particles, _old);
                     energy::ewald3D::update_reciprocal(particles[p], _old);
                     //energy::levin::update_f(particles[p], _old);
-                    particles[p]->pos = _old->pos;
-                    particles[p]->com = _old->com;
+                    particles[p].pos = _old.pos;
+                    particles[p].com = _old.com;
                     Particle::update_distances(particles, particles[p]);
                 }
             }
 
             else{   //Reject move
-                particles[p]->pos = _old->pos;
-                particles[p]->com = _old->com;
+                particles[p].pos = _old.pos;
+                particles[p].com = _old.com;
                 //energy::imgrep::update_position(particles, particles[p]);
                 Particle::update_distances(particles, particles[p]);
             }
 
-            delete _old;
+            //delete _old;
             return accepted;
         }
 
@@ -368,7 +379,7 @@ class MC{
         }
 
         template<typename F, typename FP>
-        static void run(F&& energy_function, FP&& particle_energy_function, Particle** particles, double dr, int iter, bool sample, std::string outputFile){
+        static void run(F&& energy_function, FP&& particle_energy_function, std::vector<Particle> &particles, double dr, int iter, bool sample, std::string outputFile){
             double energy_temp;
             double partRatio = (double)Particle::numOfParticles/(Particle::numOfParticles + Particle::numOfElectrons);
             int prevAccepted = 0;

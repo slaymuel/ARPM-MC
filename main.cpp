@@ -55,7 +55,8 @@ int main(int argc, char *argv[])
     // }
     
     //Particle variables
-    Particle **particles;
+    //Particle **particles;
+    std::vector<Particle> particles;
     int numOfParticles;//6728;
     double diameter = 5;
     double diameter2 = pow(diameter, 2);
@@ -159,7 +160,7 @@ int main(int argc, char *argv[])
         }
         std::cout << "Opening " << vm["f"].as<std::string>() << std::endl;
         std::string filename = vm["f"].as<std::string>().c_str();
-        particles = Particle::read_coordinates(filename, relative, nanometers);
+        //particles = Particle::read_coordinates(filename, relative, nanometers);
     }
 
     if(vm.count("f_gro")){
@@ -178,7 +179,7 @@ int main(int argc, char *argv[])
     }
 
     if(vm.count("f_arpm_jan")){
-        particles = Particle::read_arpm_jan("coord");
+        //particles = Particle::read_arpm_jan("coord");
     }
 
     if(vm.count("electrons")){
@@ -193,7 +194,7 @@ int main(int argc, char *argv[])
         }
         printf("%d particles will be created\n", numOfParticles);
         particles = Particle::create_particles(numOfParticles/10, numOfParticles/10, Particle::numOfElectrons);
-        energy::imgrep::set_positions(particles);
+        //energy::imgrep::set_positions(particles);
         //mc.equilibrate(particles);
         density = (double)numOfParticles/(Base::xL * Base::yL * (Base::zL - 2 * Base::wall)) * pow(diameter, 3);
     }
@@ -291,13 +292,9 @@ int main(int argc, char *argv[])
     Base::volume = Base::xL * Base::yL * Base::zL;
     Base::volumes.push_back(Base::volume);
 
-    energy::ewald2D::set_alpha();
-    energy::ewald2D::initialize();
-    energy::ewald3D::set_alpha();
-    energy::ewald3D::initialize(particles);
 
-    energy::levin::initialize(particles);
-    energy::valleau::initialize();
+
+    //energy::levin::initialize(particles);
 
     // overlaps = Particle::get_overlaps(particles);
     // if(overlaps > 0){
@@ -321,45 +318,50 @@ int main(int argc, char *argv[])
     std::string energyFunction = "ewald";
 
     if(energyFunction == "valleau"){
-        //MC::run(&energy::hs::get_energy, &energy::hs::get_particle_energy, particles, dr, iter, false);
+        /*energy::valleau::initialize();
+        MC::run(&energy::hs::get_energy, &energy::hs::get_particle_energy, particles, dr, iter, false);
 
         MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, 0.1, 1000000, false, outputFile);
         energy::valleau::update_potential();
         
         MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, dr, 1000000, false, outputFile);
-        energy::valleau::update_potential();
+        energy::valleau::update_potential();*/
         
         //MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, 15, 1000000, false);
         //energy::valleau::update_potential();
 
-        MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, dr, iter, true, outputFile);
+        //MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, dr, iter, true, outputFile);
         
         //MC::run(&energy::levin::get_energy, &energy::levin::get_particle_energy, particles, dr, iter, true, outputFile);
     }
 
     if(energyFunction == "ewald"){
+        energy::ewald3D::set_alpha();
+        energy::ewald3D::initialize(particles);
         MC::run(&energy::ewald3D::get_energy, &energy::ewald3D::get_particle_energy, particles, dr, iter, true, outputFile);
     }
 
     if(energyFunction == "ewald2d"){
-        MC::run(&energy::ewald2D::get_energy, &energy::ewald2D::get_particle_energy, particles, dr, iter, true, outputFile);
+        //energy::ewald2D::set_alpha();
+        //energy::ewald2D::initialize();
+        //MC::run(&energy::ewald2D::get_energy, &energy::ewald2D::get_particle_energy, particles, dr, iter, true, outputFile);
     }
 
     if(energyFunction == "test"){
-        MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, dr, 0, true, outputFile);
-        MC::run(&energy::levin::get_energy, &energy::levin::get_particle_energy, particles, dr, 0, true, outputFile);
+        //MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, dr, 0, true, outputFile);
+        //MC::run(&energy::levin::get_energy, &energy::levin::get_particle_energy, particles, dr, 0, true, outputFile);
     }
 
     if(energyFunction == "levin"){
-        MC::run(&energy::levin::get_energy, &energy::levin::get_particle_energy, particles, dr, iter, true, outputFile);
+        //MC::run(&energy::levin::get_energy, &energy::levin::get_particle_energy, particles, dr, iter, true, outputFile);
     }
 
     if(energyFunction == "electron"){
-        energy::imagitron::initialize();
-        MC::run(&energy::imagitron::get_energy, &energy::imagitron::get_particle_energy, particles, dr, iter, true, outputFile);
+        //energy::imagitron::initialize();
+        //MC::run(&energy::imagitron::get_energy, &energy::imagitron::get_particle_energy, particles, dr, iter, true, outputFile);
     }
     if(energyFunction == "direct"){
-        MC::run(&energy::direct::get_energy, &energy::direct::get_particle_energy, particles, dr, iter, true, outputFile);
+        //MC::run(&energy::direct::get_energy, &energy::direct::get_particle_energy, particles, dr, iter, true, outputFile);
     }
 /*
     Base::eCummulative = MC::ewald3D.get_energy(particles);
@@ -441,14 +443,10 @@ int main(int argc, char *argv[])
 
     //Clean up allocated memory
     printf("Cleaning up...\n");
-    for(int i = 0; i < Particle::numOfParticles; i++){
-        free(particles[i]);
-    }
     //for(i = 0; i < numOfCells; i++){
     //    free(grid[i]);
     //}
     //free(grid);
-    free(particles);
     //free(histo);
    return 0;
 }

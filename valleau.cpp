@@ -340,7 +340,7 @@ double energy::valleau::get_energy(Particle **particles){
     }
     //printf("Valleau dir: %lf    pol: %lf\n", energy::direct::get_energy(particles), get_images(particles));
     //energy += energy::direct::get_energy(particles);
-    energy += energy::ewald3D::get_energy(particles);
+    //energy += energy::ewald3D::get_energy(particles);
     energy += get_images(particles);
     return energy;
 }
@@ -364,7 +364,7 @@ double energy::valleau::get_particle_energy(Particle **particles, Particle *p){
     }
     //printf("dir: %lf    pol: %lf\n", energy::direct::get_particle_energy(particles, p), get_particle_images(particles, p));
     //energy += energy::direct::get_particle_energy(particles, p);
-    energy += energy::ewald3D::get_particle_energy(particles, p);
+    //energy += energy::ewald3D::get_particle_energy(particles, p);
     energy += get_particle_images(particles, p);
     
     return energy;

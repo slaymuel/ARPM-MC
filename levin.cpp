@@ -127,7 +127,7 @@ double energy::levin::get_polarization(){
 
 
 double energy::levin::get_energy(Particle **particles){
-    double eDir = energy::ewald3D::get_energy(particles);
+    //double eDir = energy::ewald3D::get_energy(particles);
     //printf("u_gamma: %.15lf\n", u_gamma(particles) * Base::lB);
     //printf("normalized pol: %lf\n", PI/(Base::xL * Base::xL) * get_polarization() * Base::lB);
 
@@ -135,16 +135,16 @@ double energy::levin::get_energy(Particle **particles){
 
     //printf("direct: %lf    polarization: %lf\n", eDir, ePol);
     //printf("Levin direct: %lf    polarization: %lf\n", eDir, ePol);
-    return eDir + ePol;
+    return 0;//eDir + ePol;
 }
 
 
 double energy::levin::get_particle_energy(Particle **particles, Particle *p){
-    double eDir = energy::ewald3D::get_particle_energy(particles, p);
+    //double eDir = energy::ewald3D::get_particle_energy(particles, p);
     //printf("u_gamma: %lf    polarization: %lf\n", u_gamma(particles), get_polarization());
 
     double ePol = (u_gamma(particles) + PI/(Base::xL * Base::xL) * get_polarization()) * Base::lB;
     
     //printf("direct: %lf    polarization: %lf\n", eDir, ePol);
-    return eDir + ePol;
+    return 0;//eDir + ePol;
 }

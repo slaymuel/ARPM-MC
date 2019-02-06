@@ -13,8 +13,8 @@ namespace energy{ namespace ewald2D{
         extern int kNum;
         extern double alpha;
 
-        double get_energy(Particle **particles);
-        double get_particle_energy(Particle **particles, Particle *p);
+        double get_energy(std::vector<Particle> &particles);
+        double get_particle_energy(std::vector<Particle> &particles, Particle &p);
         void initialize();
         void set_alpha();
 
@@ -26,12 +26,12 @@ namespace energy{ namespace ewald2D{
 
         template<typename T>
         double norm(T x);
-        double get_self_correction(Particle *p);
+        double get_self_correction(Particle &p);
         double f(double norm, double zDist);
-        double g(Particle *p1, Particle *p2);
-        double get_reciprocal(Particle *p1, Particle *p2);
-        double get_real(Particle *p1, Particle *p2);
-        double dipole_correction(Particle *p);
+        double g(Particle &p1, Particle &p2);
+        double get_reciprocal(Particle &p1, Particle &p2);
+        double get_real(Particle &p1, Particle &p2);
+        double dipole_correction(Particle &p);
 
 } }
 

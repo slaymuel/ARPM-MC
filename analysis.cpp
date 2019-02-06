@@ -17,16 +17,16 @@ Analysis::Analysis(double binWidth, double dLength){
     this->numOfHisto++;
 }
 
-void Analysis::sampleHisto(Particle **particles, int d){
+void Analysis::sampleHisto(std::vector<Particle> &particles, int d){
     int i = 0;
     double dist = 0;
     for(i = 0; i < Particle::numOfParticles; i++){
         //this->histo[(int)(particles[i]->pos[d] / binWidth)]++;
-        if(particles[i]->q < 0){
-            this->nHisto[(int)( (particles[i]->pos[d] + Base::zLBox / 2.0) / binWidth )]++;
+        if(particles[i].q < 0){
+            this->nHisto[(int)( (particles[i].pos[d] + Base::zLBox / 2.0) / binWidth )]++;
         }
-        else if(particles[i]->q > 0){
-            this->pHisto[(int)( (particles[i]->pos[d] + Base::zLBox / 2.0) / binWidth )]++;
+        else if(particles[i].q > 0){
+            this->pHisto[(int)( (particles[i].pos[d] + Base::zLBox / 2.0) / binWidth )]++;
         }
     }
     this->numberOfSamples++;
@@ -84,7 +84,7 @@ void Analysis::saveHisto(char outName[]){
 }
 
 
-void Analysis::sample_rdf(Particle **particles, int *histo, double binWidth){
+void Analysis::sample_rdf(std::vector<Particle> &particles, int *histo, double binWidth){
     int i = 0;
     int j = 0;
     double dist = 0;
@@ -93,9 +93,9 @@ void Analysis::sample_rdf(Particle **particles, int *histo, double binWidth){
     for(i = 0; i < Particle::numOfParticles; i++){
         j = i + 1;
         while(j < Particle::numOfParticles){
-            dist = particles[i]->com_distance(particles[j]);
+            dist = particles[i].com_distance(particles[j]);
             if(dist < xL2){
-                if(particles[i]->q < 0 && particles[j]->q < 0){
+                if(particles[i].q < 0 && particles[j].q < 0){
                     dist = sqrt(dist);
                     this->histo[(int)(dist/binWidth)] += 2;
                 }

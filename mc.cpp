@@ -186,12 +186,13 @@ int MC::trans_move(Particle **particles, double dr){
 }
 */
 
-void MC::equilibrate(Particle **particles){
+//void MC::equilibrate(Particle **particles){
+void MC::equilibrate(std::vector<Particle> &particles){
     int overlaps = 1;
     int prevOverlaps = 500000;
     int i = 0;
     int j = 0;
-    double diameter2 = pow(particles[0]->d, 2);
+    double diameter2 = pow(particles[0].d, 2);
     Eigen::Vector3d oldPos;
     Eigen::Vector3d oldCom;
     double random;
@@ -202,22 +203,22 @@ void MC::equilibrate(Particle **particles){
     while(overlaps > 0){
         random = ran2::get_random();
         p =  random * Particle::numOfParticles;
-        oldCom = particles[p]->com;
-        oldPos = particles[p]->pos;
+        oldCom = particles[p].com;
+        oldPos = particles[p].pos;
         // oldPos[0] = particles[p]->com[0];
         // oldPos[1] = particles[p]->com[1];
         // oldPos[2] = particles[p]->com[2];
-        particles[p]->random_move(5);
+        particles[p].random_move(5);
         Particle::update_distances(particles, particles[p]);
-        if(!particles[p]->hard_sphere(particles) || particles[p]->com[2] < -Base::zLBox / 2.0 + particles[p]->d / 2.0 ||
-                                                    particles[p]->com[2] > Base::zLBox / 2.0 - particles[p]->d / 2.0){
-            particles[p]->com = oldCom;
-            particles[p]->pos = oldPos;
+        if(!particles[p].hard_sphere(particles) || particles[p].com[2] < -Base::zLBox / 2.0 + particles[p].d / 2.0 ||
+                                                    particles[p].com[2] > Base::zLBox / 2.0 - particles[p].d / 2.0){
+            particles[p].com = oldCom;
+            particles[p].pos = oldPos;
             Particle::update_distances(particles, particles[p]);
         }
 
-        else if(particles[p]->com[2] < -Base::zLBox / 2.0 + particles[p]->d / 2.0 || particles[p]->com[1] < -Base::yL / 2.0 || particles[p]->com[0] < -Base::xL / 2.0){
-            printf("Failed to equilibrate system, a particle was found outside the box, %lf, %lf, %lf...\n", particles[p]->com[0], particles[p]->com[1], particles[p]->com[2]);
+        else if(particles[p].com[2] < -Base::zLBox / 2.0 + particles[p].d / 2.0 || particles[p].com[1] < -Base::yL / 2.0 || particles[p].com[0] < -Base::xL / 2.0){
+            printf("Failed to equilibrate system, a particle was found outside the box, %lf, %lf, %lf...\n", particles[p].com[0], particles[p].com[1], particles[p].com[2]);
             exit(1);
         }
 
@@ -232,7 +233,7 @@ void MC::equilibrate(Particle **particles){
     }
     printf("\n\033[32mEquilibration done\033[30m\n\n");
 }
-
+/*
 void MC::disperse(Particle **particles) {
     int i = 0;
     int j = 0;
@@ -289,6 +290,9 @@ void MC::disperse(Particle **particles) {
         }
     }
 }
+*/
+
+
 /*
 template<typename F>
 void MC::run(F&& energy_function, Particle** particles, int iter){
