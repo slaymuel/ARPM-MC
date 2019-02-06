@@ -58,7 +58,7 @@ void energy::ewald3D::reset(){
     free(rkVec);
 }
 
-void energy::ewald3D::initialize(std::vector<Particle> &p){
+void energy::ewald3D::initialize(Particles &particles){
     int i = 0;
     double r = 0;
     double qq = 0;
@@ -110,18 +110,18 @@ void energy::ewald3D::initialize(std::vector<Particle> &p){
     
     for(int k = 0; k < kNum; k++){
         rho = 0;
-        for(int i = 0; i < Particle::numOfParticles; i++){
-            rk.imag(std::sin(dot(p[i].pos, kVec[k])));
-            rk.real(std::cos(dot(p[i].pos, kVec[k])));
-            charge = p[i].q;
+        for(int i = 0; i < particles.numOfParticles; i++){
+            rk.imag(std::sin(dot(particles[i].pos, kVec[k])));
+            rk.real(std::cos(dot(particles[i].pos, kVec[k])));
+            charge = particles[i].q;
             rk = rk * charge;
             rho += rk;
         }
         rkVec[k] = rho;
     }
     selfTerm = 0;
-    for(int i = 0; i < Particle::numOfParticles; i++){
-        selfTerm += get_self_correction(p[i]);
+    for(int i = 0; i < particles.numOfParticles; i++){
+        selfTerm += get_self_correction(particles[i]);
     }
     selfTerm = alpha/sqrt(PI) * selfTerm * Base::lB;
 }
@@ -160,7 +160,7 @@ double energy::ewald3D::get_self_correction(Particle &p){
     return self;
 }
 
-double energy::ewald3D::get_energy(std::vector<Particle> &particles){
+double energy::ewald3D::get_energy(Particles &particles){
         double real = 0;
         //double self = 0;
         double reciprocal = 0;
@@ -176,9 +176,9 @@ double energy::ewald3D::get_energy(std::vector<Particle> &particles){
 
         //double stime = omp_get_wtime();
         //#pragma omp parallel for reduction(+:real) schedule(dynamic) private(energy, distance, da, erfcRes)
-        for(int i = 0; i < Particle::numOfParticles; i++){
-                for(int j = i + 1; j < Particle::numOfParticles; j++){
-                    distance = Particle::distances[i][j];
+        for(int i = 0; i < particles.numOfParticles; i++){
+                for(int j = i + 1; j < particles.numOfParticles; j++){
+                    distance = particles.distances[i][j];
 
                     //if(distance <= 10){
                         energy = erfc_x(distance * alpha) / distance;
@@ -206,7 +206,7 @@ double energy::ewald3D::get_energy(std::vector<Particle> &particles){
         //return Base::lB * (real + reciprocal) - selfTerm;   //tinfoil
 }
 
-double energy::ewald3D::get_particle_energy(std::vector<Particle> &particles, Particle &p){
+double energy::ewald3D::get_particle_energy(Particles &particles, Particle &p){
     double real = 0;
     double self = 0;
     double reciprocal = 0;
@@ -220,8 +220,8 @@ double energy::ewald3D::get_particle_energy(std::vector<Particle> &particles, Pa
 
     reciprocal = get_reciprocal();
 
-    for(int i = p.index + 1; i < Particle::numOfParticles; i++){
-        distance = Particle::distances[p.index][i];
+    for(int i = p.index + 1; i < particles.numOfParticles; i++){
+        distance = particles.distances[p.index][i];
 
         //if(distance <= 10){
             energy = erfc_x(distance * alpha) / distance;
@@ -230,7 +230,7 @@ double energy::ewald3D::get_particle_energy(std::vector<Particle> &particles, Pa
         dipoleMoment += particles[i].q * particles[i].pos;
     }
     for(int i = 0; i < p.index; i++){
-        distance = Particle::distances[i][p.index];
+        distance = particles.distances[i][p.index];
         
         //if(distance <= 10){
             energy = erfc_x(distance * alpha) / distance;

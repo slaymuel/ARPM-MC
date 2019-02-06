@@ -13,11 +13,11 @@
 
 namespace energy{ namespace levin{
 
-    double get_energy(Particle **particles);
-    double get_particle_energy(Particle **particles, Particle *p);
-    void initialize(Particle **particles);
-    void update_f(Particle *_old, Particle *_new);
-    double u_gamma(Particle **particles);
+    double get_energy(Particles &particles);
+    double get_particle_energy(Particles &particles, Particle &p);
+    void initialize(Particles &particles);
+    void update_f(Particle &_old, Particle &_new);
+    double u_gamma(Particles &particles);
     double get_polarization();
 
     extern int kNumMax;

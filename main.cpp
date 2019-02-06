@@ -2,6 +2,7 @@
 //Check overlap
 //Move particle, accept move if no overlap
 #include "particle.h"
+#include "particles.h"
 #include "constants.h"
 #include "analysis.h"
 #include "ran2_lib.cpp"
@@ -14,9 +15,9 @@
 #include "valleau.h"
 #include "ewald3D.h"
 #include "ewald2D.h"
-#include "hard_sphere.h"
-#include "imagitron.h"
-#include "img_rep.h"
+//#include "hard_sphere.h"
+//#include "imagitron.h"
+//#include "img_rep.h"
 //Initializers
 //Ewald3D MC::ewald3D;
 
@@ -56,7 +57,7 @@ int main(int argc, char *argv[])
     
     //Particle variables
     //Particle **particles;
-    std::vector<Particle> particles;
+    Particles particles;
     int numOfParticles;//6728;
     double diameter = 5;
     double diameter2 = pow(diameter, 2);
@@ -166,7 +167,7 @@ int main(int argc, char *argv[])
     if(vm.count("f_gro")){
         std::cout << "Opening " << vm["f_gro"].as<std::string>() << std::endl;
         std::string filename = vm["f_gro"].as<std::string>().c_str();
-        particles = Particle::read_coordinates_gro(filename);
+        particles.read_coordinates_gro(filename);
     }
 
     if(vm.count("o")){
@@ -175,7 +176,7 @@ int main(int argc, char *argv[])
     }
 
     if(vm.count("f_jan")){
-        particles = Particle::read_jan("coordp_1", "coordn_1");
+        particles.read_jan("coordp_1", "coordn_1");
     }
 
     if(vm.count("f_arpm_jan")){
@@ -183,7 +184,7 @@ int main(int argc, char *argv[])
     }
 
     if(vm.count("electrons")){
-        Particle::numOfElectrons = vm["electrons"].as<int>();
+        //Particle::numOfElectrons = vm["electrons"].as<int>();
     }
 
     if(vm.count("np") && vm["imgrep"].as<bool>()){
@@ -193,7 +194,7 @@ int main(int argc, char *argv[])
             numOfParticles += 5;
         }
         printf("%d particles will be created\n", numOfParticles);
-        particles = Particle::create_particles(numOfParticles/10, numOfParticles/10, Particle::numOfElectrons);
+        particles.create_particles(numOfParticles/10, numOfParticles/10, 0);//, Particle::numOfElectrons);
         //energy::imgrep::set_positions(particles);
         //mc.equilibrate(particles);
         density = (double)numOfParticles/(Base::xL * Base::yL * (Base::zL - 2 * Base::wall)) * pow(diameter, 3);
@@ -206,7 +207,7 @@ int main(int argc, char *argv[])
             numOfParticles += 1;
         }
         printf("%d particles will be created\n", numOfParticles);
-        particles = Particle::create_particles(numOfParticles/2, numOfParticles/2, Particle::numOfElectrons);
+        particles.create_particles(numOfParticles/2, numOfParticles/2, 0);//Particle::numOfElectrons);
         //mc.equilibrate(particles);
         density = (double)numOfParticles/(Base::xL * Base::yL * (Base::zL - 2 * Base::wall)) * pow(diameter, 3);
     }
@@ -227,7 +228,7 @@ int main(int argc, char *argv[])
         density = (double)numOfParticles/(Base::xL * Base::yL * (Base::zL - 2 * Base::wall)) * pow(diameter, 3);
         //numOfParticles = vm["density"].as<double>()/pow(diameter, 3)*(Base::xL * Base::yL * Base::zL);
         printf("%d particles will be created\n", numOfParticles);
-        particles = Particle::create_particles(numOfParticles/2, numOfParticles/2, Particle::numOfElectrons);
+        particles.create_particles(numOfParticles/2, numOfParticles/2, 0);//Particle::numOfElectrons);
         //mc.equilibrate(particles);
     }
     
@@ -238,7 +239,7 @@ int main(int argc, char *argv[])
                 numOfParticles += 1;
             }
             printf("%d particles will be created\n", numOfParticles);
-            particles = Particle::create_particles(numOfParticles/2, numOfParticles/2, Particle::numOfElectrons);
+            particles.create_particles(numOfParticles/2, numOfParticles/2, 0);//Particle::numOfElectrons);
         }
     }
 
@@ -247,17 +248,11 @@ int main(int argc, char *argv[])
     }
 
     if(vm.count("pnum")){
-        particles = Particle::create_particles(vm["nnum"].as<int>(), vm["pnum"].as<int>(), vm["electrons"].as<int>());
-        density = (double)Particle::numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(diameter, 3);
+        particles.create_particles(vm["nnum"].as<int>(), vm["pnum"].as<int>(), vm["electrons"].as<int>());
+        //density = (double)Particle::numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(diameter, 3);
     }
 
     printf("\033[34mBox dimensions are x: %lf y: %lf z: %lf\033[30m\n", Base::xL, Base::yL, Base::zL);
-    printf("num of particles including images: %d\n", Particle::numOfParticles);
-
-    Particle::distances = (double**) malloc((Particle::numOfParticles + Particle::numOfElectrons) * sizeof(double*));
-    for(int i = 0; i < Particle::numOfParticles + Particle::numOfElectrons; i++){
-        Particle::distances[i] = (double*) malloc((Particle::numOfParticles + Particle::numOfElectrons) * sizeof(double*));
-    }
     
     //Seed
     srand(time(NULL));
@@ -266,10 +261,12 @@ int main(int argc, char *argv[])
         density = (double)numOfParticles/(Base::xL * Base::yL * (Base::zL - 2 * Base::wall)) * pow(diameter, 3);
     }
     printf("\033[34mDensity is: %lf\033[30m\n", density);
-
-    Particle::update_distances(particles);
-    mc.particles = particles;
     
+    particles.initialize();
+    printf("num of particles including images: %d\n", particles.numOfParticles);
+    particles.update_distances();
+
+    mc.particles = particles;
     if(vm["overlap"].as<bool>()){
         printf("Removing overlaps...\n");
         mc.equilibrate();
@@ -278,16 +275,11 @@ int main(int argc, char *argv[])
 
     char name[] = "output_equilibrate_ewald.gro";
     char name_charges[] = "output_equilibrate_charges_ewald.gro";
+    mc.particles.write_coordinates(name);
+    mc.particles.write_charge_coordinates(name_charges);
+    mc.particles.update_distances();
 
-    Particle::write_coordinates(name, particles);
-    Particle::write_charge_coordinates(name_charges, particles);
 
-    Particle::update_distances(particles);
-    //exit(1);
-    //Analysis *xHist = new Analysis(0.05, Base::xL);
-    //Analysis *yHist = new Analysis(0.05, Base::yL);
-    //Analysis *zHist = new Analysis(0.05, Base::zL);
-    //Analysis *rdf = new Analysis(0.1, Base::zL);
     Base::set_lB();
     Base::set_beta();
     Base::volume = Base::xL * Base::yL * Base::zL;
@@ -297,17 +289,8 @@ int main(int argc, char *argv[])
 
     //energy::levin::initialize(particles);
 
-    // overlaps = Particle::get_overlaps(particles);
-    // if(overlaps > 0){
-    //     printf("System contains overlaps!\n");
-    //     exit(0);
-    // }
-
-    //Update cumulative energy
-    int energyOut = 0;
 
     // ///////////////////////////////         Main MC-loop          ////////////////////////////////////////
-    //Ewald3D ewald;
 
     strcat(outName_charges, outputFile.c_str());
     char volOut[40] = "volumes_\0";
@@ -316,16 +299,16 @@ int main(int argc, char *argv[])
     fprintf(f, "");
     fclose(f);
     std::string energyFunction = "ewald";
-    //MC mc;
+    
     if(energyFunction == "valleau"){
         /*energy::valleau::initialize();
         //MC::run(&energy::hs::get_energy, &energy::hs::get_particle_energy, particles, dr, iter, false);
 
-        MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, 0.1, 1000000, false, outputFile);
+        mc.run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, 0.1, 1000000, false, outputFile);
         energy::valleau::update_potential();
         
-        MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, dr, 1000000, false, outputFile);
-        energy::valleau::update_potential();
+        mc.run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, dr, 1000000, false, outputFile);
+        energy::valleau::update_potential();*/
         
         //MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, 15, 1000000, false);
         //energy::valleau::update_potential();*/
@@ -342,9 +325,9 @@ int main(int argc, char *argv[])
     }
 
     if(energyFunction == "ewald2d"){
-       /* energy::ewald2D::set_alpha();
+       /*energy::ewald2D::set_alpha();
         energy::ewald2D::initialize();
-        MC::run(&energy::ewald2D::get_energy, &energy::ewald2D::get_particle_energy, particles, dr, iter, true, outputFile);*/
+        mc.run(&energy::ewald2D::get_energy, &energy::ewald2D::get_particle_energy, dr, iter, true, outputFile);*/
     }
 
     if(energyFunction == "test"){
@@ -361,7 +344,7 @@ int main(int argc, char *argv[])
         //MC::run(&energy::imagitron::get_energy, &energy::imagitron::get_particle_energy, particles, dr, iter, true, outputFile);
     }
     if(energyFunction == "direct"){
-        //MC::run(&energy::direct::get_energy, &energy::direct::get_particle_energy, particles, dr, iter, true, outputFile);
+        //mc.run(&energy::direct::get_energy, &energy::direct::get_particle_energy, dr, iter, true, outputFile);
     }
 /*
     Base::eCummulative = MC::ewald3D.get_energy(particles);
@@ -436,8 +419,8 @@ int main(int argc, char *argv[])
 
     //Write coordinates to file
     printf("Saving output coordinates to: %s\n", outName);
-    Particle::write_coordinates(outName, particles);
-    Particle::write_charge_coordinates(outName_charges, particles);
+    mc.particles.write_coordinates(outName);
+    mc.particles.write_charge_coordinates(outName_charges);
 
     
 

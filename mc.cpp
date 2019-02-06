@@ -202,19 +202,19 @@ void MC::equilibrate(){
     //Move particles to prevent overlap
     while(overlaps > 0){
         random = ran2::get_random();
-        p =  random * Particle::numOfParticles;
+        p =  random * particles.numOfParticles;
         oldCom = particles[p].com;
         oldPos = particles[p].pos;
         // oldPos[0] = particles[p]->com[0];
         // oldPos[1] = particles[p]->com[1];
         // oldPos[2] = particles[p]->com[2];
         particles[p].random_move(5);
-        Particle::update_distances(particles, particles[p]);
-        if(!particles[p].hard_sphere(particles) || particles[p].com[2] < -Base::zLBox / 2.0 + particles[p].d / 2.0 ||
+        particles.update_distances(particles[p]);
+        if(!particles.hard_sphere(particles[p]) || particles[p].com[2] < -Base::zLBox / 2.0 + particles[p].d / 2.0 ||
                                                     particles[p].com[2] > Base::zLBox / 2.0 - particles[p].d / 2.0){
             particles[p].com = oldCom;
             particles[p].pos = oldPos;
-            Particle::update_distances(particles, particles[p]);
+            particles.update_distances(particles[p]);
         }
 
         else if(particles[p].com[2] < -Base::zLBox / 2.0 + particles[p].d / 2.0 || particles[p].com[1] < -Base::yL / 2.0 || particles[p].com[0] < -Base::xL / 2.0){
@@ -223,7 +223,7 @@ void MC::equilibrate(){
         }
 
         if(i % 50000 == 0){
-            overlaps = Particle::get_overlaps(particles);
+            overlaps = particles.get_overlaps();
             //stepSize = log(abs(prevOverlaps - overlaps) + 3.0);
             //prevOverlaps = overlaps;
             printf("Overlaps: %d, iteration: %d\r", overlaps, i);

@@ -193,3 +193,5 @@ double energy::imagitron::wall_charge(double z){
     //printf("wall1: %lf, wall2: %lf\n", wall1, wall2);
     return wallCharge * (wall1 + wall2);
 }
+
+

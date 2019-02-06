@@ -29,41 +29,28 @@ class Particle: public Base{
         void random_move(double stepSize);
         void random_charge_rot();
         void randomMove_xy(double stepSize);
-        int hard_sphere(std::vector<Particle> &particles);
+
         
         double com_distance(Particle &p);
         double com_distance_xy(Particle &p);
         double distance_xy(Particle &p);
         double distance_z(Particle *p);
         bool wall_2d();
-        //static void update_distances(Particle **particles);
-        static void update_distances(std::vector<Particle> &particles);
-        //static void update_distances(Particle **particles, Particle *p);
-        static void update_distances(std::vector<Particle> &particles, Particle &p);
-        static int get_overlaps(std::vector<Particle> &particles);
+
         static void place_particles(Particle **particles);
-        //static Particle** create_particles(int nNum, int pNum, int eNum);
-        static std::vector<Particle> create_particles(int nNum, int pNum, int eNum);
         static void create_electrons(std::vector<Particle> &particles, int num);
         static Particle** create_dummies(Particle **particles);
-        //static void write_coordinates(char name[40], Particle **particles);
-        static void write_coordinates(char name[40], std::vector<Particle> &particles);
-        //static void write_charge_coordinates(char name[], Particle **particles);
-        static void write_charge_coordinates(char name[], std::vector<Particle> &particles);
 
-        static std::vector<Particle> read_jan(std::string pName, std::string nName);
+
         static Particle** read_arpm_jan(std::string fileName);
         static Particle** read_coordinates(std::string name, bool relative, bool nanometers);
         //static Particle** read_coordinates_gro(std::string name);
-        static std::vector<Particle> read_coordinates_gro(std::string name);
+
         void pbc_pos();
         void pbc();
         static void pbc_xy(Eigen::Vector3d& x);
-    private:
-
-        void pbc(Eigen::Vector3d& x);
-        
         double distance(Particle &p);
+        void pbc(Eigen::Vector3d& x);     
 };
 
 #endif

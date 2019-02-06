@@ -3,6 +3,7 @@
 
 #include "base.h"
 #include "particle.h"
+#include "particles.h"
 #include <vector>
 #include <complex>
 
@@ -13,8 +14,8 @@ namespace energy{ namespace ewald2D{
         extern int kNum;
         extern double alpha;
 
-        double get_energy(std::vector<Particle> &particles);
-        double get_particle_energy(std::vector<Particle> &particles, Particle &p);
+        double get_energy(Particles &particles);
+        double get_particle_energy(Particles &particles, Particle &p);
         void initialize();
         void set_alpha();
 

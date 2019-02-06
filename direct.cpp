@@ -14,7 +14,7 @@ double energy::direct::norm(T vec){
     return sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 }
 
-double energy::direct::get_energy(std::vector<Particle> &particles){
+double energy::direct::get_energy(Particles &particles){
     double central = get_central(particles);
     double replicates = 1.0/2.0 * get_replicates(particles);
 
@@ -23,7 +23,7 @@ double energy::direct::get_energy(std::vector<Particle> &particles){
     return Base::lB * (replicates + central);
 }
 
-double energy::direct::get_particle_energy(std::vector<Particle> &particles, Particle &p){
+double energy::direct::get_particle_energy(Particles &particles, Particle &p){
     double central = get_central(particles, p);
     double replicates = 1.0/2.0 * get_replicates(particles);
 
@@ -40,7 +40,7 @@ double energy::direct::get_particle_energy(std::vector<Particle> &particles, Par
 //     return Base::lB * (replicates + central);
 // }
 
-double energy::direct::get_replicates(std::vector<Particle> &particles){
+double energy::direct::get_replicates(Particles &particles){
     double energy = 0;
     double dist = 0;
     int rep = 0;
@@ -55,8 +55,8 @@ double energy::direct::get_replicates(std::vector<Particle> &particles){
         for(int j = -my; j <= my; j++){
             for(int k = -mz; k <= mz; k++){
                 if(sqrt(i * i + j * j + k * k) <= rep){
-                    for(int l = 0; l < Particle::numOfParticles; l++){
-                        for(int m = 0; m < Particle::numOfParticles; m++){
+                    for(int l = 0; l < particles.numOfParticles; l++){
+                        for(int m = 0; m < particles.numOfParticles; m++){
                             if(i == 0 && j == 0 && k == 0){}
                             else{
                                 double den[] = {particles[l].pos[0] - particles[m].pos[0] + i * Base::xL, 
@@ -81,15 +81,15 @@ double energy::direct::get_replicates(std::vector<Particle> &particles){
     return energy;
 }
 
-double energy::direct::get_central(std::vector<Particle> &particles){
+double energy::direct::get_central(Particles &particles){
     double energy = 0;
     double dist = 0;
     Eigen::Vector3d disp;
-    for(int i = 0; i < Particle::numOfParticles; i++){
-        for(int k = i + 1; k < Particle::numOfParticles; k++){
+    for(int i = 0; i < particles.numOfParticles; i++){
+        for(int k = i + 1; k < particles.numOfParticles; k++){
             //disp = particles[i]->pos - particles[k]->pos;
             //dist = disp.norm();
-            dist = Particle::distances[i][k];
+            dist = particles.distances[i][k];
             energy += particles[i].q * particles[k].q / dist;
         }  
 
@@ -109,7 +109,7 @@ double energy::direct::get_central(std::vector<Particle> &particles){
     return energy;
 }
 
-double energy::direct::get_central(std::vector<Particle> &particles, Particle &p){
+double energy::direct::get_central(Particles &particles, Particle &p){
     int k = 0;
     double energy = 0;
     //double lenergy = 0;
@@ -117,21 +117,21 @@ double energy::direct::get_central(std::vector<Particle> &particles, Particle &p
     //#pragma omp parallel for reduction(+:energy) private(lenergy, dist)
     //{
     for(int i = 0; i < p.index; i++){
-        dist = Particle::distances[i][p.index];
+        dist = particles.distances[i][p.index];
         energy += particles[i].q * p.q * 1.0 / dist;
     }
     //}
     //#pragma omp parallel for reduction(+:energy) private(lenergy, dist)
     //{
-    for(int i = p.index + 1; i < Particle::numOfParticles; i++){
-        dist = Particle::distances[p.index][i];
+    for(int i = p.index + 1; i < particles.numOfParticles; i++){
+        dist = particles.distances[p.index][i];
         energy += particles[i].q * p.q * 1.0 / dist;
     }
     //}
     return energy;
 }   
 
-double energy::direct::get_replicates(std::vector<Particle> &particles, Particle &p){
+double energy::direct::get_replicates(Particles &particles, Particle &p){
     double energy = 0;
     //double lenergy = 0;
     double dist = 0;
@@ -148,7 +148,7 @@ double energy::direct::get_replicates(std::vector<Particle> &particles, Particle
             for(int k = -mz; k <= mz; k++){
                 if(sqrt(i * i + j * j + k * k) <= rep){
                     //numOfRep++;
-                    for(int l = 0; l < Particle::numOfParticles; l++){
+                    for(int l = 0; l < particles.numOfParticles; l++){
                         if(i == 0 && j == 0 && k == 0){}
                         else{
                             double den[] = {p.pos[0] - particles[l].pos[0] + i * Base::xL, 

@@ -137,7 +137,7 @@ double energy::ewald2D::get_real(Particle &p1, Particle &p2){
     return energy;
 }
 
-double energy::ewald2D::get_particle_energy(std::vector<Particle> &particles, Particle &p){
+double energy::ewald2D::get_particle_energy(Particles &particles, Particle &p){
     double energy = 0;
     double distance = 0;
     double real = 0;
@@ -150,20 +150,20 @@ double energy::ewald2D::get_particle_energy(std::vector<Particle> &particles, Pa
     int k = 0;
 
     double stime = omp_get_wtime();
-    for(int i = p.index + 1; i < Particle::numOfParticles; i++){
-        distance = Particle::distances[p.index][i];
+    for(int i = p.index + 1; i < particles.numOfParticles; i++){
+        distance = particles.distances[p.index][i];
         real += particles[i].q * p.q * erfc_x(alpha * distance) / distance;
 
     }
     
     for(int i = 0; i < p.index; i++){
-        distance = Particle::distances[i][p.index];
+        distance = particles.distances[i][p.index];
         real += particles[i].q * p.q * erfc_x(alpha * distance) / distance;
     }
 
-    for(int i = 0; i < Particle::numOfParticles; i++){
+    for(int i = 0; i < particles.numOfParticles; i++){
 
-        for(int j = 0; j < Particle::numOfParticles; j++){
+        for(int j = 0; j < particles.numOfParticles; j++){
             double zDist = particles[i].pos[2] - particles[j].pos[2];
             reciprocal += particles[i].q * particles[j].q * get_reciprocal(particles[i], particles[j]) * 1.0 / 2.0;
 
@@ -173,7 +173,7 @@ double energy::ewald2D::get_particle_energy(std::vector<Particle> &particles, Pa
         }
         //dipCorr += dipole_correction(particles[i]);
         self += get_self_correction(particles[i]);
-        //printf("Rec: %lf g: %lf: reci: %lf Done: %lf\r", reciprocal, gE, reci,(double)i/Particle::numOfParticles * 100);
+        //printf("Rec: %lf g: %lf: reci: %lf Done: %lf\r", reciprocal, gE, reci,(double)i/particles.numOfParticles * 100);
         //fflush(stdout);
     }
     reciprocal = (reciprocal - gE) * PI/(Base::xL * Base::yL);
@@ -185,7 +185,7 @@ double energy::ewald2D::get_particle_energy(std::vector<Particle> &particles, Pa
     return energy * Base::lB;
 }
 
-double energy::ewald2D::get_energy(std::vector<Particle> &particles){
+double energy::ewald2D::get_energy(Particles &particles){
     double energy = 0;
     double distance = 0;
     double real = 0;
@@ -197,19 +197,19 @@ double energy::ewald2D::get_energy(std::vector<Particle> &particles){
     double gE = 0;
     int k = 0;
 
-    for(int i = 0; i < Particle::numOfParticles; i++){
+    for(int i = 0; i < particles.numOfParticles; i++){
 
         k = i + 1;
-        while(k < Particle::numOfParticles){
-            distance = Particle::distances[i][k];
+        while(k < particles.numOfParticles){
+            distance = particles.distances[i][k];
             if(k != i){
                 //real += particles[i].q * particles[k].q * get_real(particles[i], particles[k]);
-                real += particles[i].q * particles[k].q * erfc_x(alpha * distance)/distance;
+                real += particles[i].q * particles[k].q * erfc_x(alpha * distance) / distance;
             }
             k++;
         }
 
-        for(int j = 0; j < Particle::numOfParticles; j++){
+        for(int j = 0; j < particles.numOfParticles; j++){
             double zDist = particles[i].pos[2] - particles[j].pos[2];
             reciprocal += particles[i].q * particles[j].q * get_reciprocal(particles[i], particles[j]) * 1.0 / 2.0;
             //reci += particles[i].q * particles[j].q * get_reciprocal(particles[i], particles[j]);
@@ -218,7 +218,7 @@ double energy::ewald2D::get_energy(std::vector<Particle> &particles){
         }
         //dipCorr += dipole_correction(particles[i]);
         self += get_self_correction(particles[i]);
-        //printf("Rec: %lf g: %lf: reci: %lf Done: %lf\r", reciprocal, gE, reci,(double)i/Particle::numOfParticles * 100);
+        //printf("Rec: %lf g: %lf: reci: %lf Done: %lf\r", reciprocal, gE, reci,(double)i/particles.numOfParticles * 100);
         //fflush(stdout);
     }
     reciprocal = (reciprocal - gE) * PI/(Base::xL * Base::yL);

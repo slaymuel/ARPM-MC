@@ -24,11 +24,11 @@ void energy::valleau::initialize(){
 }
 
 
-void energy::valleau::update_charge_vector(std::vector<Particle> &particles){
+void energy::valleau::update_charge_vector(Particles &particles){
     //Eigen::VectorXd pDensity(numOfBins);
     //Eigen::VectorXd nDensity(numOfBins);
     
-    for(int i = 0; i < Particle::numOfParticles; i++){
+    for(int i = 0; i < particles.numOfParticles; i++){
         if(particles[i].q > 0){
             pDensity[(int)((particles[i].pos[2] - Base::wall)/binWidth)]++;
         }
@@ -119,7 +119,7 @@ void energy::valleau::update_potential(){
 }
 
 
-double energy::valleau::get_images(std::vector<Particle> &particles){
+double energy::valleau::get_images(Particles &particles){
     int numOfReflections = 2;
     double energy = 0;
     double distance = 0;
@@ -128,8 +128,8 @@ double energy::valleau::get_images(std::vector<Particle> &particles){
     double tempY = 0;
 
     for(int k = 1; k <= numOfReflections; k += 2){  //Uneven reflections of opposite sign
-        for(int i = 0; i < Particle::numOfParticles; i++){
-            for(int j = i; j < Particle::numOfParticles; j++){
+        for(int i = 0; i < particles.numOfParticles; i++){
+            for(int j = i; j < particles.numOfParticles; j++){
                 tempX = particles[j].pos[0];
                 tempY = particles[j].pos[1];
 
@@ -174,8 +174,8 @@ double energy::valleau::get_images(std::vector<Particle> &particles){
     }
 
     for(int m = 2; m <= numOfReflections; m += 2){  //Even reflections of same sign
-        for(int i = 0; i < Particle::numOfParticles; i++){
-            for(int j = i; j < Particle::numOfParticles; j++){
+        for(int i = 0; i < particles.numOfParticles; i++){
+            for(int j = i; j < particles.numOfParticles; j++){
                 tempX = particles[j].pos[0];
                 tempY = particles[j].pos[1];
 
@@ -222,7 +222,7 @@ double energy::valleau::get_images(std::vector<Particle> &particles){
 }
 
 
-double energy::valleau::get_particle_images(std::vector<Particle> &particles, Particle &p){
+double energy::valleau::get_particle_images(Particles &particles, Particle &p){
     int numOfReflections = 2;
     double energy = 0;
     double distance = 0;
@@ -230,7 +230,7 @@ double energy::valleau::get_particle_images(std::vector<Particle> &particles, Pa
     double tempX = 0;
     double tempY = 0;
     for(int k = 1; k <= numOfReflections; k += 2){  //Uneven reflections of opposite sign
-        for(int j = 0; j < Particle::numOfParticles; j++){
+        for(int j = 0; j < particles.numOfParticles; j++){
             tempX = particles[j].pos[0];
             tempY = particles[j].pos[1];
 
@@ -274,7 +274,7 @@ double energy::valleau::get_particle_images(std::vector<Particle> &particles, Pa
     }
 
     for(int m = 2; m <= numOfReflections; m += 2){  //Even reflections of same sign
-        for(int j = 0; j < Particle::numOfParticles; j++){
+        for(int j = 0; j < particles.numOfParticles; j++){
             tempX = particles[j].pos[0];
             tempY = particles[j].pos[1];
 
@@ -320,12 +320,12 @@ double energy::valleau::get_particle_images(std::vector<Particle> &particles, Pa
 }
 
 
-double energy::valleau::get_energy(std::vector<Particle> &particles){
+double energy::valleau::get_energy(Particles &particles){
     double energy = 0;
     double y0, y1, x0, x1;
     double dz = 0.05;
     
-    for(int i = 0; i < Particle::numOfParticles; i++){
+    for(int i = 0; i < particles.numOfParticles; i++){
         //Linear interpolation
         x0 = (int)(particles[i].pos[2] - Base::wall) / dz;
         x1 = (int)(particles[i].pos[2] - Base::wall) / dz + 1;
@@ -346,7 +346,7 @@ double energy::valleau::get_energy(std::vector<Particle> &particles){
 }
 
 
-double energy::valleau::get_particle_energy(std::vector<Particle> &particles, Particle &p){
+double energy::valleau::get_particle_energy(Particles &particles, Particle &p){
     double energy = 0;
     double y0, y1, x0, x1;
     double dz = 0.05;

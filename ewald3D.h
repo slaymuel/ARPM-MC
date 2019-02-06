@@ -3,6 +3,7 @@
 
 #include "base.h"
 #include "particle.h"
+#include "particles.h"
 #include <vector>
 #include <complex>
 
@@ -33,10 +34,10 @@ namespace energy { namespace ewald3D{
     double norm(T x);
 
     double get_reciprocal();
-    double get_energy(std::vector<Particle> &particles);
-    double get_particle_energy(std::vector<Particle> &particles, Particle &p);
+    double get_energy(Particles &particles);
+    double get_particle_energy(Particles &particles, Particle &p);
     double get_self_correction(Particle &p);
-    void initialize(std::vector<Particle> &particles);
+    void initialize(Particles &particles);
     void reset();
     void update_reciprocal(Particle &_old, Particle &_new);
     void set_alpha();
