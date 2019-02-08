@@ -12,12 +12,20 @@ class Particles{
         return particles[x];
     }
     
+
+
+
     Particles(){
         numOfParticles = 0;
         numOfAnions = 0;
         numOfCations = 0;
         numOfElectrons = 0;
     }
+
+
+
+
+
 
     void initialize(){
         numOfParticles = particles.size();
@@ -34,6 +42,52 @@ class Particles{
         }
         printf("Cations: %i, Anions: %i\n", numOfCations, numOfAnions);
     }
+
+
+
+
+
+    bool add(){
+        Particle temp = new Particle();
+        temp.d = 5.0;
+        temp.com[0] = (double) rand()/RAND_MAX * (-Base::xL) + Base::xL / 2.0;
+        temp.com[1] = (double) rand()/RAND_MAX * (-Base::yL) + Base::yL / 2.0;
+        //particles[i]->com[2] = (double) rand()/RAND_MAX * (Base::zL - particles[i]->d - 2 * Base::wall) + particles[i]->d/2.0 + Base::wall;
+        temp.com[2] = (double) rand()/RAND_MAX * -2.0 * (Base::zLBox / 2.0 - temp.d / 2.0) + Base::zLBox / 2.0 - temp.d / 2.0;
+        temp.index = -1;
+        if(hard_sphere(temp)){
+            particles.push_back(temp);
+            return true;
+        }
+
+        else{
+            return false;
+        }
+
+    }
+
+
+
+
+
+
+    void remove(int ind){
+        numOfParticles--;
+        if(particles[ind].q > 0){
+            numOfCations--;
+        }
+        else{
+            numOfAnions--;
+        }
+        particles.erase(particles.begin() + ind);
+        for(auto &row : distances){
+            row.erase(std::next(row.begin(), ind));
+        }
+        distances.erase(std::next(distances.begin(), ind));
+    }
+
+
+
 
 
     void read_coordinates_gro(std::string name){
@@ -136,7 +190,7 @@ class Particles{
             }
 
             else{
-                particles[i].q = 1.0;
+                particles[i].q = 2.0;
                 particles[i].b = 0.0; //Length of charge displacement vector
                 strcpy(particles[i].name, "Na\0");
             }
@@ -146,7 +200,6 @@ class Particles{
             particles[i].com[0] = (double) rand()/RAND_MAX * (-Base::xL) + Base::xL / 2.0;
             particles[i].com[1] = (double) rand()/RAND_MAX * (-Base::yL) + Base::yL / 2.0;
             //particles[i]->com[2] = (double) rand()/RAND_MAX * (Base::zL - particles[i]->d - 2 * Base::wall) + particles[i]->d/2.0 + Base::wall;
-
             particles[i].com[2] = (double) rand()/RAND_MAX * -2.0 * (Base::zLBox / 2.0 - particles[i].d / 2.0) + Base::zLBox / 2.0 - particles[i].d / 2.0;
 
             //Get random charge displacement vector
@@ -165,6 +218,10 @@ class Particles{
         }
         printf("\033[34mCreated %d particles.\033[30m\n", num);
     }
+
+
+
+
 
 
 
@@ -206,6 +263,9 @@ class Particles{
 
         printf("\033[34mCreated %d electrons.\033[30m\n", j);
     }
+
+
+
 
 
 
@@ -289,6 +349,10 @@ class Particles{
 
 
 
+
+
+
+
     void write_coordinates(char name[40]){
         int i = 0;
         FILE *f = fopen(name, "w");
@@ -304,6 +368,12 @@ class Particles{
         fprintf(f, "%lf    %lf     %lf\n", Base::xL/10.0, Base::yL/10.0, Base::zL/10.0);
         fclose(f);
     }
+
+
+
+
+
+
 
     //void write_charge_coordinates(char name[], Particle **particles){
     void write_charge_coordinates(char name[]){
@@ -321,6 +391,9 @@ class Particles{
         fprintf(f, "%lf    %lf     %lf\n", Base::xL/10.0, Base::yL/10.0, Base::zL/10.0);
         fclose(f);
     }
+
+
+
 
 
 
@@ -351,6 +424,10 @@ class Particles{
 
 
 
+
+
+
+
     int get_overlaps(){
         int overlaps = 0;
         int i = 0;
@@ -374,6 +451,10 @@ class Particles{
 
 
 
+
+
+
+
     void update_distances(Particle &p){
         if(Base::wall > 0 || Base::d2){
             for(int i = p.index + 1; i < numOfParticles + numOfElectrons; i++){
@@ -392,6 +473,10 @@ class Particles{
             }
         }
     }
+
+
+
+
 
 
 

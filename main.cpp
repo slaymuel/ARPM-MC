@@ -29,6 +29,7 @@ double Base::xL = 114.862525361502; //172
 double Base::yL = 114.862525361502; //45
 double Base::zL = 45;
 double Base::zLBox = 45;
+std::vector<double> Base::box;
 double Base::T = 298;
 double Base::lB;
 double Base::beta;
@@ -143,6 +144,10 @@ int main(int argc, char *argv[])
         Base::yL = box[1];
         Base::zL = box[2];
         Base::zLBox = Base::zL;
+        Base::box.push_back(Base::xL);
+        Base::box.push_back(Base::yL);
+        Base::box.push_back(Base::zLBox);
+        Base::volume = Base::xL * Base::yL * Base::zL;
     }
 
     if(vm.count("wall")){
@@ -194,7 +199,7 @@ int main(int argc, char *argv[])
             numOfParticles += 5;
         }
         printf("%d particles will be created\n", numOfParticles);
-        particles.create_particles(numOfParticles/10, numOfParticles/10, 0);//, Particle::numOfElectrons);
+        particles.create_particles(numOfParticles / 10, numOfParticles / 10, 0);//, Particle::numOfElectrons);
         //energy::imgrep::set_positions(particles);
         //mc.equilibrate(particles);
         density = (double)numOfParticles/(Base::xL * Base::yL * (Base::zL - 2 * Base::wall)) * pow(diameter, 3);
@@ -207,7 +212,7 @@ int main(int argc, char *argv[])
             numOfParticles += 1;
         }
         printf("%d particles will be created\n", numOfParticles);
-        particles.create_particles(numOfParticles/2, numOfParticles/2, 0);//Particle::numOfElectrons);
+        particles.create_particles(numOfParticles / 2.0, numOfParticles / 2.0, 0);//Particle::numOfElectrons);
         //mc.equilibrate(particles);
         density = (double)numOfParticles/(Base::xL * Base::yL * (Base::zL - 2 * Base::wall)) * pow(diameter, 3);
     }
@@ -282,7 +287,7 @@ int main(int argc, char *argv[])
 
     Base::set_lB();
     Base::set_beta();
-    Base::volume = Base::xL * Base::yL * Base::zL;
+    
     Base::volumes.push_back(Base::volume);
 
 
@@ -299,7 +304,7 @@ int main(int argc, char *argv[])
     fprintf(f, "");
     fclose(f);
     std::string energyFunction = "ewald";
-    
+
     if(energyFunction == "valleau"){
         /*energy::valleau::initialize();
         //MC::run(&energy::hs::get_energy, &energy::hs::get_particle_energy, particles, dr, iter, false);
@@ -344,7 +349,7 @@ int main(int argc, char *argv[])
         //MC::run(&energy::imagitron::get_energy, &energy::imagitron::get_particle_energy, particles, dr, iter, true, outputFile);
     }
     if(energyFunction == "direct"){
-        //mc.run(&energy::direct::get_energy, &energy::direct::get_particle_energy, dr, iter, true, outputFile);
+        mc.run(&energy::direct::get_energy, &energy::direct::get_particle_energy, dr, iter, true, outputFile);
     }
 /*
     Base::eCummulative = MC::ewald3D.get_energy(particles);

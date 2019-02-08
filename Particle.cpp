@@ -506,11 +506,14 @@ bool Particle::wall_2d(){
     //particles[p]->com[2] > particles[p]->d/2 + Base::wall && particles[p]->com[2] < Base::zL - Base::wall - particles[p]->d/2
     
     bool inside;
-    //if(this->q < 0){
+
+    if(this->q < 0){
         (this->com[2] > -Base::zLBox / 2.0 +       this->d / 2.0 && this->com[2] < Base::zLBox / 2.0 - this->d / 2.0) ?      inside = true : inside = false;
-    //}
-    //else{
-        //(this->com[2] > -Base::zLBox / 2.0 - 2.0 + this->d / 2.0 && this->com[2] < Base::zLBox / 2.0 - this->d / 2.0 + 2.0) ? inside = true : inside = false;
-    //}
+    }
+
+    else{
+        (this->com[2] > -Base::zLBox / 2.0 - 2.0 + this->d / 2.0 && this->com[2] < Base::zLBox / 2.0 - this->d / 2.0 + 2.0) ? inside = true : inside = false;
+    }
+
     return inside;
 }

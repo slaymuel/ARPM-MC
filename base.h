@@ -31,13 +31,13 @@ class Base{
         static int totalMoves;
         static std::vector<double> volumes;
         static bool d2;
-
+        static std::vector<double> box;
         static void set_beta(){
             beta = 1.0 / (KB * T);
         }
 
         static void set_lB(){
-            lB = EC * EC / (4.0 * PI * VP * 2.0 * 1e-10 * KB * T);
+            lB = EC * EC / (4.0 * PI * VP * 78.0 * 1e-10 * KB * T);
             //lB = 69.6094879234987;//EC*EC/(4 * PI * VP * 2.0 * 1e-10 * KB * T);
         }
 };

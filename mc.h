@@ -19,26 +19,48 @@ class MC{
 
         void equilibrate();
 
-        template <typename E>
-        int grand_move(E energy_function){
+        template <typename E, typename P>
+        int grand_move(E energy_function, P particle_energy_function){
             int random = ran2::get_random();
+            double oldEnergy, newEnergy, prob;
+            double chemPot = 1.0;
+            double Donnan = 10.0;
+            oldEnergy = energy_function(particles);
 
-
+            
             //Delete particle
             if(random < 0.5){
-                particles.numOfParticles--;
-                int r = ran2::get_random() * particles.numOfParticles;
-                particles.particles.erase(particles.begin() + r);
 
+                int r = ran2::get_random() * particles.numOfParticles;
+                newEnergy = oldEnergy - particle_energy_function(particles, particles[r]);
+                
+                prob = particles.numOfParticles / Base::volume * std::exp(-(chemPot + Donnan * particles[r].q + newEnergy - oldEnergy));
+                if(ran2::get_random() < prob || newEnergy < oldEnergy){  //Accept deletion
+                    particles.remove(r);
+                    Base::eCummulative += newEnergy - oldEnergy;
+                    Base::acceptedMoves++;
+                }
+
+                else{
+
+                }
             }
 
 
             //Add particle
             else{
-                particles.numOfParticles++;
+                prob = particles.numOfParticles / Base::volume * std::exp((chemPot + Donnan * particles[r].q - newEnergy + oldEnergy));
+                if(particles.add()){
+
+                }
             }
-            
         }
+
+
+
+
+
+
 
         template <typename E>
         int vol_move(E energy_function){
@@ -84,7 +106,7 @@ class MC{
                 particles.update_distances();
                 //energy::ewald3D::set_alpha();
                 energy::ewald3D::reset();
-                energy::ewald3D::initialize(particles.particles);
+                energy::ewald3D::initialize(particles);
                 double newEnergy = energy_function(particles);
                 //(0.5 * Base::beta)
                 //printf("dU: %lf         dV: %lf         lnV: %lf\n", newEnergy - oldEnergy, 
@@ -106,7 +128,7 @@ class MC{
                     particles.update_distances();
                     //energy::ewald3D::set_alpha();
                     energy::ewald3D::reset();
-                    energy::ewald3D::initialize(particles.particles);
+                    energy::ewald3D::initialize(particles);
                 }
                 else{                           //Accept
                     Base::eCummulative += newEnergy - oldEnergy;
@@ -121,6 +143,12 @@ class MC{
                 return 0;
             }
         }
+
+
+
+
+
+
 
 
 
@@ -167,6 +195,17 @@ class MC{
             //delete _old;
             return accepted;
         }
+
+
+
+
+
+
+
+
+
+
+
 
         template <typename E>
         int charge_disp_move(E energy_function){
@@ -217,6 +256,14 @@ class MC{
             //delete _old;
             return accepted;
         }
+
+
+
+
+
+
+
+
 
 
 
@@ -291,6 +338,15 @@ class MC{
             //delete _old;
             return accepted;
         }
+
+
+
+
+
+
+
+
+
 /*
         template<typename E>
         int trans_electron_move(double dr, E energy_function){
@@ -354,6 +410,15 @@ class MC{
             return accepted;
         }
 */
+
+
+
+
+
+
+
+
+
         template<typename F, typename FP>
         void run(F&& energy_function, FP&& particle_energy_function, double dr, int iter, bool sample, std::string outputFile){
             double energy_temp;
@@ -376,8 +441,8 @@ class MC{
             char histOut[40];
             strcpy(histOut, outputFile.c_str());
 
-            //Analysis *xHist = new Analysis(0.1, Base::xL);
-            //Analysis *yHist = new Analysis(0.1, Base::yL);
+            Analysis *xHist = new Analysis(0.1, Base::xL);
+            Analysis *yHist = new Analysis(0.1, Base::yL);
             Analysis *zHist = new Analysis(0.1, Base::zLBox);
 
             strcat(volOut, outputFile.c_str());
@@ -390,8 +455,8 @@ class MC{
 
                 if(i % 100 == 0 && i >= 500000 && sample){
                     //rdf->sample_rdf(particles, histo, binWidth);
-                    //xHist->sampleHisto(particles, 0);
-                    //yHist->sampleHisto(particles, 1);
+                    xHist->sampleHisto(particles, 0);
+                    yHist->sampleHisto(particles, 1);
                     zHist->sampleHisto(particles, 2);
                 }
                 
@@ -457,7 +522,7 @@ class MC{
                     printf("Energy: %lf\n", energy_temp);
                     printf("Acceptance ratio: %lf\n", (double)Base::acceptedMoves/Base::totalMoves);
                     printf("Acceptance ratio for the last %i steps: %lf\n", outFreq, (double)prevAccepted/outFreq);
-                    if(std::abs(energy_temp - Base::eCummulative)/std::abs(energy_temp) > std::pow(10, -9)){
+                    if(std::abs(energy_temp - Base::eCummulative)/std::abs(energy_temp) > std::pow(10, -10)){
                         printf("Error is too large!\n");
                         printf("Error: %.12lf\n", std::abs(energy_temp - Base::eCummulative)/std::abs(energy_temp));
                         exit(1);
@@ -488,12 +553,12 @@ class MC{
                 }
             }
             if(sample){
-                //xHist->saveHisto(histOut);
-                //yHist->saveHisto(histOut);
+                xHist->saveHisto(histOut);
+                yHist->saveHisto(histOut);
                 zHist->saveHisto(histOut);
             }
-            //delete xHist;
-            //delete yHist;
+            delete xHist;
+            delete yHist;
             delete zHist;
         }
 };
