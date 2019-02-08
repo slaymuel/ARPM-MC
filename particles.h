@@ -190,7 +190,7 @@ class Particles{
             }
 
             else{
-                particles[i].q = 2.0;
+                particles[i].q = 1.0;
                 particles[i].b = 0.0; //Length of charge displacement vector
                 strcpy(particles[i].name, "Na\0");
             }

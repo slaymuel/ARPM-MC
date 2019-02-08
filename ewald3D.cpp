@@ -92,7 +92,7 @@ void energy::ewald3D::initialize(Particles &particles){
     kNumMax = 1000000;
     kNum = 0;
     resFac = (double*) malloc(kNumMax * sizeof(double));
-    int kMax = 5;//8/Base::xL;
+    int kMax = 6;//8/Base::xL;
     int zMax = (int) (Base::xL / Base::zL * kMax);
     printf("Wavevectors in x: %i\n", kMax);
     printf("Wavevectors in z: %i\n", (int)(Base::zL / Base::xL * kMax));
@@ -101,13 +101,13 @@ void energy::ewald3D::initialize(Particles &particles){
     double factor = 1;
     std::vector<double> vec(3);
     //printf("Calculating k-vectors");
-    for(int kx = 0; kx <= kMax; kx++){
+    for(int kx = -kMax; kx <= kMax; kx++){
         for(int ky = -kMax; ky <= kMax; ky++){
             for(int kz = -zMax; kz <= zMax; kz++){
                 factor = 1.0;
-                if(kx > 0){
+                /*if(kx > 0){
                     factor *= 2;
-                }
+                }*/
 
                 vec[0] = (2.0 * PI * kx / Base::xL);
                 vec[1] = (2.0 * PI * ky / Base::yL);
