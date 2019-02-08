@@ -92,10 +92,10 @@ void energy::ewald3D::initialize(Particles &particles){
     kNumMax = 1000000;
     kNum = 0;
     resFac = (double*) malloc(kNumMax * sizeof(double));
-    int kMax = 6;//8/Base::xL;
-    int zMax = (int) (Base::xL / Base::zL * kMax);
+    int kMax = 12;//8/Base::xL;
+    int zMax = (int) (Base::zL / Base::xL * kMax);
     printf("Wavevectors in x: %i\n", kMax);
-    printf("Wavevectors in z: %i\n", (int)(Base::zL / Base::xL * kMax));
+    printf("Wavevectors in z: %i\n", zMax);
     double recCut = 4;
     //get k-vectors
     double factor = 1;
@@ -112,12 +112,13 @@ void energy::ewald3D::initialize(Particles &particles){
                 vec[0] = (2.0 * PI * kx / Base::xL);
                 vec[1] = (2.0 * PI * ky / Base::yL);
                 vec[2] = (2.0 * PI * kz / Base::zL);
+                //printf("%i, %i, %i\n", kx, ky, kz);
                 //if(vec[0] * vec[0] + vec[1] * vec[1] + vec[2] * vec[2] < recCut * recCut){ //Spherical reciprocal space cutoff
                     k2 = dot(vec, vec);
 
                     if(fabs(k2) > 1e-5){// && fabs(k2) < kMax) {
                         kVec.push_back(vec);
-                        resFac[kNum] = factor * exp(-k2/(4.0 * alpha * alpha))/k2;
+                        resFac[kNum] = factor * exp(-k2 / (4.0 * alpha * alpha)) / k2;
                         kNum++;
                     }
                 //}
@@ -125,7 +126,7 @@ void energy::ewald3D::initialize(Particles &particles){
         }
     }
     //printf("\n");
-    //printf("3D: Found: %d k-vectors\n", kNum);
+    printf("3D: Found: %d k-vectors\n", kNum);
     //Calculate norms
     kNorm = (double*) malloc(kNum * sizeof(double));
     for(i = 0; i < kNum; i++){
