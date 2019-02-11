@@ -17,6 +17,11 @@ Particle::Particle(){
 
 }
 
+
+
+
+
+
 void Particle::pbc(){
     //Translate particles according to periodic boundary conditions
     if(this->com[0] > xL){
@@ -38,6 +43,11 @@ void Particle::pbc(){
         this->com[2] = this->com[2] + zL;
     }
 }
+
+
+
+
+
 
 void Particle::pbc_pos(){
     //Translate charges according to periodic boundary conditions
@@ -62,6 +72,10 @@ void Particle::pbc_pos(){
     }
 }
 
+
+
+
+
 void Particle::pbc(Eigen::Vector3d& x){
     //Translate particles according to periodic boundary conditions
     if(x[0] > Base::xL / 2.0){
@@ -84,6 +98,9 @@ void Particle::pbc(Eigen::Vector3d& x){
     }
 }
 
+
+
+
 void Particle::pbc_xy(Eigen::Vector3d& x){
     //Translate particles according to periodic boundary conditions in the xy-directions
     if(x[0] > Base::xL / 2.0){
@@ -99,6 +116,11 @@ void Particle::pbc_xy(Eigen::Vector3d& x){
         x[1] += Base::yL;
     }
 }
+
+
+
+
+
 
 void Particle::random_move(double stepSize){
     this->com[0] += (ran2::get_random() * 2.0 - 1.0) * stepSize;
@@ -120,6 +142,11 @@ void Particle::random_move(double stepSize){
     }
 }
 
+
+
+
+
+
 void Particle::random_charge_rot(){
     double da = 1.0;
     double random = ran2::get_random();
@@ -137,6 +164,12 @@ void Particle::random_charge_rot(){
     this->pos = this->com + this->chargeDisp;
     pbc(this->pos);
 }
+
+
+
+
+
+
 
 double Particle::distance(Particle &p){
     //Calculate distance between particles
@@ -164,6 +197,12 @@ double Particle::distance(Particle &p){
     return disp.norm();
 }
 
+
+
+
+
+
+
 double Particle::distance_xy(Particle &p){
     //Calculate distance between particles
     double xP1 = p.pos[0];
@@ -188,6 +227,12 @@ double Particle::distance_xy(Particle &p){
     return sqrt(pow((xP1 - xP2), 2.0) + pow((yP1 - yP2), 2.0) + pow((zP1 - zP2), 2.0));
 }
 
+
+
+
+
+
+
 double Particle::distance_z(Particle *p){
     //Calculate distance between particles
     double distance = 0;
@@ -195,6 +240,12 @@ double Particle::distance_z(Particle *p){
 
     return distance;
 }
+
+
+
+
+
+
 
 double Particle::com_distance(Particle &p){
     Eigen::Vector3d disp;
@@ -220,6 +271,12 @@ double Particle::com_distance(Particle &p){
     }
     return disp.norm();
 }
+
+
+
+
+
+
 
 double Particle::com_distance_xy(Particle &p){
     Eigen::Vector3d disp;
@@ -507,13 +564,13 @@ bool Particle::wall_2d(){
     
     bool inside;
 
-    //if(this->q < 0){
+    if(this->q < 0){
         (this->com[2] > -Base::zLBox / 2.0 +       this->d / 2.0 && this->com[2] < Base::zLBox / 2.0 - this->d / 2.0) ?      inside = true : inside = false;
-    //}
-/*
+    }
+
     else{
         (this->com[2] > -Base::zLBox / 2.0 - 2.0 + this->d / 2.0 && this->com[2] < Base::zLBox / 2.0 - this->d / 2.0 + 2.0) ? inside = true : inside = false;
     }
-*/
+
     return inside;
 }
