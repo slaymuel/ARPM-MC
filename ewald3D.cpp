@@ -92,7 +92,7 @@ void energy::ewald3D::initialize(Particles &particles){
     kNumMax = 1000000;
     kNum = 0;
     resFac = (double*) malloc(kNumMax * sizeof(double));
-    int kMax = 12;//8/Base::xL;
+    int kMax = 6;//8/Base::xL;
     int zMax = (int) (Base::zL / Base::xL * kMax);
     printf("Wavevectors in x: %i\n", kMax);
     printf("Wavevectors in z: %i\n", zMax);
@@ -101,13 +101,13 @@ void energy::ewald3D::initialize(Particles &particles){
     double factor = 1;
     std::vector<double> vec(3);
     //printf("Calculating k-vectors");
-    for(int kx = -kMax; kx <= kMax; kx++){
+    for(int kx = 0; kx <= kMax; kx++){
         for(int ky = -kMax; ky <= kMax; ky++){
             for(int kz = -zMax; kz <= zMax; kz++){
                 factor = 1.0;
-                /*if(kx > 0){
+                if(kx > 0){
                     factor *= 2;
-                }*/
+                }
 
                 vec[0] = (2.0 * PI * kx / Base::xL);
                 vec[1] = (2.0 * PI * ky / Base::yL);
@@ -116,7 +116,7 @@ void energy::ewald3D::initialize(Particles &particles){
                 //if(vec[0] * vec[0] + vec[1] * vec[1] + vec[2] * vec[2] < recCut * recCut){ //Spherical reciprocal space cutoff
                     k2 = dot(vec, vec);
 
-                    if(fabs(k2) > 1e-5){// && fabs(k2) < kMax) {
+                    if(fabs(k2) > 1e-8){// && fabs(k2) < kMax) {
                         kVec.push_back(vec);
                         resFac[kNum] = factor * exp(-k2 / (4.0 * alpha * alpha)) / k2;
                         kNum++;
@@ -242,8 +242,8 @@ double energy::ewald3D::get_energy(Particles &particles){
         //self = alpha/sqrt(PI) * self;
         //printf("Dipole moment: %lf\n", corr);
         //printf("self term: %lf\n", selfTerm);
-        printf("Real: %lf, self: %lf, reciprocal: %lf, correction: %lf\n", real * Base::lB, selfTerm, reciprocal * Base::lB, corr * Base::lB);
-        //printf("Tinfoil Energy: %.10lf\n", (real + reciprocal) - selfTerm/Base::lB);
+        printf("Real: %lf, self: %lf, reciprocal: %lf, correction: %lf, tot: %lf\n", real * Base::lB, selfTerm, reciprocal * Base::lB, corr * Base::lB, Base::lB * (real + reciprocal + corr) - selfTerm);
+        printf("Tinfoil Energy: %.10lf\n", (real + reciprocal) - selfTerm/Base::lB);
         //printf("Vacuum Energy: %.10lf\n", (real + reciprocal + corr) - selfTerm/Base::lB);
         return Base::lB * (real + reciprocal + corr) - selfTerm;    //vacuum
         //return Base::lB * (real + reciprocal) - selfTerm;   //tinfoil

@@ -48,7 +48,7 @@ void energy::ewald2D::initialize(){
     int ky = 0;
     int kz = 0;
     double k2 = 0;
-    int kMax = 5;//8/Base::xL;
+    int kMax = 8;//8/Base::xL;
 
     //get k-vectors
     Eigen::Vector3d vec;
@@ -59,7 +59,7 @@ void energy::ewald2D::initialize(){
             vec[1] = (2.0 * PI * ky/Base::yL);
             vec[2] = 0;
             k2 = vec.dot(vec);
-            if(fabs(k2) > 1e-5){// && fabs(k2) < kMax){
+            if(fabs(k2) > 1e-5){// && ky * ky + kx * kx <= 11){
                 kVec.push_back(vec);
                 kNum++;
             }
@@ -118,7 +118,7 @@ double energy::ewald2D::get_reciprocal(Particle &p1, Particle &p2){
         rk.real(std::cos(dispVec.dot(kVec[i])));
     
         energy += rk.real() * (exp(kNorm[i] * zDist) * erfc_x(alpha * zDist + kNorm[i]/(2 * alpha)) +
-            exp(-kNorm[i] * zDist) * erfc_x(-alpha * zDist + kNorm[i]/(2 * alpha))) / (2.0 * kNorm[i]);
+            exp(-kNorm[i] * zDist) * erfc_x(-alpha * zDist + kNorm[i]/(2 * alpha))) / (kNorm[i]); //(2.0 * kNorm[i])
 
         //energy += rk.real() * f(kNorm[i], p1.pos[2] - p2.pos[2]);
     }
@@ -218,13 +218,13 @@ double energy::ewald2D::get_energy(Particles &particles){
         }
         //dipCorr += dipole_correction(particles[i]);
         self += get_self_correction(particles[i]);
-        //printf("Rec: %lf g: %lf: reci: %lf Done: %lf\r", reciprocal, gE, reci,(double)i/particles.numOfParticles * 100);
-        //fflush(stdout);
+        printf("Rec: %lf g: %lf: reci: %lf Done: %lf\r", reciprocal, gE, reci,(double)i/particles.numOfParticles * 100);
+        fflush(stdout);
     }
     reciprocal = (reciprocal - gE) * PI/(Base::xL * Base::yL);
-    dipCorr = -2 * PI/(Base::xL * Base::yL * Base::zL) * dipCorr * dipCorr;
+    dipCorr = -2.0 * PI/(Base::xL * Base::yL * Base::zL) * dipCorr * dipCorr;
     self = alpha/sqrt(PI) * self;
     energy = (real + reciprocal - self);// + dipCorr);
-    //printf("Real: %lf, self: %lf, reciprocal: %lf dipCorr: %lf\n", real * Base::lB, self, reciprocal, dipCorr);
+    printf("Real: %lf, self: %lf, reciprocal: %lf dipCorr: %lf, energy: %lf\n", real * Base::lB, self * Base::lB, reciprocal * Base::lB, dipCorr, energy * Base::lB);
     return energy * Base::lB;
 }

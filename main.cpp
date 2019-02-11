@@ -330,9 +330,9 @@ int main(int argc, char *argv[])
     }
 
     if(energyFunction == "ewald2d"){
-       /*energy::ewald2D::set_alpha();
+       energy::ewald2D::set_alpha();
         energy::ewald2D::initialize();
-        mc.run(&energy::ewald2D::get_energy, &energy::ewald2D::get_particle_energy, dr, iter, true, outputFile);*/
+        mc.run(&energy::ewald2D::get_energy, &energy::ewald2D::get_particle_energy, dr, iter, true, outputFile);
     }
 
     if(energyFunction == "test"){
