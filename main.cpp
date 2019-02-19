@@ -148,6 +148,7 @@ int main(int argc, char *argv[])
         Base::box.push_back(Base::yL);
         Base::box.push_back(Base::zLBox);
         Base::volume = Base::xL * Base::yL * Base::zL;
+        printf("box: x: %lf, y: %lf, z: %lf\n", Base::box[0], Base::box[1], Base::box[2]);
     }
 
     if(vm.count("wall")){
@@ -181,7 +182,7 @@ int main(int argc, char *argv[])
     }
 
     if(vm.count("f_jan")){
-        particles.read_jan("coordp_1", "coordn_1");
+        particles.read_jan("coordp", "coordn");
     }
 
     if(vm.count("f_arpm_jan")){
@@ -292,7 +293,7 @@ int main(int argc, char *argv[])
 
 
 
-    //energy::levin::initialize(particles);
+    
 
 
     // ///////////////////////////////         Main MC-loop          ////////////////////////////////////////
@@ -306,19 +307,19 @@ int main(int argc, char *argv[])
     std::string energyFunction = "ewald";
 
     if(energyFunction == "valleau"){
-        /*energy::valleau::initialize();
+        energy::valleau::initialize();
         //MC::run(&energy::hs::get_energy, &energy::hs::get_particle_energy, particles, dr, iter, false);
-
-        mc.run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, 0.1, 1000000, false, outputFile);
+        mc.run(&energy::direct::get_energy, &energy::direct::get_particle_energy, dr, 1000000, false, outputFile);
+        //mc.run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, 0.1, 1000000, false, outputFile);
         energy::valleau::update_potential();
         
         mc.run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, dr, 1000000, false, outputFile);
-        energy::valleau::update_potential();*/
+        energy::valleau::update_potential();
         
         //MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, 15, 1000000, false);
         //energy::valleau::update_potential();*/
 
-        //MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, dr, iter, true, outputFile);
+        mc.run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, dr, iter, true, outputFile);
         
         //MC::run(&energy::levin::get_energy, &energy::levin::get_particle_energy, particles, dr, iter, true, outputFile);
     }
@@ -341,7 +342,10 @@ int main(int argc, char *argv[])
     }
 
     if(energyFunction == "levin"){
-        //MC::run(&energy::levin::get_energy, &energy::levin::get_particle_energy, particles, dr, iter, true, outputFile);
+        energy::ewald3D::set_alpha();
+        energy::ewald3D::initialize(particles);
+        energy::levin::initialize(particles);
+        mc.run(&energy::levin::get_energy, &energy::levin::get_particle_energy, dr, iter, true, outputFile);
     }
 
     if(energyFunction == "electron"){
@@ -351,76 +355,11 @@ int main(int argc, char *argv[])
     if(energyFunction == "direct"){
         mc.run(&energy::direct::get_energy, &energy::direct::get_particle_energy, dr, iter, true, outputFile);
     }
-/*
-    Base::eCummulative = MC::ewald3D.get_energy(particles);
-    //Base::eCummulative = energy::valleau::get_energy(particles);
-    double avgTime = 0;
-    printf("\nRunning main MC-loop at temperature: %lf, Bjerrum length is %lf\n\n", T, Base::lB);
 
-    for(int i = 0; i < iter; i++){
-        if(i % 100 == 0 && i >= 1){
-            //rdf->sample_rdf(particles, histo, binWidth);
-            xHist->sampleHisto(particles, 0);
-            yHist->sampleHisto(particles, 1);
-            zHist->sampleHisto(particles, 2);
-        }
-
-        random1 = ran2::get_random();
-        //random2 = ran2::get_random();
-        //if(random2 <= 0.3){
-        //     if(mc.charge_rot_move(particles)){
-        //        prevAccepted++;
-        //     }
-        //}
-        //else{
-            if(random1 <= 0.1){
-                if(mc.trans_move(particles, Base::xL)){
-                    prevAccepted++; 
-                }
-            }
-
-            else{
-                if(mc.trans_move(particles, 0.2)){
-                    prevAccepted++; 
-                }    
-            }
-        //}
-
-
-        Base::totalMoves++;
-        if(i % 10000 == 0 && i != 0) {
-            //energy = energy::valleau::get_energy(particles);
-            energy = MC::ewald3D.get_energy(particles);
-            //energy = MC::direct.get_energy(particles);
-            energyOut++;
-            //Particle::write_coordinates(outName , particles);
-            printf("Iteration: %d\n", i);
-            printf("Energy: %lf\n", energy);
-            //printf("Error: ");
-            //printf("%lf\n", fabs(energy - Base::eCummulative)/fabs(Base::eCummulative));
-            printf("Acceptance ratio: %lf\n", (double) Base::acceptedMoves / Base::totalMoves);
-            printf("Acceptance ratio for the last 10000 steps: %lf\n\n", (double) prevAccepted / 10000.0);
-            if(fabs(energy - Base::eCummulative) / fabs(energy) > pow(10, -12)) {
-                printf("Error is too large!\n");
-                printf("Error: %.20lf\n", fabs(energy - Base::eCummulative) / fabs(energy));
-                //exit(1);
-            }
-            fflush(stdout);
-            prevAccepted = 0;
-            //printf("Time: %lf\n", omp_get_wtime() - stime);
-        }
-        //avgTime += omp_get_wtime() - stime;
-        //printf("Real time: %lf\n", avgTime/(i + 1);
-    }
-    //////////////////////////////////////////////////////////////////////////////////////////////////////
-*/
     printf("Accepted moves: %d\n", Base::acceptedMoves);
     printf("Rejected moves: %d\n", Base::totalMoves - Base::acceptedMoves);
 
     //rdf->save_rdf(histo, bins, binWidth);
-    //xHist->saveHisto(outName);
-    //yHist->saveHisto(outName);
-    //zHist->saveHisto(outName);
 
     //Write coordinates to file
     printf("Saving output coordinates to: %s\n", outName);

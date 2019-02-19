@@ -31,6 +31,7 @@ double energy::direct::get_particle_energy(Particles &particles, Particle &p){
     return Base::lB * (replicates + central);
 }
 
+
 // double energy::direct::get_energy(Particle **particles, Particle *p){
 //     double energy;
 //     double central = get_central(particles, p);
@@ -61,7 +62,7 @@ double energy::direct::get_replicates(Particles &particles){
                             else{
                                 double den[] = {particles[l].pos[0] - particles[m].pos[0] + i * Base::xL, 
                                                 particles[l].pos[1] - particles[m].pos[1] + j * Base::yL, 
-                                                particles[l].pos[2] - particles[m].pos[2] + k * Base::zL};
+                                                particles[l].pos[2] - particles[m].pos[2] + k * Base::zLBox};
                                 dist = norm(den);
                                 //if(dist <= (rep + 1) * Base::xL){//(dist >= Base::xL && dist <= rep * Base::xL){
                                 energy += particles[m].q * particles[l].q * 1.0 / dist;
@@ -90,21 +91,24 @@ double energy::direct::get_central(Particles &particles){
             //disp = particles[i]->pos - particles[k]->pos;
             //dist = disp.norm();
             dist = particles.distances[i][k];
+            //dist = particles[i].distance_xy(particles[k]);
             energy += particles[i].q * particles[k].q / dist;
         }  
-
-        /*if(particles[i]->com[2] < 0 || particles[i]->com[1] < 0 || particles[i]->com[0] < 0 ||
-                particles[i]->pos[2] < 0 || particles[i]->pos[1] < 0 || particles[i]->pos[0] < 0){
+        //std::cout << particles[i].com << std::endl;
+        //std::cout << particles[i].pos << std::endl;
+        if(particles[i].pos[2] < -Base::zLBox / 2.0 || particles[i].pos[1] < -Base::yL / 2.0 || particles[i].pos[0] < -Base::xL / 2.0 ||
+                particles[i].pos[2] > Base::zLBox / 2.0 || particles[i].pos[1] > Base::yL / 2.0 || particles[i].pos[0] > Base::xL / 2.0){
 
             printf("Error calculating energy, particle was found outside the box..\n");
-            std::cout << particles[i]->com << std::endl;
-            std::cout << particles[i]->pos << std::endl;
+            std::cout << particles[i].com << std::endl;
+            std::cout << particles[i].pos << std::endl;
             exit(1);
-        }*/
+        }
         //if(particles[i]->com != particles[i]->pos){
         //    printf("pos and com are not equal!\n");
         //    exit(1);
         //}
+        energy += phiw(particles[i].pos[2]);
     }
     return energy;
 }
@@ -118,6 +122,7 @@ double energy::direct::get_central(Particles &particles, Particle &p){
     //{
     for(int i = 0; i < p.index; i++){
         dist = particles.distances[i][p.index];
+        //dist = p.distance_xy(particles[i]);
         energy += particles[i].q * p.q * 1.0 / dist;
     }
     //}
@@ -125,11 +130,30 @@ double energy::direct::get_central(Particles &particles, Particle &p){
     //{
     for(int i = p.index + 1; i < particles.numOfParticles; i++){
         dist = particles.distances[p.index][i];
+        //dist = p.distance_xy(particles[i]);
         energy += particles[i].q * p.q * 1.0 / dist;
     }
+
+    energy += phiw(p.pos[2]);
     //}
     return energy;
 }   
+
+
+
+
+double energy::direct::phiw(double z){
+    double a = Base::xL/2.0;
+    double asq = a * a;
+    double zsq = z * z;//(z + b) * (z + b);
+
+    double self = 8.0 * a * std::log((std::sqrt(2.0 * asq + zsq) + a) / std::sqrt(asq + zsq));// - 
+                  //2.0 * z * (std::asin((asq * asq - zsq * zsq - 2.0 * asq * zsq) / std::pow(asq + zsq, 2.0)) + PI/2.0);
+    return self;
+}
+
+
+
 
 double energy::direct::get_replicates(Particles &particles, Particle &p){
     double energy = 0;
@@ -153,7 +177,7 @@ double energy::direct::get_replicates(Particles &particles, Particle &p){
                         else{
                             double den[] = {p.pos[0] - particles[l].pos[0] + i * Base::xL, 
                                             p.pos[1] - particles[l].pos[1] + j * Base::yL , 
-                                            p.pos[2] - particles[l].pos[2] + k * Base::zL};
+                                            p.pos[2] - particles[l].pos[2] + k * Base::zLBox};
                             dist = norm(den);
                             //if(dist <= (rep + 1) * Base::xL){//(dist >= Base::xL && dist <= rep * Base::xL){
                             energy += p.q * particles[l].q * 1.0 / dist;

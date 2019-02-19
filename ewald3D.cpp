@@ -27,7 +27,7 @@ static inline T energy::ewald3D::erfc_x( T x )
 {
     //static_assert(std::is_floating_point<T>::value, "type must be floating point");
     if(x < 0){
-        return ( 2.0 - erfc_x(-x) );
+        return ( 2.0 - erfc(-x) );
     }
     T t = 1.0 / (1.0 + 0.3275911 * x);
     const T a1 = 0.254829592;
@@ -94,6 +94,11 @@ void energy::ewald3D::initialize(Particles &particles){
     resFac = (double*) malloc(kNumMax * sizeof(double));
     int kMax = 6;//8/Base::xL;
     int zMax = (int) (Base::zL / Base::xL * kMax);
+
+    if(zMax < kMax){
+        printf("\n\nOops, zMax < kMax, is this really what you want?\n\n");
+    }
+    
     printf("Wavevectors in x: %i\n", kMax);
     printf("Wavevectors in z: %i\n", zMax);
     double recCut = 4;
@@ -106,7 +111,7 @@ void energy::ewald3D::initialize(Particles &particles){
             for(int kz = -zMax; kz <= zMax; kz++){
                 factor = 1.0;
                 if(kx > 0){
-                    factor *= 2;
+                    factor *= 2.0;
                 }
 
                 vec[0] = (2.0 * PI * kx / Base::xL);
@@ -213,10 +218,12 @@ double energy::ewald3D::get_energy(Particles &particles){
         double reciprocal = 0;
         //double dipoleMoment[3] = {0, 0, 0};
         Eigen::Vector3d dipoleMoment;
+        double dipoleMoment2 = 0;
         dipoleMoment.setZero();
         double corr = 0;
         double distance = 0;
         double energy = 0;
+        double totCharge = particles.numOfCations - particles.numOfAnions;
 
         reciprocal = get_reciprocal();
 
@@ -224,20 +231,23 @@ double energy::ewald3D::get_energy(Particles &particles){
                 for(int j = i + 1; j < particles.numOfParticles; j++){
                     distance = particles.distances[i][j];
 
-                    //if(distance <= 10){
-                        energy = erfc_x(distance * alpha) / distance;
+                    //if(distance <= 80){
+                        energy = erfc(distance * alpha) / distance;
                         real += particles[i].q * particles[j].q * energy;
+                        //printf("%lf, %lf\n", particles[i].q, particles[j].q);
                     //}
                 }
                 
                 dipoleMoment += particles[i].q * particles[i].pos;
-
+                dipoleMoment2 += particles[i].q * particles[i].pos[2] * particles[i].pos[2];
                 //reciprocal += get_reciprocal2(particles[i]);
                 //self += get_self_correction(particles[i]);
         }
 
         corr = dipoleMoment[2];
+        dipoleMoment2 *= totCharge;
         corr *= corr * 2.0 * PI / (Base::volume);
+        //corr = 2.0 * PI / (Base::volume) * (corr * corr - dipoleMoment2 - totCharge * totCharge * Base::zL * Base::zL / 12.0);
         reciprocal = 2.0 * PI / (Base::xL * Base::yL * Base::zL) * reciprocal;
         //self = alpha/sqrt(PI) * self;
         //printf("Dipole moment: %lf\n", corr);
@@ -245,6 +255,7 @@ double energy::ewald3D::get_energy(Particles &particles){
         printf("Real: %lf, self: %lf, reciprocal: %lf, correction: %lf, tot: %lf\n", real * Base::lB, selfTerm, reciprocal * Base::lB, corr * Base::lB, Base::lB * (real + reciprocal + corr) - selfTerm);
         printf("Tinfoil Energy: %.10lf\n", (real + reciprocal) - selfTerm/Base::lB);
         //printf("Vacuum Energy: %.10lf\n", (real + reciprocal + corr) - selfTerm/Base::lB);
+        printf("bjerrum: %lf\n", Base::lB);
         return Base::lB * (real + reciprocal + corr) - selfTerm;    //vacuum
         //return Base::lB * (real + reciprocal) - selfTerm;   //tinfoil
 }
@@ -260,10 +271,12 @@ double energy::ewald3D::get_particle_energy(Particles &particles, Particle &p){
     double reciprocal = 0;
     //double dipoleMoment[3] = {0, 0, 0};
     Eigen::Vector3d dipoleMoment;
+    double dipoleMoment2 = 0;
     dipoleMoment.setZero();
     double corr = 0;
     double distance = 0;
     double energy = 0;
+    double totCharge = particles.numOfCations - particles.numOfAnions;
     //printf("alpha is: %lf\n", alpha);
 
     reciprocal = get_reciprocal();
@@ -271,26 +284,29 @@ double energy::ewald3D::get_particle_energy(Particles &particles, Particle &p){
     for(int i = p.index + 1; i < particles.numOfParticles; i++){
         distance = particles.distances[p.index][i];
 
-        //if(distance <= 10){
-            energy = erfc_x(distance * alpha) / distance;
+        //if(distance <= 80){
+            energy = erfc(distance * alpha) / distance;
             real += particles[i].q * p.q * energy;
         //}
         dipoleMoment += particles[i].q * particles[i].pos;
+        dipoleMoment2 += particles[i].q * particles[i].pos[2] * particles[i].pos[2];
     }
     for(int i = 0; i < p.index; i++){
         distance = particles.distances[i][p.index];
         
-        //if(distance <= 10){
-            energy = erfc_x(distance * alpha) / distance;
+        //if(distance <= 80){
+            energy = erfc(distance * alpha) / distance;
             real += particles[i].q * p.q * energy;
         //}
         dipoleMoment += particles[i].q * particles[i].pos;
+        dipoleMoment2 += particles[i].q * particles[i].pos[2] * particles[i].pos[2];
     }
-
+    dipoleMoment2 += p.q * p.pos[2] * p.pos[2];
+    dipoleMoment2 *= totCharge;
     dipoleMoment += p.q * p.pos;
     corr = dipoleMoment[2];
-    corr *= corr;
-    corr = 2.0 * PI * corr/(Base::volume);
+    corr = corr * 2.0 * PI * corr/(Base::volume);
+    //corr = 2.0 * PI / (Base::volume) * (corr * corr - dipoleMoment2 - totCharge * totCharge * Base::zL * Base::zL / 12.0);
     reciprocal = 2.0 * PI/(Base::xL * Base::yL * Base::zL) * reciprocal;
 
     return Base::lB * (real + reciprocal + corr) - selfTerm;    //vacuum

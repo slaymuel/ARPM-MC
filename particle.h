@@ -10,13 +10,13 @@ class Particle: public Base{
         Particle(bool dummie);
         Particle();
 
-        static double **distances;  //Distance matrix
+        //static double **distances;  //Distance matrix
         static int numOfParticles;
         static double oldEnergy;
         static int numOfElectrons;
         double b;   //Length of charge displacement
         double d;   //Diameter of particle
-        int q;  //Charge
+        double q;  //Charge
         int index;
         int belongsTo; //Belongs to molecule
         Eigen::Vector3d pos;    //Coordinates of the charge

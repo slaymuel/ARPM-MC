@@ -22,7 +22,7 @@ class Analysis: public Base{
         void sampleHisto(Particles &particles, int d);
         void sample_rdf(std::vector<Particle> &particles, int *histo, double binWidth);
         void save_rdf(int *histo, int bins, double binWidth);
-        void saveHisto(char outName[]);
+        void saveHisto(char outName[], Particles &particles);
 };
 
 #endif

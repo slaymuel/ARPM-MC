@@ -21,20 +21,20 @@ Particle::Particle(){
 
 
 
-
+/*
 void Particle::pbc(){
     //Translate particles according to periodic boundary conditions
-    if(this->com[0] > xL){
-        this->com[0] = this->com[0] - xL;
+    if(this->com[0] > Base::xL){
+        this->com[0] = this->com[0] - Base::xL;
     }
     if(this->com[0] < 0){
-        this->com[0] = this->com[0] + xL;
+        this->com[0] = this->com[0] + Base::xL;
     }
-    if(this->com[1] > yL){
-        this->com[1] = this->com[1] - yL;
+    if(this->com[1] > Base::yL){
+        this->com[1] = this->com[1] - Base::yL;
     }
     if(this->com[1] < 0){
-        this->com[1] = this->com[1] + yL;
+        this->com[1] = this->com[1] + Base::yL;
     }
     if(this->com[2] > zL){
         this->com[2] = this->com[2] - zL;
@@ -43,26 +43,26 @@ void Particle::pbc(){
         this->com[2] = this->com[2] + zL;
     }
 }
+*/
 
 
 
 
-
-
+/*
 void Particle::pbc_pos(){
     //Translate charges according to periodic boundary conditions
  
-    if(this->pos[0] > xL){
-        this->pos[0] = this->pos[0] - xL;
+    if(this->pos[0] > Base::xL){
+        this->pos[0] = this->pos[0] - Base::xL;
     }
     if(this->pos[0] < 0){
-        this->pos[0] = this->pos[0] + xL;
+        this->pos[0] = this->pos[0] + Base::xL;
     }
-    if(this->pos[1] > yL){
-        this->pos[1] = this->pos[1] - yL;
+    if(this->pos[1] > Base::yL){
+        this->pos[1] = this->pos[1] - Base::yL;
     }
     if(this->pos[1] < 0){
-        this->pos[1] = this->pos[1] + yL;
+        this->pos[1] = this->pos[1] + Base::yL;
     }
     if(this->pos[2] > zL){
         this->pos[2] = this->pos[2] - zL;
@@ -72,7 +72,7 @@ void Particle::pbc_pos(){
     }
 }
 
-
+*/
 
 
 
@@ -90,11 +90,11 @@ void Particle::pbc(Eigen::Vector3d& x){
     if(x[1] < -Base::yL / 2.0){
         x[1] += Base::yL;
     }
-    if(x[2] > Base::zL / 2.0){
-        x[2] -= Base::zL;
+    if(x[2] > Base::zLBox / 2.0){
+        x[2] -= Base::zLBox;
     }
-    if(x[2] < -Base::zL / 2.0){
-        x[2] += Base::zL;
+    if(x[2] < -Base::zLBox / 2.0){
+        x[2] += Base::zLBox;
     }
 }
 
@@ -123,17 +123,24 @@ void Particle::pbc_xy(Eigen::Vector3d& x){
 
 
 void Particle::random_move(double stepSize){
+    
     this->com[0] += (ran2::get_random() * 2.0 - 1.0) * stepSize;
     this->com[1] += (ran2::get_random() * 2.0 - 1.0) * stepSize;
     this->com[2] += (ran2::get_random() * 2.0 - 1.0) * stepSize;
-
+    //Eigen::Vector3d temp = this->com;
     // this->pos[0] = this->com[0] + this->chargeDisp[0];
     // this->pos[1] = this->com[1] + this->chargeDisp[1];
     // this->pos[2] = this->com[2] + this->chargeDisp[2];
     if(Base::wall > 0 || Base::d2){
+        
         pbc_xy(this->com);
+        /*if(temp != this->com){
+            std::cout << "Before: " << temp << std::endl;
+            std::cout << "After: " << this->com << std::endl;
+        }*/
         this->pos = this->com + this->chargeDisp;
         pbc_xy(this->pos);
+        
     }
     else{
         pbc(this->com);
@@ -176,23 +183,23 @@ double Particle::distance(Particle &p){
     Eigen::Vector3d disp;
     disp = p.pos - this->pos;
 
-    if(disp[0] < -xL / 2.0){
-        disp[0] += xL;
+    if(disp[0] < -Base::xL / 2.0){
+        disp[0] += Base::xL;
     }
-    if(disp[0] > xL / 2.0){
-        disp[0] -= xL;
+    if(disp[0] > Base::xL / 2.0){
+        disp[0] -= Base::xL;
     }
-    if(disp[1] < -yL / 2.0){
-        disp[1] += yL;
+    if(disp[1] < -Base::yL / 2.0){
+        disp[1] += Base::yL;
     }
-    if(disp[1] > yL / 2.0){
-        disp[1] -= yL;
+    if(disp[1] > Base::yL / 2.0){
+        disp[1] -= Base::yL;
     }
-    if(disp[2] < -zL / 2.0){
-        disp[2] += zL;
+    if(disp[2] < -Base::zLBox / 2.0){
+        disp[2] += zLBox;
     }
-    if(disp[2] > zL / 2.0){
-        disp[2] -= zL;
+    if(disp[2] > Base::zLBox / 2.0){
+        disp[2] -= zLBox;
     }
     return disp.norm();
 }
@@ -212,19 +219,35 @@ double Particle::distance_xy(Particle &p){
     double yP2 = this->pos[1];
     double zP2 = this->pos[2];
 
-    if(xP1 - xP2 < -1.0 * xL / 2.0){
-        xP2 = xP2 - xL;
+    Eigen::Vector3d disp;
+    disp = p.pos - this->pos;
+    /*
+    if(xP1 - xP2 < -1.0 * Base::xL / 2.0){
+        xP2 = xP2 - Base::xL;
     }
-    if(xP1 - xP2 > xL / 2.0){
-        xP2 = xP2 + xL;
+    if(xP1 - xP2 > Base::xL / 2.0){
+        xP2 = xP2 + Base::xL;
     }
-    if(yP1 - yP2 < -1.0 * yL / 2.0){
-        yP2 = yP2 - yL;
+    if(yP1 - yP2 < -1.0 * Base::yL / 2.0){
+        yP2 = yP2 - Base::yL;
     }
-    if(yP1 - yP2 > yL / 2.0){
-        yP2 = yP2 + yL;
+    if(yP1 - yP2 > Base::yL / 2.0){
+        yP2 = yP2 + Base::yL;
     }
-    return sqrt(pow((xP1 - xP2), 2.0) + pow((yP1 - yP2), 2.0) + pow((zP1 - zP2), 2.0));
+    return sqrt(pow((xP1 - xP2), 2.0) + pow((yP1 - yP2), 2.0) + pow((zP1 - zP2), 2.0));*/
+    if(disp[0] < -Base::xL / 2.0){
+        disp[0] += Base::xL;
+    }
+    if(disp[0] > Base::xL / 2.0){
+        disp[0] -= Base::xL;
+    }
+    if(disp[1] < -Base::yL / 2.0){
+        disp[1] += Base::yL;
+    }
+    if(disp[1] > Base::yL / 2.0){
+        disp[1] -= Base::yL;
+    }
+    return disp.norm();
 }
 
 
@@ -251,23 +274,23 @@ double Particle::com_distance(Particle &p){
     Eigen::Vector3d disp;
     disp = p.com - this->com;
 
-    if(disp[0] < -1.0 * xL / 2.0){
-        disp[0] += xL;
+    if(disp[0] < -1.0 * Base::xL / 2.0){
+        disp[0] += Base::xL;
     }
-    if(disp[0] > xL / 2.0){
-        disp[0] -= xL;
+    if(disp[0] > Base::xL / 2.0){
+        disp[0] -= Base::xL;
     }
-    if(disp[1] < -1.0 * yL / 2.0){
-        disp[1] += yL;
+    if(disp[1] < -1.0 * Base::yL / 2.0){
+        disp[1] += Base::yL;
     }
-    if(disp[1] > yL / 2.0){
-        disp[1] -= yL;
+    if(disp[1] > Base::yL / 2.0){
+        disp[1] -= Base::yL;
     }
-    if(disp[2] < -1.0 * zL / 2.0){
-        disp[2] += zL;
+    if(disp[2] < -1.0 * Base::zLBox / 2.0){
+        disp[2] += zLBox;
     }
-    if(disp[2] > zL / 2.0){
-        disp[2] -= zL;
+    if(disp[2] > Base::zLBox / 2.0){
+        disp[2] -= zLBox;
     }
     return disp.norm();
 }
@@ -282,17 +305,17 @@ double Particle::com_distance_xy(Particle &p){
     Eigen::Vector3d disp;
     disp = p.com - this->com;
 
-    if(disp[0] < -1.0 * xL / 2.0){
-        disp[0] += xL;
+    if(disp[0] < -1.0 * Base::xL / 2.0){
+        disp[0] += Base::xL;
     }
-    if(disp[0] > xL / 2.0){
-        disp[0] -= xL;
+    if(disp[0] > Base::xL / 2.0){
+        disp[0] -= Base::xL;
     }
-    if(disp[1] < -1.0 * yL / 2.0){
-        disp[1] += yL;
+    if(disp[1] < -1.0 * Base::yL / 2.0){
+        disp[1] += Base::yL;
     }
-    if(disp[1] > yL / 2.0){
-        disp[1] -= yL;
+    if(disp[1] > Base::yL / 2.0){
+        disp[1] -= Base::yL;
     }
     return disp.norm();
 }
@@ -564,13 +587,13 @@ bool Particle::wall_2d(){
     
     bool inside;
 
-    if(this->q < 0){
+    //if(this->q < 0){
         (this->com[2] > -Base::zLBox / 2.0 +       this->d / 2.0 && this->com[2] < Base::zLBox / 2.0 - this->d / 2.0) ?      inside = true : inside = false;
-    }
+    /*}
 
     else{
         (this->com[2] > -Base::zLBox / 2.0 - 2.0 + this->d / 2.0 && this->com[2] < Base::zLBox / 2.0 - this->d / 2.0 + 2.0) ? inside = true : inside = false;
-    }
+    }*/
 
     return inside;
 }

@@ -49,7 +49,7 @@ class MC{
 
             //Add particle
             else{
-                prob = particles.numOfParticles / Base::volume * std::exp((chemPot + Donnan * particles[r].q - newEnergy + oldEnergy));
+                prob = particles.numOfParticles / Base::volume * std::exp((chemPot + Donnan * particles[random].q - newEnergy + oldEnergy));
                 if(particles.add()){
 
                 }
@@ -160,7 +160,7 @@ class MC{
             int r = ran2::get_random() * particles.numOfParticles;
             double dE;
             int accepted = 0;
-            Particle _old = new Particle(true);
+            Particle _old;
 
             _old.pos = particles[r].pos;
             _old.com = particles[r].com;
@@ -280,10 +280,10 @@ class MC{
             double ewald3DEnergy = 0.0;
             double ewald2DEnergy = 0.0;
             double directEnergy = 0.0;
-            Particle _old = new Particle(true);
+            Particle _old;
 
             int p =  random * particles.numOfParticles;
-
+            //printf("random: %i\n", p);
 
             eOld = energy_function(particles, particles[p]);
             _old.pos = particles[p].pos;
@@ -497,7 +497,7 @@ class MC{
                     }*/
                 /*}
                 else{
-                    if(charge_rot_move(particles, particle_energy_function)){
+                    if(charge_rot_move(particle_energy_function)){
                         prevAccepted++;
                         rotAccepted++;
                     }
@@ -507,14 +507,14 @@ class MC{
                 
 
                 
-                /*if(i % 100 == 0 && i > 10000 && !sample){
+                if(i % 100 == 0 && i > 10000 && !sample){
                     energy::valleau::update_charge_vector(particles);
-                }*/
+                }
 
                 if(i % outFreq == 0){
                     //Base::volumes.push_back(Base::volume);
-                    Base::volumes[k] = Base::volume;
-                    k++;
+                    //Base::volumes[k] = Base::volume;
+                    //k++;
                     energy_temp = energy_function(particles);
                     //particles.write_coordinates(outName , particles);
                     printf("Iteration: %d\n", i);
@@ -536,6 +536,7 @@ class MC{
                     
                     prevAccepted = 0;
                     //printf("size: %lu\n", Base::volumes.size());
+                    /*
                     if(k == 1000){
                         FILE *f = fopen(volOut, "a");
                         fprintf(f, "");
@@ -550,13 +551,16 @@ class MC{
                         k = 0;
                         //Base::volumes.clear();
                     }
+                    */
                 }
             }
+
             if(sample){
-                xHist->saveHisto(histOut);
-                yHist->saveHisto(histOut);
-                zHist->saveHisto(histOut);
+                xHist->saveHisto(histOut, particles);
+                yHist->saveHisto(histOut, particles);
+                zHist->saveHisto(histOut, particles);
             }
+
             delete xHist;
             delete yHist;
             delete zHist;

@@ -34,6 +34,7 @@ namespace energy{ namespace direct{
     double get_central(Particles &particles, Particle &p);
     double get_replicates(Particles &particles);
     double get_replicates(Particles &particles, Particle &p);
+    double phiw(double z);
     template<typename T>
     double norm(T vec);
 } }

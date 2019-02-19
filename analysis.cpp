@@ -4,9 +4,9 @@ Analysis::Analysis(double binWidth, double dLength){
     this->numberOfSamples = 0;
     this->binWidth = binWidth;
     this->bins = dLength / binWidth;//zL/binWidth;
-    this->histo = (int*)malloc(this->bins * sizeof(int));
-    this->pHisto = (int*)malloc(this->bins * sizeof(int));
-    this->nHisto = (int*)malloc(this->bins * sizeof(int));
+    this->histo = (int*)malloc((this->bins + 1) * sizeof(int));
+    this->pHisto = (int*)malloc((this->bins + 1) * sizeof(int));
+    this->nHisto = (int*)malloc((this->bins + 1) * sizeof(int));
 
     for(int i = 0; i < this->bins; i++){
         this->histo[i] = 0;
@@ -14,7 +14,7 @@ Analysis::Analysis(double binWidth, double dLength){
         this->nHisto[i] = 0;
     }
     this->num = numOfHisto;
-    this->numOfHisto++;
+    numOfHisto++;
 }
 
 
@@ -24,14 +24,20 @@ Analysis::Analysis(double binWidth, double dLength){
 
 void Analysis::sampleHisto(Particles &particles, int d){
     int i = 0;
+
     double dist = 0;
+
     for(i = 0; i < particles.numOfParticles; i++){
         //this->histo[(int)(particles[i]->pos[d] / binWidth)]++;
-        if(particles[i].q < 0){
+        if(particles[i].q < 0.0){
             this->nHisto[(int)( (particles[i].pos[d] + Base::box[d] / 2.0) / binWidth )]++;
         }
-        else if(particles[i].q > 0){
+        else if(particles[i].q > 0.0){
             this->pHisto[(int)( (particles[i].pos[d] + Base::box[d] / 2.0) / binWidth )]++;
+        }
+        else{
+            printf("Wrong particle charge...\n");
+            exit(1);
         }
     }
     this->numberOfSamples++;
@@ -43,7 +49,7 @@ void Analysis::sampleHisto(Particles &particles, int d){
 
 
 
-void Analysis::saveHisto(char outName[]){
+void Analysis::saveHisto(char outName[], Particles &particles){
     int i = 0;
     double dv = 0;
     double idealDen = 0;
@@ -66,6 +72,7 @@ void Analysis::saveHisto(char outName[]){
         printf("Can't open file!\n");
         exit(1);
     }
+
     for(i = 0; i < bins; i++){
         fprintf(f, "%lf     %.15lf\n", (double)i * this->binWidth, (double)this->histo[i] / (Base::xL * Base::yL * this->binWidth * this->numberOfSamples));
     }
@@ -92,6 +99,7 @@ void Analysis::saveHisto(char outName[]){
         fprintf(nf, "%lf     %.15lf\n", (double)i * this->binWidth, (double)this->nHisto[i] / (Base::xL * Base::yL * this->binWidth * this->numberOfSamples));
     }
     fclose(nf);
+    printf("Number of samples: %d\n", this->numberOfSamples);
 }
 
 

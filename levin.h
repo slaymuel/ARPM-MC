@@ -26,13 +26,13 @@ namespace energy{ namespace levin{
     //std::complex<double> *rkVec;
     extern int kNum;
     extern int kMax;
-    extern Eigen::MatrixXd kVectors;
-    extern Eigen::ArrayXd kNorms;
-    extern Eigen::ArrayXd f1;
-    extern Eigen::ArrayXd f2;
-    extern Eigen::ArrayXd f3;
-    extern Eigen::ArrayXd f4;
-    extern Eigen::ArrayXd eFactors;
+    extern std::vector< std::vector<double> > kVectors;
+    extern std::vector<double> kNorms;
+    extern std::vector<double> f1;
+    extern std::vector<double> f2;
+    extern std::vector<double> f3;
+    extern std::vector<double> f4;
+    extern std::vector<double> eFactors;
     extern double uGamma;
 
     

@@ -30,10 +30,10 @@ void energy::valleau::update_charge_vector(Particles &particles){
     
     for(int i = 0; i < particles.numOfParticles; i++){
         if(particles[i].q > 0){
-            pDensity[(int)((particles[i].pos[2] - Base::wall)/binWidth)]++;
+            pDensity[(int)((particles[i].pos[2] + Base::zLBox / 2.0)/binWidth)]++;
         }
         else{
-            nDensity[(int)((particles[i].pos[2] - Base::wall)/binWidth)]++;
+            nDensity[(int)((particles[i].pos[2] + Base::zLBox / 2.0)/binWidth)]++;
         }
     }
     numOfSamples++;
@@ -84,19 +84,19 @@ void energy::valleau::update_potential(){
             jIt += dz;
 
             //xy replicates of box
-            //diffz = std::fabs(jIt - iIt);
-            //ext[i] += chargeVector[j] * (-2.0 * PI * diffz - phiw(diffz));
+            diffz = std::fabs(jIt - iIt);
+            ext[i] += chargeVector[j] * (-2.0 * PI * diffz - phiw(diffz));
 
             //First reflection
-            diffz = jIt + iIt - dhs;
+            /*diffz = jIt + iIt - dhs;
             imgExt[i] += chargeVector[j] * (-2.0 * PI * diffz - phiw(diffz));
             diffz = (Base::zL - 2 * Base::wall) - jIt + ((Base::zL - 2 * Base::wall) - iIt) - dhs;
-            imgExt[i] += chargeVector[j] * (-2.0 * PI * diffz - phiw(diffz));
+            imgExt[i] += chargeVector[j] * (-2.0 * PI * diffz - phiw(diffz));*/
             //Second reflection
-            diffz = 2 * (Base::zL - 2 * Base::wall) + jIt - iIt - 2 * dhs;
+            /*diffz = 2 * (Base::zL - 2 * Base::wall) + jIt - iIt - 2 * dhs;
             imgExt[i] -= chargeVector[j] * (-2.0 * PI * diffz - phiw(diffz));
             diffz = 2 * (Base::zL - 2 * Base::wall) - jIt + iIt - 2 * dhs;
-            imgExt[i] -= chargeVector[j] * (-2.0 * PI * diffz - phiw(diffz));
+            imgExt[i] -= chargeVector[j] * (-2.0 * PI * diffz - phiw(diffz));*/
             
         }
     }
@@ -327,21 +327,21 @@ double energy::valleau::get_energy(Particles &particles){
     
     for(int i = 0; i < particles.numOfParticles; i++){
         //Linear interpolation
-        x0 = (int)(particles[i].pos[2] - Base::wall) / dz;
-        x1 = (int)(particles[i].pos[2] - Base::wall) / dz + 1;
-        y0 = ext[(int)(particles[i].pos[2] - Base::wall) / dz];
-        y1 = ext[(int)(particles[i].pos[2] - Base::wall) / dz + 1];
+        x0 = (int)(particles[i].pos[2] + Base::zLBox / 2.0) / dz;
+        x1 = (int)(particles[i].pos[2] + Base::zLBox / 2.0) / dz + 1;
+        y0 = ext[(int)(particles[i].pos[2] + Base::zLBox / 2.0) / dz];
+        y1 = ext[(int)(particles[i].pos[2] + Base::zLBox / 2.0) / dz + 1];
         if(particles[i].q > 0){
-            energy += y0 + ((particles[i].pos[2] - Base::wall) / dz - x0) * (y1 - y0) / (x1 - x0);
+            energy += y0 + ((particles[i].pos[2] + Base::zLBox / 2.0) / dz - x0) * (y1 - y0) / (x1 - x0);
         }
         else{
-            energy -= y0 + ((particles[i].pos[2] - Base::wall) / dz - x0) * (y1 - y0) / (x1 - x0);
+            energy -= y0 + ((particles[i].pos[2] + Base::zLBox / 2.0) / dz - x0) * (y1 - y0) / (x1 - x0);
         }
     }
     //printf("Valleau dir: %lf    pol: %lf\n", energy::direct::get_energy(particles), get_images(particles));
-    //energy += energy::direct::get_energy(particles);
+    energy += energy::direct::get_energy(particles);
     //energy += energy::ewald3D::get_energy(particles);
-    energy += get_images(particles);
+    //energy += get_images(particles);
     return energy;
 }
 
@@ -352,20 +352,20 @@ double energy::valleau::get_particle_energy(Particles &particles, Particle &p){
     double dz = 0.05;
     
     //Linear interpolation
-    x0 = (int)(p.pos[2] - Base::wall) / dz;
-    x1 = (int)(p.pos[2] - Base::wall) / dz + 1;
-    y0 = ext[(int)(p.pos[2] - Base::wall) / dz];
-    y1 = ext[(int)(p.pos[2] - Base::wall) / dz + 1];
+    x0 = (int)(p.pos[2] + Base::zLBox / 2.0) / dz;
+    x1 = (int)(p.pos[2] + Base::zLBox / 2.0) / dz + 1;
+    y0 = ext[(int)(p.pos[2] + Base::zLBox / 2.0) / dz];
+    y1 = ext[(int)(p.pos[2] + Base::zLBox / 2.0) / dz + 1];
     if(p.q > 0){
-        energy += y0 + ((p.pos[2] - Base::wall) / dz - x0) * (y1 - y0) / (x1 - x0);
+        energy += y0 + ((p.pos[2] + Base::zLBox / 2.0) / dz - x0) * (y1 - y0) / (x1 - x0);
     }
     else{
-        energy -= y0 + ((p.pos[2] - Base::wall) / dz - x0) * (y1 - y0) / (x1 - x0);
+        energy -= y0 + ((p.pos[2] + Base::zLBox / 2.0) / dz - x0) * (y1 - y0) / (x1 - x0);
     }
     //printf("dir: %lf    pol: %lf\n", energy::direct::get_particle_energy(particles, p), get_particle_images(particles, p));
-    //energy += energy::direct::get_particle_energy(particles, p);
+    energy += energy::direct::get_particle_energy(particles, p);
     //energy += energy::ewald3D::get_particle_energy(particles, p);
-    energy += get_particle_images(particles, p);
+    //energy += get_particle_images(particles, p);
     
     return energy;
 }
