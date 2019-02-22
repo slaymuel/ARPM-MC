@@ -87,11 +87,7 @@ int main(int argc, char *argv[])
     int bins = 500;
     double binWidth = (Base::xL/2)/bins;
     double dist = 0;
-    int *histo;
-    histo = (int*)malloc(bins * sizeof(int));
-    for(int i = 0; i < bins; i++){
-        histo[i] = 0;
-    }
+
     //Simulation parameters
     MC mc;
 
@@ -154,6 +150,7 @@ int main(int argc, char *argv[])
     if(vm.count("wall")){
         Base::wall = vm["wall"].as<double>();
         Base::zL += 2.0 * Base::wall;
+        Base::volume = Base::xL * Base::yL * Base::zL;
     }
 
     if(vm.count("nm")){
@@ -359,7 +356,6 @@ int main(int argc, char *argv[])
     printf("Accepted moves: %d\n", Base::acceptedMoves);
     printf("Rejected moves: %d\n", Base::totalMoves - Base::acceptedMoves);
 
-    //rdf->save_rdf(histo, bins, binWidth);
 
     //Write coordinates to file
     printf("Saving output coordinates to: %s\n", outName);
@@ -374,6 +370,6 @@ int main(int argc, char *argv[])
     //    free(grid[i]);
     //}
     //free(grid);
-    //free(histo);
+
    return 0;
 }

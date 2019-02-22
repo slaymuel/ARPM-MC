@@ -15,7 +15,7 @@ int energy::ewald3D::kNum;
 
 template<typename T, typename G>
 double energy::ewald3D::dot(T vec1, G vec2){
-    return vec1[0]*vec2[0] + vec1[1]*vec2[1] + vec1[2]*vec2[2];
+    return vec1[0] * vec2[0] + vec1[1] * vec2[1] + vec1[2] * vec2[2];
 }
 
 
@@ -27,7 +27,7 @@ static inline T energy::ewald3D::erfc_x( T x )
 {
     //static_assert(std::is_floating_point<T>::value, "type must be floating point");
     if(x < 0){
-        return ( 2.0 - erfc(-x) );
+        return ( 2.0 - erfc_x(-x) );
     }
     T t = 1.0 / (1.0 + 0.3275911 * x);
     const T a1 = 0.254829592;
@@ -232,7 +232,7 @@ double energy::ewald3D::get_energy(Particles &particles){
                     distance = particles.distances[i][j];
 
                     //if(distance <= 80){
-                        energy = erfc(distance * alpha) / distance;
+                        energy = erfc_x(distance * alpha) / distance;
                         real += particles[i].q * particles[j].q * energy;
                         //printf("%lf, %lf\n", particles[i].q, particles[j].q);
                     //}
@@ -246,7 +246,8 @@ double energy::ewald3D::get_energy(Particles &particles){
 
         corr = dipoleMoment[2];
         dipoleMoment2 *= totCharge;
-        corr *= corr * 2.0 * PI / (Base::volume);
+        corr *= corr;
+        corr = 2.0 * PI / (Base::volume) * (corr - dipoleMoment2);
         //corr = 2.0 * PI / (Base::volume) * (corr * corr - dipoleMoment2 - totCharge * totCharge * Base::zL * Base::zL / 12.0);
         reciprocal = 2.0 * PI / (Base::xL * Base::yL * Base::zL) * reciprocal;
         //self = alpha/sqrt(PI) * self;
@@ -285,7 +286,7 @@ double energy::ewald3D::get_particle_energy(Particles &particles, Particle &p){
         distance = particles.distances[p.index][i];
 
         //if(distance <= 80){
-            energy = erfc(distance * alpha) / distance;
+            energy = erfc_x(distance * alpha) / distance;
             real += particles[i].q * p.q * energy;
         //}
         dipoleMoment += particles[i].q * particles[i].pos;
@@ -295,7 +296,7 @@ double energy::ewald3D::get_particle_energy(Particles &particles, Particle &p){
         distance = particles.distances[i][p.index];
         
         //if(distance <= 80){
-            energy = erfc(distance * alpha) / distance;
+            energy = erfc_x(distance * alpha) / distance;
             real += particles[i].q * p.q * energy;
         //}
         dipoleMoment += particles[i].q * particles[i].pos;
@@ -305,7 +306,8 @@ double energy::ewald3D::get_particle_energy(Particles &particles, Particle &p){
     dipoleMoment2 *= totCharge;
     dipoleMoment += p.q * p.pos;
     corr = dipoleMoment[2];
-    corr = corr * 2.0 * PI * corr/(Base::volume);
+    corr *= corr;
+    corr = 2.0 * PI /Base::volume * (corr - dipoleMoment2);
     //corr = 2.0 * PI / (Base::volume) * (corr * corr - dipoleMoment2 - totCharge * totCharge * Base::zL * Base::zL / 12.0);
     reciprocal = 2.0 * PI/(Base::xL * Base::yL * Base::zL) * reciprocal;
 

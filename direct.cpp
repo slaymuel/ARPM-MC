@@ -108,7 +108,7 @@ double energy::direct::get_central(Particles &particles){
         //    printf("pos and com are not equal!\n");
         //    exit(1);
         //}
-        energy += phiw(particles[i].pos[2]);
+        //energy += phiw(particles[i].pos[2]);
     }
     return energy;
 }
@@ -134,7 +134,7 @@ double energy::direct::get_central(Particles &particles, Particle &p){
         energy += particles[i].q * p.q * 1.0 / dist;
     }
 
-    energy += phiw(p.pos[2]);
+    //energy += phiw(p.pos[2]);
     //}
     return energy;
 }   

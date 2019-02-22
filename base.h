@@ -32,6 +32,7 @@ class Base{
         static std::vector<double> volumes;
         static bool d2;
         static std::vector<double> box;
+
         static void set_beta(){
             beta = 1.0 / (KB * T);
         }

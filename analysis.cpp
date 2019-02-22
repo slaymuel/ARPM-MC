@@ -29,6 +29,10 @@ void Analysis::sampleHisto(Particles &particles, int d){
 
     for(i = 0; i < particles.numOfParticles; i++){
         //this->histo[(int)(particles[i]->pos[d] / binWidth)]++;
+        if((int)( (particles[i].pos[d] + Base::box[d] / 2.0) / binWidth ) > this->bins){
+            printf("Trying to overwrite size of histo...\n");
+            exit(1);
+        }
         if(particles[i].q < 0.0){
             this->nHisto[(int)( (particles[i].pos[d] + Base::box[d] / 2.0) / binWidth )]++;
         }
