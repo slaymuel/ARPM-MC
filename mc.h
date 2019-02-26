@@ -21,7 +21,8 @@ class MC{
 
         template <typename E, typename P>
         int grand_move(E energy_function, P particle_energy_function){
-            int random = ran2::get_random();
+            int accept = 0;
+            double random = ran2::get_random();
             double oldEnergy, newEnergy, prob;
             double chemPot = 1.0;
             double Donnan = 10.0;
@@ -29,20 +30,22 @@ class MC{
 
             
             //Delete particle
-            if(random < 0.5){
+            //printf("%lf\n",random);
+            if(random <= 0.5){
 
                 int r = ran2::get_random() * particles.numOfParticles;
                 newEnergy = oldEnergy - particle_energy_function(particles, particles[r]);
                 
                 prob = particles.numOfParticles / Base::volume * std::exp(-(chemPot + Donnan * particles[r].q + newEnergy - oldEnergy));
-                if(ran2::get_random() < prob || newEnergy < oldEnergy){  //Accept deletion
+                if(ran2::get_random() < 2.0 || newEnergy < oldEnergy){  //Accept deletion
                     particles.remove(r);
                     Base::eCummulative += newEnergy - oldEnergy;
                     Base::acceptedMoves++;
+                    accept = 1;
                 }
 
                 else{
-
+                    accept = 0;
                 }
             }
 
@@ -53,17 +56,22 @@ class MC{
                 if(particles.add()){
                     newEnergy = oldEnergy + particle_energy_function(particles, particles[particles.numOfParticles - 1]);
                     prob = particles.numOfParticles / Base::volume * std::exp((chemPot + Donnan * particles[random].q - newEnergy + oldEnergy));
-
-                    if(ran2::get_random() < prob || newEnergy < oldEnergy){ // Accept addition
-
+                    if(ran2::get_random() < 2.0 || newEnergy < oldEnergy){ // Accept addition
+                        Base::eCummulative += newEnergy - oldEnergy;
+                        accept = 1;
                     }
 
                     else{ //Reject
                         particles.remove(particles.numOfParticles - 1);
+                        accept = 0;
                     }
 
                 }
+                else{
+                    accept = 0;
+                }
             }
+            return accept;
         }
 
 
@@ -442,7 +450,7 @@ class MC{
             int transAccepted = 0;
             int elAcc = 0;
             int elTot = 0;
-            int outFreq = 10000;
+            int outFreq = 1000;
             int k = 0;
             double random = 0;
             double rN = 1.0/particles.numOfParticles;
@@ -501,9 +509,9 @@ class MC{
                 }
                 else if(random < 0.5 + rN){*/
                 
-                    //random = ran2::get_random();
+                    random = ran2::get_random();
                     //if(random <= partRatio){
-                    //if(random <= 0.6){
+                    if(random <= 0.99){
                         //random = ran2::get_random();
                         //if(random <= rE){
                             if(trans_move(dr, particle_energy_function)){
@@ -518,7 +526,10 @@ class MC{
                                 transAccepted++;
                             }
                         }*/
-                    //}
+                    }
+                    else{
+                        grand_move(energy_function, particle_energy_function);
+                    }
                     /*else{
                         if(trans_electron_move(particles, 0.05, particle_energy_function)){
                             prevAccepted++;
@@ -559,11 +570,11 @@ class MC{
                         exit(1);
                     }
 
-                    printf("Trans moves: %d, %lf         Rot moves: %d, %lf       Vol moves: %d, %lf        El moves: %d, %lf\n\n", 
+                    printf("Trans moves: %d, %.2lf  Rot moves: %d, %lf  Vol moves: %d, %lf   pnum: %i\n\n", 
                                                                                                             transAccepted, (double) transAccepted/transTot * 100.0,
                                                                                                             rotAccepted,   (double) rotAccepted/rotTot * 100.0, 
                                                                                                             volAccepted,   (double) volAccepted/volTot * 100.0,
-                                                                                                            elAcc,         (double) elAcc/elTot * 100.0);
+                                                                                                           particles.numOfParticles);
                     
                     prevAccepted = 0;
                     //printf("size: %lu\n", Base::volumes.size());

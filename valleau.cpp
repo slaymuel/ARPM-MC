@@ -339,7 +339,7 @@ double energy::valleau::get_energy(Particles &particles){
             energy -= y0 + ((particles[i].pos[2] + Base::zLBox / 2.0) / dz - x0) * (y1 - y0) / (x1 - x0);
         }
     }*/
-    printf("Valleau dir: %lf    pol: %lf\n", energy::direct::get_energy(particles), get_images(particles));
+    //printf("Valleau dir: %lf    pol: %lf\n", energy::direct::get_energy(particles), get_images(particles));
     energy += energy::direct::get_energy(particles);
     //energy += energy::ewald3D::get_energy(particles);
     energy += get_images(particles);

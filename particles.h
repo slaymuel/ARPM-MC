@@ -47,28 +47,7 @@ class Particles{
 
 
 
-    bool add(){
-        Particle* temp = new Particle();
-        temp->d = 5.0;
-        temp->com[0] = (double) rand()/RAND_MAX * (-Base::xL) + Base::xL / 2.0;
-        temp->com[1] = (double) rand()/RAND_MAX * (-Base::yL) + Base::yL / 2.0;
-        //particles[i]->com[2] = (double) rand()/RAND_MAX * (Base::zL - particles[i]->d - 2 * Base::wall) + particles[i]->d/2.0 + Base::wall;
-        temp->com[2] = (double) rand()/RAND_MAX * -2.0 * (Base::zLBox / 2.0 - temp->d / 2.0) + Base::zLBox / 2.0 - temp->d / 2.0;
-        temp->index = -1;
-        if(hard_sphere(*temp)){
-            particles.push_back(temp);
-            delete temp;
-            numOfParticles++;
-            numOfCations++;
-            return true;
-        }
 
-        else{
-            delete temp;
-            return false;
-        }
-
-    }
 
     bool add(double z){
         Particle* temp = new Particle();
@@ -90,7 +69,7 @@ class Particles{
             particles.push_back(*temp);
             numOfParticles++;
             numOfCations++;
-            
+
             delete temp;
             return true;
         }
@@ -105,10 +84,48 @@ class Particles{
 
 
 
+    bool add(){
+        Particle* temp = new Particle();
+        temp->d = 5.0;
+        temp->com[0] = (double) rand()/RAND_MAX * (-Base::xL) + Base::xL / 2.0;
+        temp->com[1] = (double) rand()/RAND_MAX * (-Base::yL) + Base::yL / 2.0;
+        //particles[i]->com[2] = (double) rand()/RAND_MAX * (Base::zL - particles[i]->d - 2 * Base::wall) + particles[i]->d/2.0 + Base::wall;
+        temp->com[2] = (double) rand()/RAND_MAX * -2.0 * (Base::zLBox / 2.0 - temp->d / 2.0) + Base::zLBox / 2.0 - temp->d / 2.0;
+        temp->pos = temp->com;
+        temp->index = numOfParticles;
+        temp->q = 1.0;
+        strcpy(temp->name, "Na\0");
 
-    void remove(int ind){
+        if(hard_sphere(*temp)){
+            this->distances.resize(numOfParticles + 1);
+            std::for_each(distances.begin(), distances.end(), [=](std::vector<double> &row){ row.resize(numOfParticles + 1); });
+            /*for(int i = 0; i < distances.size(); i++){
+                this->distances.at(i).resize(numOfParticles + 1);
+                //this->distances.at(i).push_back( particles[i].distance_xy(*temp) );
+            }*/
+            update_distances(*temp);
+
+
+            particles.push_back(*temp);
+            numOfParticles++;
+            numOfCations++;
+            delete temp;
+            return true;
+        }
+
+        else{
+            delete temp;
+            return false;
+        }
+    }
+
+
+
+
+
+    void remove(std::size_t ind){
         numOfParticles--;
-        if(particles[ind].q > 0){
+        if(particles.at(ind).q > 0){
             numOfCations--;
         }
         else{
@@ -117,8 +134,12 @@ class Particles{
 
         particles.erase(particles.begin() + ind);
         distances.erase(distances.begin() + ind);
+        //distances.resize(numOfParticles);
         for(int i = 0; i < distances.size(); i++){
             distances[i].erase(distances[i].begin() + ind);
+        }
+        for(int i = ind; i < numOfParticles; i++){
+            particles.at(i).index--;
         }
     }
 
