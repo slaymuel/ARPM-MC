@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
     }
 
     if(vm.count("f_jan")){
-        particles.read_jan("coordp", "coordn");
+        particles.read_jan("coordc", "coords");
     }
 
     if(vm.count("f_arpm_jan")){
@@ -301,20 +301,20 @@ int main(int argc, char *argv[])
     FILE *f = fopen(volOut, "w");
     fprintf(f, "");
     fclose(f);
-    std::string energyFunction = "ewald";
+    std::string energyFunction = "valleau";
 
     if(energyFunction == "valleau"){
-        energy::valleau::initialize();
-        //MC::run(&energy::hs::get_energy, &energy::hs::get_particle_energy, particles, dr, iter, false);
-        mc.run(&energy::direct::get_energy, &energy::direct::get_particle_energy, dr, 1000000, false, outputFile);
-        //mc.run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, 0.1, 1000000, false, outputFile);
-        energy::valleau::update_potential();
+        //energy::valleau::initialize();
+                            //MC::run(&energy::hs::get_energy, &energy::hs::get_particle_energy, particles, dr, iter, false);
+        //mc.run(&energy::direct::get_energy, &energy::direct::get_particle_energy, dr, 1000000, false, outputFile);
+                            //mc.run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, 0.1, 1000000, false, outputFile);
+        //energy::valleau::update_potential();
         
-        mc.run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, dr, 1000000, false, outputFile);
-        energy::valleau::update_potential();
+        //mc.run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, dr, 1000000, false, outputFile);
+        //energy::valleau::update_potential();
         
-        //MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, 15, 1000000, false);
-        //energy::valleau::update_potential();*/
+                            //MC::run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, particles, 15, 1000000, false);
+                            //energy::valleau::update_potential();*/
 
         mc.run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, dr, iter, true, outputFile);
         

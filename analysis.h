@@ -10,7 +10,8 @@ class Analysis: public Base{
         int *histo;
         double binWidth;
         int bins;
-        
+        double dVal1;
+        double dVal2;
         int num;
         static int numOfHisto;
 
@@ -18,11 +19,14 @@ class Analysis: public Base{
         int *pHisto;
         int *nHisto;
         int numberOfSamples;
+        int numberOfSamples2;
         Analysis(double binWidth, double dLength);
         void sampleHisto(Particles &particles, int d);
         void sample_rdf(std::vector<Particle> &particles, int *histo, double binWidth);
         void save_rdf(int *histo, int bins, double binWidth);
         void saveHisto(char outName[], Particles &particles);
+        void sampleSurfPot(double energy, bool wall);
+        void saveSurfPot(char outName[]);
 };
 
 #endif

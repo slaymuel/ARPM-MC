@@ -38,7 +38,7 @@ class Base{
         }
 
         static void set_lB(){
-            lB = EC * EC / (4.0 * PI * VP * 2.0 * 1e-10 * KB * T);
+            lB = EC * EC / (4.0 * PI * VP * 78.54 * 1e-10 * KB * T); //7.16
             //lB = 69.6094879234987;//EC*EC/(4 * PI * VP * 2.0 * 1e-10 * KB * T);
         }
 };

@@ -2,12 +2,14 @@
 
 Analysis::Analysis(double binWidth, double dLength){
     this->numberOfSamples = 0;
+    this->numberOfSamples2 = 0;
     this->binWidth = binWidth;
     this->bins = dLength / binWidth;//zL/binWidth;
     this->histo = (int*)malloc((this->bins + 1) * sizeof(int));
     this->pHisto = (int*)malloc((this->bins + 1) * sizeof(int));
     this->nHisto = (int*)malloc((this->bins + 1) * sizeof(int));
-
+    this->dVal1 = 0;
+    this->dVal2 = 0;
     for(int i = 0; i < this->bins; i++){
         this->histo[i] = 0;
         this->pHisto[i] = 0;
@@ -49,10 +51,6 @@ void Analysis::sampleHisto(Particles &particles, int d){
 
 
 
-
-
-
-
 void Analysis::saveHisto(char outName[], Particles &particles){
     int i = 0;
     double dv = 0;
@@ -78,7 +76,7 @@ void Analysis::saveHisto(char outName[], Particles &particles){
     }
 
     for(i = 0; i < bins; i++){
-        fprintf(f, "%lf     %.15lf\n", (double)i * this->binWidth, (double)this->histo[i] / (Base::xL * Base::yL * this->binWidth * this->numberOfSamples));
+        fprintf(f, "%lf     %.15lf\n", (double)i * this->binWidth + this->binWidth / 2.0, (double)this->histo[i] / (Base::xL * Base::yL * this->binWidth * this->numberOfSamples));
     }
     fclose(f);
 
@@ -89,7 +87,7 @@ void Analysis::saveHisto(char outName[], Particles &particles){
         exit(1);
     }
     for(i = 0; i < bins; i++){
-        fprintf(pf, "%lf     %.15lf\n", (double)i * this->binWidth, (double)this->pHisto[i] / (Base::xL * Base::yL * this->binWidth * this->numberOfSamples));
+        fprintf(pf, "%lf     %.15lf\n", (double)i * this->binWidth + this->binWidth / 2.0, (double)this->pHisto[i] / (Base::xL * Base::yL * this->binWidth * this->numberOfSamples));
     }
     fclose(pf);
 
@@ -100,12 +98,46 @@ void Analysis::saveHisto(char outName[], Particles &particles){
         exit(1);
     }
     for(i = 0; i < bins; i++){
-        fprintf(nf, "%lf     %.15lf\n", (double)i * this->binWidth, (double)this->nHisto[i] / (Base::xL * Base::yL * this->binWidth * this->numberOfSamples));
+        fprintf(nf, "%lf     %.15lf\n", (double)i * this->binWidth + this->binWidth / 2.0, (double)this->nHisto[i] / (Base::xL * Base::yL * this->binWidth * this->numberOfSamples));
     }
     fclose(nf);
     printf("Number of samples: %d\n", this->numberOfSamples);
 }
 
+
+
+
+void Analysis::sampleSurfPot(double energy, bool wall){
+    if(wall){
+        dVal1 += energy;
+        this->numberOfSamples++;
+    }
+    else{
+        dVal2 += energy;
+        this->numberOfSamples2++;
+    }
+    
+    
+}
+
+
+void Analysis::saveSurfPot(char outName[]){
+    char surfPot_name[64];
+    sprintf(surfPot_name, "surfPot_");
+    strcat(surfPot_name, outName);
+    
+
+    FILE *f = fopen(surfPot_name, "w");
+    if(f == NULL){
+        printf("Can't open file!\n");
+        exit(1);
+    }
+
+    fprintf(f, "Surface potential: %.15lf\n", this->dVal2 / this->numberOfSamples2 - this->dVal1 / this->numberOfSamples);
+    fprintf(f, "dVal1 (wall): %.15lf\n", this->dVal1 / this->numberOfSamples);
+    fprintf(f, "dVal2 (mid): %.15lf\n", this->dVal2 / this->numberOfSamples2);
+    fclose(f);
+}
 
 
 /*

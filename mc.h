@@ -49,8 +49,18 @@ class MC{
 
             //Add particle
             else{
-                prob = particles.numOfParticles / Base::volume * std::exp((chemPot + Donnan * particles[random].q - newEnergy + oldEnergy));
+                
                 if(particles.add()){
+                    newEnergy = oldEnergy + particle_energy_function(particles, particles.at(particles.numOfParticles - 1));
+                    prob = particles.numOfParticles / Base::volume * std::exp((chemPot + Donnan * particles[random].q - newEnergy + oldEnergy));
+
+                    if(ran2::get_random() < prob || newEnergy < oldEnergy){ // Accept addition
+
+                    }
+
+                    else{ //Reject
+                        particles.remove(particles.at(particles.numOfParticles - 1));
+                    }
 
                 }
             }
@@ -300,7 +310,7 @@ class MC{
             if(particles.hard_sphere(particles[p]) && particles[p].wall_2d()){
 
                 //Get new energy
-                energy::ewald3D::update_reciprocal(_old, particles[p]);
+                //energy::ewald3D::update_reciprocal(_old, particles[p]);
                 //energy::levin::update_f(_old, particles[p]);
                 eNew = energy_function(particles, particles[p]);
 
@@ -320,7 +330,7 @@ class MC{
                 }
                 else{   //Reject move
                     //energy::imgrep::update_position(particles, _old);
-                    energy::ewald3D::update_reciprocal(particles[p], _old);
+                    //energy::ewald3D::update_reciprocal(particles[p], _old);
                     //energy::levin::update_f(particles[p], _old);
                     particles[p].pos = _old.pos;
                     particles[p].com = _old.com;
@@ -441,9 +451,10 @@ class MC{
             char histOut[40];
             strcpy(histOut, outputFile.c_str());
 
-            Analysis *xHist = new Analysis(0.1, Base::xL);
-            Analysis *yHist = new Analysis(0.1, Base::yL);
-            Analysis *zHist = new Analysis(0.1, Base::zLBox);
+            Analysis *xHist = new Analysis(0.05, Base::xL);
+            Analysis *yHist = new Analysis(0.05, Base::yL);
+            Analysis *zHist = new Analysis(0.05, Base::zLBox);
+            Analysis *surfpot = new Analysis(0.05, Base::zLBox);
 
             strcat(volOut, outputFile.c_str());
 
@@ -458,6 +469,26 @@ class MC{
                     xHist->sampleHisto(particles, 0);
                     yHist->sampleHisto(particles, 1);
                     zHist->sampleHisto(particles, 2);
+
+/*
+                    double random = ran2::get_random();
+                    bool success;
+                    if(random < 0.25){
+                        //Add to right wall
+                        success = particles.add(Base::zLBox / 2.0);
+                    }
+                    else if(random < 0.5){
+                        //Add to left wall
+                        success = particles.add(-1.0 * Base::zLBox / 2.0);
+                    }
+                    else{
+                        //Add to middle
+                        success = particles.add(0.0);
+                    }
+                    if(success){
+                        surfpot->sampleSurfPot(particle_energy_function(particles, particles[particles.numOfParticles]), random < 0.5);
+                        particles.remove(particles.numOfParticles - 1);
+                    }*/
                 }
                 
                 /*random = ran2::get_random();
@@ -559,6 +590,7 @@ class MC{
                 xHist->saveHisto(histOut, particles);
                 yHist->saveHisto(histOut, particles);
                 zHist->saveHisto(histOut, particles);
+                surfpot->saveSurfPot(histOut);
             }
 
             delete xHist;

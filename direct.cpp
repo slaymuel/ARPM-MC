@@ -96,9 +96,8 @@ double energy::direct::get_central(Particles &particles){
         }  
         //std::cout << particles[i].com << std::endl;
         //std::cout << particles[i].pos << std::endl;
-        if(particles[i].pos[2] < -Base::zLBox / 2.0 || particles[i].pos[1] < -Base::yL / 2.0 || particles[i].pos[0] < -Base::xL / 2.0 ||
-                particles[i].pos[2] > Base::zLBox / 2.0 || particles[i].pos[1] > Base::yL / 2.0 || particles[i].pos[0] > Base::xL / 2.0){
-
+        if(particles[i].pos[2] < -Base::zLBox / 2.0 + particles[i].d / 2.0 || particles[i].pos[1] < -Base::yL / 2.0 || particles[i].pos[0] < -Base::xL / 2.0 ||
+                particles[i].pos[2] > Base::zLBox / 2.0 - particles[i].d / 2.0 || particles[i].pos[1] > Base::yL / 2.0 || particles[i].pos[0] > Base::xL / 2.0){
             printf("Error calculating energy, particle was found outside the box..\n");
             std::cout << particles[i].com << std::endl;
             std::cout << particles[i].pos << std::endl;

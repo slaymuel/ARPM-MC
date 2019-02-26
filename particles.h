@@ -48,24 +48,59 @@ class Particles{
 
 
     bool add(){
-        Particle temp = new Particle();
-        temp.d = 5.0;
-        temp.com[0] = (double) rand()/RAND_MAX * (-Base::xL) + Base::xL / 2.0;
-        temp.com[1] = (double) rand()/RAND_MAX * (-Base::yL) + Base::yL / 2.0;
+        Particle* temp = new Particle();
+        temp->d = 5.0;
+        temp->com[0] = (double) rand()/RAND_MAX * (-Base::xL) + Base::xL / 2.0;
+        temp->com[1] = (double) rand()/RAND_MAX * (-Base::yL) + Base::yL / 2.0;
         //particles[i]->com[2] = (double) rand()/RAND_MAX * (Base::zL - particles[i]->d - 2 * Base::wall) + particles[i]->d/2.0 + Base::wall;
-        temp.com[2] = (double) rand()/RAND_MAX * -2.0 * (Base::zLBox / 2.0 - temp.d / 2.0) + Base::zLBox / 2.0 - temp.d / 2.0;
-        temp.index = -1;
-        if(hard_sphere(temp)){
+        temp->com[2] = (double) rand()/RAND_MAX * -2.0 * (Base::zLBox / 2.0 - temp->d / 2.0) + Base::zLBox / 2.0 - temp->d / 2.0;
+        temp->index = -1;
+        if(hard_sphere(*temp)){
             particles.push_back(temp);
+            delete temp;
+            numOfParticles++;
+            numOfCations++;
             return true;
         }
 
         else{
+            delete temp;
             return false;
         }
 
     }
 
+    bool add(double z){
+        Particle* temp = new Particle();
+        temp->d = 5.0;
+        temp->com[0] = (double) rand()/RAND_MAX * (-Base::xL) + Base::xL / 2.0;
+        temp->com[1] = (double) rand()/RAND_MAX * (-Base::yL) + Base::yL / 2.0;
+        temp->com[2] = z;
+        temp->pos = temp->com;
+        temp->q = 1.0;
+        temp->index = numOfParticles;
+
+        if(hard_sphere(*temp)){
+            this->distances.resize(numOfParticles + 1);
+
+            for(int i = 0; i < numOfParticles; i++){
+                this->distances[i].push_back( particles[i].distance_xy(*temp) );
+            }
+
+            particles.push_back(*temp);
+            numOfParticles++;
+            numOfCations++;
+            
+            delete temp;
+            return true;
+        }
+
+        else{
+            delete temp;
+            return false;
+        }
+
+    }
 
 
 
@@ -79,11 +114,12 @@ class Particles{
         else{
             numOfAnions--;
         }
+
         particles.erase(particles.begin() + ind);
-        for(auto &row : distances){
-            row.erase(std::next(row.begin(), ind));
+        distances.erase(distances.begin() + ind);
+        for(int i = 0; i < distances.size(); i++){
+            distances[i].erase(distances[i].begin() + ind);
         }
-        distances.erase(std::next(distances.begin(), ind));
     }
 
 
@@ -142,7 +178,7 @@ class Particles{
                 else if(atom == "Na"){
                     strcpy(particles[j].name, "Na\0");
                     particles[j].b = 0;
-                    particles[j].q = 1.0;            
+                    particles[j].q = 2.0;            
                 }
 
                 else{
@@ -190,7 +226,7 @@ class Particles{
             }
 
             else{
-                particles[i].q = 1.0;
+                particles[i].q = 2.0;
                 particles[i].b = 0.0; //Length of charge displacement vector
                 strcpy(particles[i].name, "Na\0");
             }
@@ -281,14 +317,14 @@ class Particles{
 
         //Read positive particles
         while (std::getline(infileP, line)){
-            if(i < 1){
+            /*if(i < 1){
                 std::istringstream iss(line);
                 if (!(iss >> c)) {
                     printf("Error reading file...\n");
                     exit(1); 
                 } // error
-            }
-            if(i >= 1){
+            }*/
+            if(i >= 0){
                 
                 std::istringstream iss(line);
                 if (!(iss >> x >> y >> z)) {
@@ -296,19 +332,17 @@ class Particles{
                 } // error
                 particles.push_back(new Particle());
                 //particles[j]->pos = (double*) malloc(3 * sizeof(double));
-
+                particles[j].d = 5;
                 particles[j].pos[0] = x;
                 particles[j].pos[1] = y;
-                particles[j].pos[2] = z - Base::zLBox / 2.0 - 2.5;
+                particles[j].pos[2] = z - Base::zLBox / 2.0;
                 particles[j].com = particles[j].pos;
 
-                particles[j].d = 5;
                 particles[j].b = 0;
                 particles[j].index = j;
                 
                 strcpy(particles[j].name, "Na\0");
-                particles[j].q = 1.0;
-
+                particles[j].q = 2.0;
                 j++;
             }
             i++;
@@ -328,7 +362,7 @@ class Particles{
 
                 particles[j].pos[0] = x;
                 particles[j].pos[1] = y;
-                particles[j].pos[2] = z - Base::zLBox / 2.0 - 2.5;
+                particles[j].pos[2] = z - Base::zLBox / 2.0;
                 particles[j].com = particles[j].pos;
 
                 particles[j].d = 5;
@@ -337,7 +371,6 @@ class Particles{
                 
                 strcpy(particles[j].name, "Cl\0");
                 particles[j].q = -1.0;
-
                 j++;
             }
             i++;
