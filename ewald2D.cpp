@@ -149,7 +149,6 @@ double energy::ewald2D::get_particle_energy(Particles &particles, Particle &p){
     double gE = 0;
     int k = 0;
 
-    double stime = omp_get_wtime();
     for(int i = p.index + 1; i < particles.numOfParticles; i++){
         distance = particles.distances[p.index][i];
         real += particles[i].q * p.q * erfc_x(alpha * distance) / distance;

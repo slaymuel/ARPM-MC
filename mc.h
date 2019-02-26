@@ -51,7 +51,7 @@ class MC{
             else{
                 
                 if(particles.add()){
-                    newEnergy = oldEnergy + particle_energy_function(particles, particles.at(particles.numOfParticles - 1));
+                    newEnergy = oldEnergy + particle_energy_function(particles, particles[particles.numOfParticles - 1]);
                     prob = particles.numOfParticles / Base::volume * std::exp((chemPot + Donnan * particles[random].q - newEnergy + oldEnergy));
 
                     if(ran2::get_random() < prob || newEnergy < oldEnergy){ // Accept addition
@@ -59,7 +59,7 @@ class MC{
                     }
 
                     else{ //Reject
-                        particles.remove(particles.at(particles.numOfParticles - 1));
+                        particles.remove(particles.numOfParticles - 1);
                     }
 
                 }
