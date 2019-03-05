@@ -129,7 +129,7 @@ class Particles{
         //temp->index = numOfCations;
         std::vector<double> tempVec(numOfParticles);
         if(hard_sphere(*temp)){
-            numOfParticles++;
+            this->numOfParticles++;
             temp->q = q;
             temp->b = 0.0;
             temp->chargeDisp.setZero();
@@ -144,20 +144,23 @@ class Particles{
                 numOfAnions++;
             }
             
-            //this->distances.insert(distances.begin() + numOfCations, tempVec);
 
-            //std::for_each(distances.begin(), distances.end(), [=](std::vector<double> &row){ row.insert(row.begin() + numOfCations, 0.0); });
+            /*
             this->distances.resize(numOfParticles);
             std::for_each(distances.begin(), distances.end(), [=](std::vector<double> &row){ row.resize(numOfParticles); });
-            //printf("%lu %lu %i\n", distances.size(), distances[numOfCations].size(), numOfParticles);
+            */
+           /*
+            this->distances.reserve(numOfParticles);
+            std::for_each(distances.begin(), distances.end(), [=](std::vector<double> &row){ row.reserve(numOfParticles); });
+            */
+           
+            if(distances.size() < this->numOfParticles){
+                //printf("%lu\n", distances.size());
+                this->distances.push_back(std::vector<double>(numOfParticles - 1));
+                std::for_each(distances.begin(), distances.end(), [=](std::vector<double> &row){ row.push_back(0.0); });
+            }
             particles.push_back(std::move(*temp));
-            //particles.insert(particles.begin() + numOfCations, std::move(*temp));
-            
-            /*for(int i = numOfCations + 1; i < numOfParticles; i++){
-                particles.at(i).index--;
-            }*/
-
-            
+          
             update_distances(*temp);
             delete temp;
 
@@ -239,7 +242,6 @@ class Particles{
 
         particles.erase(particles.begin() + ind);
         distances.erase(distances.begin() + ind);
-        //distances.resize(numOfParticles);
         for(int i = 0; i < distances.size(); i++){
             distances[i].erase(distances[i].begin() + ind);
         }
@@ -478,7 +480,7 @@ class Particles{
                 cations.push_back(j);
 
                 strcpy(particles[j].name, "Na\0");
-                particles[j].q = 2.0;
+                particles[j].q = 1.0;
                 j++;
             }
             i++;

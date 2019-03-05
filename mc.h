@@ -26,7 +26,6 @@ class MC{
             double chemPot = -16.0;//-10.7;
             double Donnan = 1200.0;//-22.5;
             double volume = (Base::zLBox - 5.0) * Base::xL * Base::yL;
-            int cat = 0, an = 0;
 
             //Delete particle
             //printf("%lf\n",random);
@@ -493,7 +492,6 @@ class MC{
             _surfpot[0] = 0.0;
             _surfpot[1] = 0.0;
             double partRatio = (double)particles.numOfParticles/(particles.numOfParticles + particles.numOfElectrons);
-            std::vector<int> numOfParticles;
             std::vector< std::pair<double, double> > surfPotential;
             int prevAccepted = 0, wallSamp = 0, midSamp = 0;
             int rotAccepted = 0;
@@ -502,6 +500,8 @@ class MC{
             int transTot = 0;
             int volAccepted = 0;
             int transAccepted = 0;
+            int gcTot = 0;
+            int gcAcc = 0;
             int elAcc = 0;
             int elTot = 0;
             int outFreq = 100;
@@ -511,8 +511,8 @@ class MC{
             int anCreated = 0;
             int anDestroyed = 0;
             double random = 0;
-            double rN = 1.0/particles.numOfParticles;
-            double rE = 1.0/(particles.numOfElectrons);
+            double rN = 1.0 / particles.numOfParticles;
+            double rE = 1.0 / (particles.numOfElectrons);
             char volOut[40] = "volumes_\0";
             char histOut[40];
             strcpy(histOut, outputFile.c_str());
@@ -601,7 +601,10 @@ class MC{
                         }*/
                     }
                     else{
-                        grand_move(particle_energy_function);
+                        if(grand_move(particle_energy_function)){
+                            gcAcc++;
+                        }
+                        gcTot++;
                     }
                     /*else{
                         if(trans_electron_move(particles, 0.05, particle_energy_function)){
@@ -630,28 +633,28 @@ class MC{
                     //Base::volumes.push_back(Base::volume);
                     //Base::volumes[k] = Base::volume;
                     //k++;
-                    energy_temp = energy_function(particles);
+                    //energy_temp = energy_function(particles);
                     //particles.write_coordinates(outName , particles);
                     printf("Iteration: %d\n", i);
                     printf("Volume: %lf, x-dimension: %lf\n", Base::volume, Base::xL);
                     printf("Energy: %lf\n", energy_temp);
                     printf("Acceptance ratio: %lf\n", (double)Base::acceptedMoves/Base::totalMoves);
                     printf("Acceptance ratio for the last %i steps: %lf\n", outFreq, (double)prevAccepted/outFreq);
-                    if(std::abs(energy_temp - Base::eCummulative)/std::abs(energy_temp) > std::pow(10, -10)){
+                    /*if(std::abs(energy_temp - Base::eCummulative)/std::abs(energy_temp) > std::pow(10, -10)){
                         printf("Error is too large!\n");
                         printf("Error: %.12lf\n", std::abs(energy_temp - Base::eCummulative)/std::abs(energy_temp));
                         exit(1);
-                    }
+                    }*/
 
-                    printf("Trans moves: %d, %.2lf  Rot moves: %d, %lf  Vol moves: %d, %lf   pnum: %i  nnum: %i surfPot: %lf wallpot %lf midpot %lf %i %i\n\n", 
+                    printf("Trans mv: %d, %.1lf  Rot mv: %d, %.1lf  Vol mv: %d, %.1lf GC mv: %d, %.1lf pnum: %i  nnum: %i surfPot: %lf wpot %lf mpot %lf\n\n", 
                                                                                                             transAccepted, (double) transAccepted/transTot * 100.0,
                                                                                                             rotAccepted,   (double) rotAccepted/rotTot * 100.0, 
                                                                                                             volAccepted,   (double) volAccepted/volTot * 100.0,
+                                                                                                            gcAcc,   (double) gcAcc/gcTot * 100.0,
                                                                                                            particles.numOfCations, particles.numOfAnions,
                                                                                                            (_surfpot[1] / ((double) wallSamp) - _surfpot[0] / ((double) midSamp) ),
                                                                                                            _surfpot[1] / ((double) wallSamp),
-                                                                                                           _surfpot[0] / ((double) midSamp),
-                                                                                                           midSamp, wallSamp);
+                                                                                                           _surfpot[0] / ((double) midSamp));
                     
                     prevAccepted = 0;
                     //printf("size: %lu\n", Base::volumes.size());
@@ -671,7 +674,6 @@ class MC{
                         //Base::volumes.clear();
                     }
                     */
-                   numOfParticles.push_back(particles.numOfParticles);
                 }
             }
 
