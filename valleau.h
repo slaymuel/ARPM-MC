@@ -20,8 +20,10 @@ namespace energy{ namespace valleau{
     void update_potential();
     double get_images(Particles &particles);
     double get_particle_images(Particles &particles, Particle &p);
+    double get_particle_images_pot(Particles &particles, Particle &p);
     double get_energy(Particles &particles);
     double get_particle_energy(Particles &particles, Particle &p);
+    double get_particle_pot(Particles &particles, Particle &p);
     double phiw(double z);
     void initialize();
 } }

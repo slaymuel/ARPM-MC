@@ -1,5 +1,8 @@
 #include "analysis.h"
 
+
+
+
 Analysis::Analysis(double binWidth, double dLength){
     this->numberOfSamples = 0;
     this->numberOfSamples2 = 0;

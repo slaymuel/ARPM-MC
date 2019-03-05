@@ -19,27 +19,48 @@ class MC{
 
         void equilibrate();
 
-        template <typename E, typename P>
-        int grand_move(E energy_function, P particle_energy_function){
-            int accept = 0;
-            double random = ran2::get_random();
-            double oldEnergy, newEnergy, prob;
-            double chemPot = 1.0;
-            double Donnan = 10.0;
-            oldEnergy = energy_function(particles);
+        template <typename P>
+        int grand_move(P particle_energy_function){
+            int accept = 0, r;
+            double newEnergy, prob;
+            double chemPot = -16.0;//-10.7;
+            double Donnan = 1200.0;//-22.5;
+            double volume = (Base::zLBox - 5.0) * Base::xL * Base::yL;
+            int cat = 0, an = 0;
 
-            
             //Delete particle
             //printf("%lf\n",random);
-            if(random <= 0.5){
+            
+            if(ran2::get_random() <= 0.5){
+                if(ran2::get_random() <= 0.5){
+                    r = ran2::get_random() * particles.numOfCations;
+                    r = particles.cations[r];
+                    if(r >= particles.numOfParticles){
+                        printf("out of bounds cations\n");
+                        exit(1);
+                    }
+                    newEnergy = particle_energy_function(particles, particles[r]);
+                    prob = particles.numOfCations / volume * std::exp(Donnan * particles[r].q - chemPot + newEnergy);
+                }
 
-                int r = ran2::get_random() * particles.numOfParticles;
-                newEnergy = oldEnergy - particle_energy_function(particles, particles[r]);
+                else{
+                    r = ran2::get_random() * particles.numOfAnions;
+                    r = particles.anions[r];
+                    if(r >= particles.numOfParticles){
+                        printf("out of bounds anion %i %i %lu\n", r, particles.numOfParticles, particles.anions.size());
+                        exit(1);
+                    }
+                    newEnergy = particle_energy_function(particles, particles[r]);
+                    prob =  particles.numOfAnions / volume * std::exp(Donnan * particles[r].q - chemPot + newEnergy);
+                }
                 
-                prob = particles.numOfParticles / Base::volume * std::exp(-(chemPot + Donnan * particles[r].q + newEnergy - oldEnergy));
-                if(ran2::get_random() < 2.0 || newEnergy < oldEnergy){  //Accept deletion
+                /*printf("%lf\n", prob);
+                printf("%lf\n", newEnergy);
+                printf("%lf\n", chemPot - Donnan * particles[r].q);
+                exit(1);*/
+                if(ran2::get_random() < prob){  //Accept deletion
                     particles.remove(r);
-                    Base::eCummulative += newEnergy - oldEnergy;
+                    Base::eCummulative -= newEnergy;
                     Base::acceptedMoves++;
                     accept = 1;
                 }
@@ -52,12 +73,30 @@ class MC{
 
             //Add particle
             else{
-                
-                if(particles.add()){
-                    newEnergy = oldEnergy + particle_energy_function(particles, particles[particles.numOfParticles - 1]);
-                    prob = particles.numOfParticles / Base::volume * std::exp((chemPot + Donnan * particles[random].q - newEnergy + oldEnergy));
-                    if(ran2::get_random() < 2.0 || newEnergy < oldEnergy){ // Accept addition
-                        Base::eCummulative += newEnergy - oldEnergy;
+                double q;
+                if(ran2::get_random() <= 0.5){
+                    q = -1.0;
+                }
+                else{
+                    q = 2.0;
+                }
+                if(particles.add(q)){
+                    newEnergy = particle_energy_function(particles, particles[particles.numOfParticles - 1]);
+                    if(q > 0.0){
+                        prob = volume / particles.numOfCations * std::exp(chemPot - Donnan * q - newEnergy);
+                    }
+                    else{
+                        prob =  volume / particles.numOfAnions * std::exp(chemPot - Donnan * q - newEnergy);
+                    }
+                    
+                    //dexp(chc-ugc)*fact*cvolume/((rNc+1.d0))
+                    /*printf("%lf\n", prob);
+                    printf("%lf\n", newEnergy);
+                    printf("%lf\n", chemPot - Donnan * q);
+                    exit(1);*/
+                    if( ran2::get_random() < prob){ // Accept addition
+                        Base::eCummulative += newEnergy;
+                        Base::acceptedMoves++;
                         accept = 1;
                     }
 
@@ -65,7 +104,6 @@ class MC{
                         particles.remove(particles.numOfParticles - 1);
                         accept = 0;
                     }
-
                 }
                 else{
                     accept = 0;
@@ -430,8 +468,19 @@ class MC{
 */
 
 
+        double sampleSurfPot(double z){
+            double energy = 0;
+            particles.add( {ran2::get_random() * Base::xL, 
+                            ran2::get_random() * Base::yL, 
+                            z} );
+            //std::cout << particles[particles.numOfParticles - 1].pos << std::endl;
+            //printf("\n");
+            energy = energy::valleau::get_particle_pot(particles, particles[particles.numOfParticles - 1]);
+            particles.remove(particles.numOfParticles - 1);
+            //std::cout << particles[particles.numOfParticles - 1].pos << std::endl;
 
-
+            return energy;
+        }
 
 
 
@@ -439,9 +488,14 @@ class MC{
 
         template<typename F, typename FP>
         void run(F&& energy_function, FP&& particle_energy_function, double dr, int iter, bool sample, std::string outputFile){
-            double energy_temp;
+            double energy_temp, z;
+            std::vector<double> _surfpot(2);
+            _surfpot[0] = 0.0;
+            _surfpot[1] = 0.0;
             double partRatio = (double)particles.numOfParticles/(particles.numOfParticles + particles.numOfElectrons);
-            int prevAccepted = 0;
+            std::vector<int> numOfParticles;
+            std::vector< std::pair<double, double> > surfPotential;
+            int prevAccepted = 0, wallSamp = 0, midSamp = 0;
             int rotAccepted = 0;
             int rotTot = 0;
             int volTot = 0;
@@ -450,8 +504,12 @@ class MC{
             int transAccepted = 0;
             int elAcc = 0;
             int elTot = 0;
-            int outFreq = 1000;
+            int outFreq = 100;
             int k = 0;
+            int catCreated = 0;
+            int catDestroyed = 0;
+            int anCreated = 0;
+            int anDestroyed = 0;
             double random = 0;
             double rN = 1.0/particles.numOfParticles;
             double rE = 1.0/(particles.numOfElectrons);
@@ -472,11 +530,26 @@ class MC{
             printf("\nRunning MC-loop at temperature: %lf, Bjerrum length is %lf\n\n", Base::T, Base::lB);
             for(int i = 0; i <= iter; i++){
 
-                if(i % 100 == 0 && i >= 100000 && sample){
+                if(i % 100 == 0 && i >= 1000000 && sample){
                     //rdf->sample_rdf(particles, histo, binWidth);
                     xHist->sampleHisto(particles, 0);
                     yHist->sampleHisto(particles, 1);
                     zHist->sampleHisto(particles, 2);
+                    if(ran2::get_random() <= 0.5){  //Sample middle of box
+                        z = 0.0;
+                        _surfpot[0] += sampleSurfPot(z);
+                        midSamp++;
+                    }
+                    else{       //Sample at walls
+                        if(ran2::get_random() <= 0.5){
+                            z = Base::zLBox / 2.0;
+                        }
+                        else{
+                            z = -1.0 * Base::zLBox / 2.0;
+                        }
+                        _surfpot[1] += sampleSurfPot(z);
+                        wallSamp++;
+                    }
 
 /*
                     double random = ran2::get_random();
@@ -511,7 +584,7 @@ class MC{
                 
                     random = ran2::get_random();
                     //if(random <= partRatio){
-                    if(random <= 0.99){
+                    if(random <= 0.7){
                         //random = ran2::get_random();
                         //if(random <= rE){
                             if(trans_move(dr, particle_energy_function)){
@@ -528,7 +601,7 @@ class MC{
                         }*/
                     }
                     else{
-                        grand_move(energy_function, particle_energy_function);
+                        grand_move(particle_energy_function);
                     }
                     /*else{
                         if(trans_electron_move(particles, 0.05, particle_energy_function)){
@@ -570,11 +643,15 @@ class MC{
                         exit(1);
                     }
 
-                    printf("Trans moves: %d, %.2lf  Rot moves: %d, %lf  Vol moves: %d, %lf   pnum: %i\n\n", 
+                    printf("Trans moves: %d, %.2lf  Rot moves: %d, %lf  Vol moves: %d, %lf   pnum: %i  nnum: %i surfPot: %lf wallpot %lf midpot %lf %i %i\n\n", 
                                                                                                             transAccepted, (double) transAccepted/transTot * 100.0,
                                                                                                             rotAccepted,   (double) rotAccepted/rotTot * 100.0, 
                                                                                                             volAccepted,   (double) volAccepted/volTot * 100.0,
-                                                                                                           particles.numOfParticles);
+                                                                                                           particles.numOfCations, particles.numOfAnions,
+                                                                                                           (_surfpot[1] / ((double) wallSamp) - _surfpot[0] / ((double) midSamp) ),
+                                                                                                           _surfpot[1] / ((double) wallSamp),
+                                                                                                           _surfpot[0] / ((double) midSamp),
+                                                                                                           midSamp, wallSamp);
                     
                     prevAccepted = 0;
                     //printf("size: %lu\n", Base::volumes.size());
@@ -594,6 +671,7 @@ class MC{
                         //Base::volumes.clear();
                     }
                     */
+                   numOfParticles.push_back(particles.numOfParticles);
                 }
             }
 

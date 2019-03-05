@@ -29,11 +29,14 @@
 namespace energy{ namespace direct{ 
     double get_energy(Particles &particles);
     double get_particle_energy(Particles &particles, Particle &p);
+    double get_particle_pot(Particles &particles, Particle &p);
     //double get_energy(Particle **particles, Particle *p);
     double get_central(Particles &particles);
     double get_central(Particles &particles, Particle &p);
+    double get_central_pot(Particles &particles, Particle &p);
     double get_replicates(Particles &particles);
     double get_replicates(Particles &particles, Particle &p);
+    double get_replicates_pot(Particles &particles, Particle &p);
     double phiw(double z);
     template<typename T>
     double norm(T vec);

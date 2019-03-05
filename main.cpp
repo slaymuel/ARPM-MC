@@ -1,3 +1,4 @@
+
 //Create particles
 //Check overlap
 //Move particle, accept move if no overlap
@@ -179,7 +180,7 @@ int main(int argc, char *argv[])
     }
 
     if(vm.count("f_jan")){
-        particles.read_jan("coordc", "coords");
+        particles.read_jan("coordp_large_test", "coordn_large_test");
     }
 
     if(vm.count("f_arpm_jan")){

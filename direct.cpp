@@ -23,6 +23,7 @@ double energy::direct::get_energy(Particles &particles){
     return Base::lB * (replicates + central);
 }
 
+
 double energy::direct::get_particle_energy(Particles &particles, Particle &p){
     double central = get_central(particles, p);
     double replicates = 1.0/2.0 * get_replicates(particles);
@@ -31,6 +32,11 @@ double energy::direct::get_particle_energy(Particles &particles, Particle &p){
     return Base::lB * (replicates + central);
 }
 
+double energy::direct::get_particle_pot(Particles &particles, Particle &p){
+    double central = get_central_pot(particles, p);
+    //printf("Central box: %lf Replicates: %lf\n", central, replicates);
+    return Base::lB * (central);
+}
 
 // double energy::direct::get_energy(Particle **particles, Particle *p){
 //     double energy;
@@ -91,6 +97,7 @@ double energy::direct::get_central(Particles &particles){
             //disp = particles[i]->pos - particles[k]->pos;
             //dist = disp.norm();
             dist = particles.distances[i][k];
+
             //dist = particles[i].distance_xy(particles[k]);
             energy += particles[i].q * particles[k].q / dist;
         }  
@@ -104,8 +111,8 @@ double energy::direct::get_central(Particles &particles){
             std::cout << particles[i].com << std::endl;
             std::cout << particles[i].pos << std::endl;
         }
-        if(particles[i].pos[2] < -Base::zLBox / 2.0 + particles[i].d / 2.0 || particles[i].pos[1] < -Base::yL / 2.0 || particles[i].pos[0] < -Base::xL / 2.0 ||
-                particles[i].pos[2] > Base::zLBox / 2.0 - particles[i].d / 2.0 || particles[i].pos[1] > Base::yL / 2.0 || particles[i].pos[0] > Base::xL / 2.0){
+        if(particles[i].pos[2] < -Base::zLBox / 2.0 - 2.0 + particles[i].d / 2.0 || particles[i].pos[1] < -Base::yL / 2.0 || particles[i].pos[0] < -Base::xL / 2.0 ||
+                particles[i].pos[2] > Base::zLBox / 2.0 + 2.0 - particles[i].d / 2.0 || particles[i].pos[1] > Base::yL / 2.0 || particles[i].pos[0] > Base::xL / 2.0){
             printf("Error calculating energy, particle %i was found outside the box..\n", i);
             std::cout << particles[i].com << std::endl;
             std::cout << particles[i].pos << std::endl;
@@ -146,6 +153,37 @@ double energy::direct::get_central(Particles &particles, Particle &p){
     return energy;
 }   
 
+double energy::direct::get_central_pot(Particles &particles, Particle &p){
+    int k = 0;
+    double energy = 0;
+    //double lenergy = 0;
+    double dist = 0;
+    //#pragma omp parallel for reduction(+:energy) private(lenergy, dist)
+    //{
+    for(int i = 0; i < p.index; i++){
+        dist = particles.distances[i][p.index];
+        if(dist < 5.0){
+            dist = 5.0;
+        }
+        //dist = p.distance_xy(particles[i]);
+        energy += particles[i].q * p.q * 1.0 / dist;
+    }
+    //}
+    //#pragma omp parallel for reduction(+:energy) private(lenergy, dist)
+    //{
+    for(int i = p.index + 1; i < particles.numOfParticles; i++){
+        dist = particles.distances[p.index][i];
+        if(dist < 5.0){
+            dist = 5.0;
+        }
+        //dist = p.distance_xy(particles[i]);
+        energy += particles[i].q * p.q * 1.0 / dist;
+    }
+
+    //energy += phiw(p.pos[2]);
+    //}
+    return energy;
+}  
 
 
 
@@ -181,6 +219,48 @@ double energy::direct::get_replicates(Particles &particles, Particle &p){
                     //numOfRep++;
                     for(int l = 0; l < particles.numOfParticles; l++){
                         if(i == 0 && j == 0 && k == 0){}
+                        else{
+                            double den[] = {p.pos[0] - particles[l].pos[0] + i * Base::xL, 
+                                            p.pos[1] - particles[l].pos[1] + j * Base::yL , 
+                                            p.pos[2] - particles[l].pos[2] + k * Base::zLBox};
+                            dist = norm(den);
+                            //if(dist <= (rep + 1) * Base::xL){//(dist >= Base::xL && dist <= rep * Base::xL){
+                            energy += p.q * particles[l].q * 1.0 / dist;
+                            //}
+                        }
+                    }
+                }
+            }
+        }
+        //printf("Done: %lf\r", (double)count/(2 * mx + 1) * 100.0);
+        //fflush(stdout);
+    }
+    //energy += lenergy;
+    //printf("Energy: %lf\n", energy);
+    //printf("\n");
+    //printf("Number of replicas: %d\n", numOfRep - 1);
+    return energy;
+}
+
+double energy::direct::get_replicates_pot(Particles &particles, Particle &p){
+    double energy = 0;
+    //double lenergy = 0;
+    double dist = 0;
+    //Eigen::Vector3d disp;
+    int rep = 0;
+    int mx = rep;
+    int my = rep;
+    int mz = 0;
+
+    //printf("Calculating energy for %d replicas.\n", (2 * rep+1) * (2 * rep+1) * (2 * rep+1) - 1);
+    //#pragma omp parallel for if(rep > 10) reduction(+:energy) private(dist)
+    for(int i = -mx; i <= mx; i++){
+        for(int j = -my; j <= my; j++){
+            for(int k = -mz; k <= mz; k++){
+                if(sqrt(i * i + j * j + k * k) <= rep){
+                    //numOfRep++;
+                    for(int l = 0; l < particles.numOfParticles; l++){
+                        if((i == 0 && j == 0 && k == 0) || p.index == l){}
                         else{
                             double den[] = {p.pos[0] - particles[l].pos[0] + i * Base::xL, 
                                             p.pos[1] - particles[l].pos[1] + j * Base::yL , 

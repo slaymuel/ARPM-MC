@@ -4,6 +4,8 @@
 class Particles{
     public:
     std::vector<Particle> particles;
+    std::vector<int> cations;
+    std::vector<int> anions;
     int numOfParticles, numOfCations, numOfAnions, numOfElectrons;
     std::vector< std::vector<double> > distances;
     double oldEnergy;
@@ -49,7 +51,7 @@ class Particles{
 
 
 
-    bool add(double z){
+    /*bool add(double z){
         Particle* temp = new Particle();
         temp->d = 5.0;
         temp->com[0] = (double) rand()/RAND_MAX * (-Base::xL) + Base::xL / 2.0;
@@ -79,37 +81,91 @@ class Particles{
             return false;
         }
 
+    }*/
+
+    void add(std::vector<double> pos){
+        Particle* temp = new Particle();
+        temp->d = 5.0;
+        temp->com[0] = pos[0];
+        temp->com[1] = pos[1];
+        //particles[i]->com[2] = (double) rand()/RAND_MAX * (Base::zL - particles[i]->d - 2 * Base::wall) + particles[i]->d/2.0 + Base::wall;
+        temp->com[2] = pos[2]; // 25.0 - Base::zLBox / 2.0;//
+        temp->pos = temp->com;
+        temp->index = numOfParticles;
+        //temp->index = numOfCations;
+        std::vector<double> tempVec(numOfParticles);
+
+        numOfParticles++;
+        temp->q = 1.0;
+        temp->b = 0.0;
+        temp->chargeDisp.setZero();
+        strcpy(temp->name, "Na\0");
+        cations.push_back(temp->index);
+        numOfCations++;
+            
+        this->distances.resize(numOfParticles);
+        std::for_each(distances.begin(), distances.end(), [=](std::vector<double> &row){ row.resize(numOfParticles); });
+        particles.push_back(std::move(*temp));
+
+        update_distances(*temp);
+        delete temp;
+
+        if(cations.size() != numOfCations || anions.size() != numOfAnions){
+            printf("Sizes are wrong in add, cat: vec %lu, int %i an: vec %lu, int %i!\n", cations.size(), numOfCations, anions.size(), numOfAnions);
+            exit(1);
+        }
     }
 
 
-
-
-    bool add(){
+    bool add(double q){
         Particle* temp = new Particle();
         temp->d = 5.0;
         temp->com[0] = (double) rand()/RAND_MAX * (-Base::xL) + Base::xL / 2.0;
         temp->com[1] = (double) rand()/RAND_MAX * (-Base::yL) + Base::yL / 2.0;
         //particles[i]->com[2] = (double) rand()/RAND_MAX * (Base::zL - particles[i]->d - 2 * Base::wall) + particles[i]->d/2.0 + Base::wall;
-        temp->com[2] = (double) rand()/RAND_MAX * -2.0 * (Base::zLBox / 2.0 - temp->d / 2.0) + Base::zLBox / 2.0 - temp->d / 2.0;
+        temp->com[2] = (double) rand()/RAND_MAX * -2.0 * (Base::zLBox / 2.0 - temp->d / 2.0) + Base::zLBox / 2.0 - temp->d / 2.0; // 25.0 - Base::zLBox / 2.0;//
         temp->pos = temp->com;
         temp->index = numOfParticles;
-        temp->q = 1.0;
-        strcpy(temp->name, "Na\0");
-
+        //temp->index = numOfCations;
+        std::vector<double> tempVec(numOfParticles);
         if(hard_sphere(*temp)){
-            this->distances.resize(numOfParticles + 1);
-            std::for_each(distances.begin(), distances.end(), [=](std::vector<double> &row){ row.resize(numOfParticles + 1); });
-            /*for(int i = 0; i < distances.size(); i++){
-                this->distances.at(i).resize(numOfParticles + 1);
-                //this->distances.at(i).push_back( particles[i].distance_xy(*temp) );
-            }*/
-            update_distances(*temp);
-
-
-            particles.push_back(*temp);
             numOfParticles++;
-            numOfCations++;
+            temp->q = q;
+            temp->b = 0.0;
+            temp->chargeDisp.setZero();
+            if(q > 0){
+                strcpy(temp->name, "Na\0");
+                cations.push_back(temp->index);
+                numOfCations++;
+            }
+            else{
+                strcpy(temp->name, "Cl\0");
+                anions.push_back(temp->index);
+                numOfAnions++;
+            }
+            
+            //this->distances.insert(distances.begin() + numOfCations, tempVec);
+
+            //std::for_each(distances.begin(), distances.end(), [=](std::vector<double> &row){ row.insert(row.begin() + numOfCations, 0.0); });
+            this->distances.resize(numOfParticles);
+            std::for_each(distances.begin(), distances.end(), [=](std::vector<double> &row){ row.resize(numOfParticles); });
+            //printf("%lu %lu %i\n", distances.size(), distances[numOfCations].size(), numOfParticles);
+            particles.push_back(std::move(*temp));
+            //particles.insert(particles.begin() + numOfCations, std::move(*temp));
+            
+            /*for(int i = numOfCations + 1; i < numOfParticles; i++){
+                particles.at(i).index--;
+            }*/
+
+            
+            update_distances(*temp);
             delete temp;
+
+            if(cations.size() != numOfCations || anions.size() != numOfAnions){
+                printf("Sizes are wrong in add, cat: vec %lu, int %i an: vec %lu, int %i!\n", cations.size(), numOfCations, anions.size(), numOfAnions);
+                exit(1);
+            }
+
             return true;
         }
 
@@ -125,12 +181,61 @@ class Particles{
 
     void remove(std::size_t ind){
         numOfParticles--;
+        int i;
+        //printf("%lu\n", ind);
+
         if(particles.at(ind).q > 0){
-            numOfCations--;
+
+            for(i = 0; i < cations.size(); i++){
+                if(cations[i] == ind){
+                    break;
+                }
+            }
+            if(i == cations.size()){
+                printf("cant find in cations...\n");
+                exit(1);   
+            }
+            cations.erase(cations.begin() + i);
+            
+            for( ; i < cations.size(); i++){
+                cations[i]--;
+            }  
+
+            for(i = 0 ; i < anions.size(); i++){
+                if(anions[i] > ind){
+                    anions[i]--;
+                }
+            } 
+
+            numOfCations--; 
         }
+
         else{
+            for(i = 0; i < anions.size(); i++){
+                if(anions[i] == ind){
+                    break;
+                }
+            }
+
+            if(i == anions.size()){
+                printf("cant find in anions...\n");
+                exit(1);   
+            }
+
+            anions.erase(anions.begin() + i);
+
+            for( ; i < anions.size(); i++){
+                anions[i]--;
+            }  
+            for( ; i < cations.size(); i++){
+                if(cations[i] > ind){
+                    cations[i]--;
+                }
+            }  
+
             numOfAnions--;
         }
+        
 
         particles.erase(particles.begin() + ind);
         distances.erase(distances.begin() + ind);
@@ -140,6 +245,11 @@ class Particles{
         }
         for(int i = ind; i < numOfParticles; i++){
             particles.at(i).index--;
+        }
+
+        if(cations.size() != numOfCations || anions.size() != numOfAnions){
+            printf("Sizes are wrong, cat in remove: vec %lu, int %i an: vec %lu, int %i!\n", cations.size(), numOfCations, anions.size(), numOfAnions);
+            exit(1);
         }
     }
 
@@ -194,12 +304,14 @@ class Particles{
                     strcpy(particles[j].name, "Cl\0");
                     particles[j].b = 0;
                     particles[j].q = -1.0;
+                    anions.push_back(j);
                 }
 
                 else if(atom == "Na"){
                     strcpy(particles[j].name, "Na\0");
                     particles[j].b = 0;
-                    particles[j].q = 2.0;            
+                    particles[j].q = 2.0;      
+                    cations.push_back(j);      
                 }
 
                 else{
@@ -244,12 +356,14 @@ class Particles{
                 particles[i].q = -1.0;
                 particles[i].b = 0.0; //Length of charge displacement vector
                 strcpy(particles[i].name, "Cl\0");
+                anions.push_back(i);
             }
 
             else{
                 particles[i].q = 2.0;
                 particles[i].b = 0.0; //Length of charge displacement vector
                 strcpy(particles[i].name, "Na\0");
+                cations.push_back(i);
             }
             
 
@@ -361,7 +475,8 @@ class Particles{
 
                 particles[j].b = 0;
                 particles[j].index = j;
-                
+                cations.push_back(j);
+
                 strcpy(particles[j].name, "Na\0");
                 particles[j].q = 2.0;
                 j++;
@@ -389,7 +504,8 @@ class Particles{
                 particles[j].d = 5;
                 particles[j].b = 0;
                 particles[j].index = j;
-                
+                anions.push_back(j);
+
                 strcpy(particles[j].name, "Cl\0");
                 particles[j].q = -1.0;
                 j++;
@@ -512,10 +628,10 @@ class Particles{
     void update_distances(Particle &p){
         if(Base::wall > 0 || Base::d2){
             for(int i = p.index + 1; i < numOfParticles + numOfElectrons; i++){
-                distances[p.index][i] = p.distance_xy(particles[i]);
+                distances.at(p.index).at(i) = p.distance_xy(particles[i]);
             }
             for(int i = 0; i < p.index; i++){
-                distances[i][p.index] = p.distance_xy(particles[i]);
+                distances.at(i).at(p.index) = p.distance_xy(particles[i]);
             }
         }
         else{
