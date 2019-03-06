@@ -268,7 +268,7 @@ int main(int argc, char *argv[])
     
     particles.initialize();
     printf("num of particles including images: %d\n", particles.numOfParticles);
-    particles.update_distances();
+    //particles.update_distances();
 
     mc.particles = particles;
     if(vm["overlap"].as<bool>()){
@@ -281,7 +281,7 @@ int main(int argc, char *argv[])
     char name_charges[] = "output_equilibrate_charges_ewald.gro";
     mc.particles.write_coordinates(name);
     mc.particles.write_charge_coordinates(name_charges);
-    mc.particles.update_distances();
+    //mc.particles.update_distances();
 
 
     Base::set_lB();

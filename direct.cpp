@@ -20,7 +20,7 @@ double energy::direct::get_energy(Particles &particles){
 
     //printf("Central box: %lf Replicates: %lf\n", central, replicates);
     //printf("Energy: %lf\n", central + replicates);
-    return Base::lB * (replicates + central);
+    return Base::lB * (central);
 }
 
 
@@ -29,7 +29,7 @@ double energy::direct::get_particle_energy(Particles &particles, Particle &p){
     double replicates = 1.0/2.0 * get_replicates(particles);
 
     //printf("Central box: %lf Replicates: %lf\n", central, replicates);
-    return Base::lB * (replicates + central);
+    return Base::lB * (central);
 }
 
 double energy::direct::get_particle_pot(Particles &particles, Particle &p){
@@ -96,9 +96,9 @@ double energy::direct::get_central(Particles &particles){
         for(int k = i + 1; k < particles.numOfParticles; k++){
             //disp = particles[i]->pos - particles[k]->pos;
             //dist = disp.norm();
-            dist = particles.distances[i][k];
+            //dist = particles.distances[i][k];
 
-            //dist = particles[i].distance_xy(particles[k]);
+            dist = particles[i].distance_xy(particles[k]);
             energy += particles[i].q * particles[k].q / dist;
         }  
         //std::cout << particles[i].com << std::endl;
@@ -132,19 +132,9 @@ double energy::direct::get_central(Particles &particles, Particle &p){
     double energy = 0;
     //double lenergy = 0;
     double dist = 0;
-    //#pragma omp parallel for reduction(+:energy) private(lenergy, dist)
-    //{
-    for(int i = 0; i < p.index; i++){
-        dist = particles.distances[i][p.index];
-        //dist = p.distance_xy(particles[i]);
-        energy += particles[i].q * p.q * 1.0 / dist;
-    }
-    //}
-    //#pragma omp parallel for reduction(+:energy) private(lenergy, dist)
-    //{
-    for(int i = p.index + 1; i < particles.numOfParticles; i++){
-        dist = particles.distances[p.index][i];
-        //dist = p.distance_xy(particles[i]);
+    for(int i = 0; i < particles.numOfParticles; i++){
+        if(p.index == i) continue;
+        dist = p.distance_xy(particles[i]);
         energy += particles[i].q * p.q * 1.0 / dist;
     }
 
@@ -160,23 +150,13 @@ double energy::direct::get_central_pot(Particles &particles, Particle &p){
     double dist = 0;
     //#pragma omp parallel for reduction(+:energy) private(lenergy, dist)
     //{
-    for(int i = 0; i < p.index; i++){
-        dist = particles.distances[i][p.index];
-        if(dist < 5.0){
-            dist = 5.0;
+    for(int i = 0; i < particles.numOfParticles; i++){
+        if(p.index == i) continue;
+
+        dist = p.distance_xy(particles[i]);
+        if(dist <= 1.0){
+            dist = 1.0;
         }
-        //dist = p.distance_xy(particles[i]);
-        energy += particles[i].q * p.q * 1.0 / dist;
-    }
-    //}
-    //#pragma omp parallel for reduction(+:energy) private(lenergy, dist)
-    //{
-    for(int i = p.index + 1; i < particles.numOfParticles; i++){
-        dist = particles.distances[p.index][i];
-        if(dist < 5.0){
-            dist = 5.0;
-        }
-        //dist = p.distance_xy(particles[i]);
         energy += particles[i].q * p.q * 1.0 / dist;
     }
 

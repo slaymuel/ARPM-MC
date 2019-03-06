@@ -391,13 +391,13 @@ double energy::valleau::get_particle_images_pot(Particles &particles, Particle &
             if(p.pos[0] - particles[j].pos[0] < -1.0 * Base::xL/2.0){
                 tempX = p.pos[0] + Base::xL;
             }
-            if(p.pos[0] - particles[j].pos[0] > Base::xL/2){
+            if(p.pos[0] - particles[j].pos[0] > Base::xL / 2.0){
                 tempX = p.pos[0] - Base::xL;
             }
-            if(p.pos[1] - particles[j].pos[1] < -1.0 * Base::yL/2){
+            if(p.pos[1] - particles[j].pos[1] < -1.0 * Base::yL / 2.0){
                 tempY = p.pos[1] + Base::yL;
             }
-            if(p.pos[1] - particles[j].pos[1] > Base::yL/2){
+            if(p.pos[1] - particles[j].pos[1] > Base::yL / 2.0){
                 tempY = p.pos[1] - Base::yL;
             }
 

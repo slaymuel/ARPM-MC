@@ -25,13 +25,11 @@ class MC{
             double newEnergy, prob;
             double chemPot = -16.0;//-10.7;
             double Donnan = 1200.0;//-22.5;
-            double volume = (Base::zLBox - 5.0) * Base::xL * Base::yL;
-
-            //Delete particle
-            //printf("%lf\n",random);
+            double volumeP = (Base::zLBox - 1.0) * Base::xL * Base::yL;
+            double volumeN = (Base::zLBox - 5.0) * Base::xL * Base::yL;
             
             if(ran2::get_random() <= 0.5){
-                if(ran2::get_random() <= 0.5){
+                if(ran2::get_random() <= 0.5){  //Delete cation
                     r = ran2::get_random() * particles.numOfCations;
                     r = particles.cations[r];
                     if(r >= particles.numOfParticles){
@@ -39,10 +37,10 @@ class MC{
                         exit(1);
                     }
                     newEnergy = particle_energy_function(particles, particles[r]);
-                    prob = particles.numOfCations / volume * std::exp(Donnan * particles[r].q - chemPot + newEnergy);
+                    prob = particles.numOfCations / volumeP * std::exp(Donnan * particles[r].q - chemPot + newEnergy);
                 }
 
-                else{
+                else{   //Delete anion
                     r = ran2::get_random() * particles.numOfAnions;
                     r = particles.anions[r];
                     if(r >= particles.numOfParticles){
@@ -50,13 +48,9 @@ class MC{
                         exit(1);
                     }
                     newEnergy = particle_energy_function(particles, particles[r]);
-                    prob =  particles.numOfAnions / volume * std::exp(Donnan * particles[r].q - chemPot + newEnergy);
+                    prob =  particles.numOfAnions / volumeN * std::exp(Donnan * particles[r].q - chemPot + newEnergy);
                 }
                 
-                /*printf("%lf\n", prob);
-                printf("%lf\n", newEnergy);
-                printf("%lf\n", chemPot - Donnan * particles[r].q);
-                exit(1);*/
                 if(ran2::get_random() < prob){  //Accept deletion
                     particles.remove(r);
                     Base::eCummulative -= newEnergy;
@@ -77,22 +71,17 @@ class MC{
                     q = -1.0;
                 }
                 else{
-                    q = 2.0;
+                    q = 1.0;
                 }
                 if(particles.add(q)){
                     newEnergy = particle_energy_function(particles, particles[particles.numOfParticles - 1]);
-                    if(q > 0.0){
-                        prob = volume / particles.numOfCations * std::exp(chemPot - Donnan * q - newEnergy);
+                    if(q > 0.0){    //Add cation
+                        prob = volumeP / particles.numOfCations * std::exp(chemPot - Donnan * q - newEnergy);
                     }
-                    else{
-                        prob =  volume / particles.numOfAnions * std::exp(chemPot - Donnan * q - newEnergy);
+                    else{   //add anion
+                        prob =  volumeN / particles.numOfAnions * std::exp(chemPot - Donnan * q - newEnergy);
                     }
                     
-                    //dexp(chc-ugc)*fact*cvolume/((rNc+1.d0))
-                    /*printf("%lf\n", prob);
-                    printf("%lf\n", newEnergy);
-                    printf("%lf\n", chemPot - Donnan * q);
-                    exit(1);*/
                     if( ran2::get_random() < prob){ // Accept addition
                         Base::eCummulative += newEnergy;
                         Base::acceptedMoves++;
@@ -349,7 +338,6 @@ class MC{
             //Generate new trial coordinates
             particles[p].random_move(dr);
             //energy::imgrep::update_position(particles, particles[p]);
-            particles.update_distances(particles[p]);
 
             //If there is no overlap in new position and it's inside the box
             if(particles.hard_sphere(particles[p]) && particles[p].wall_2d()){
@@ -379,7 +367,6 @@ class MC{
                     //energy::levin::update_f(particles[p], _old);
                     particles[p].pos = _old.pos;
                     particles[p].com = _old.com;
-                    particles.update_distances(particles[p]);
                 }
             }
 
@@ -387,7 +374,6 @@ class MC{
                 particles[p].pos = _old.pos;
                 particles[p].com = _old.com;
                 //energy::imgrep::update_position(particles, particles[p]);
-                particles.update_distances(particles[p]);
             }
 
             //delete _old;
@@ -504,7 +490,7 @@ class MC{
             int gcAcc = 0;
             int elAcc = 0;
             int elTot = 0;
-            int outFreq = 100;
+            int outFreq = 10000;
             int k = 0;
             int catCreated = 0;
             int catDestroyed = 0;
@@ -530,11 +516,12 @@ class MC{
             printf("\nRunning MC-loop at temperature: %lf, Bjerrum length is %lf\n\n", Base::T, Base::lB);
             for(int i = 0; i <= iter; i++){
 
-                if(i % 100 == 0 && i >= 1000000 && sample){
+                if(i % 100 == 0 && i >= 10000 && sample){
                     //rdf->sample_rdf(particles, histo, binWidth);
                     xHist->sampleHisto(particles, 0);
                     yHist->sampleHisto(particles, 1);
                     zHist->sampleHisto(particles, 2);
+                    
                     if(ran2::get_random() <= 0.5){  //Sample middle of box
                         z = 0.0;
                         _surfpot[0] += sampleSurfPot(z);
@@ -550,6 +537,7 @@ class MC{
                         _surfpot[1] += sampleSurfPot(z);
                         wallSamp++;
                     }
+                    
 
 /*
                     double random = ran2::get_random();
@@ -633,19 +621,19 @@ class MC{
                     //Base::volumes.push_back(Base::volume);
                     //Base::volumes[k] = Base::volume;
                     //k++;
-                    //energy_temp = energy_function(particles);
+                    energy_temp = energy_function(particles);
                     //particles.write_coordinates(outName , particles);
                     printf("Iteration: %d\n", i);
                     printf("Volume: %lf, x-dimension: %lf\n", Base::volume, Base::xL);
                     printf("Energy: %lf\n", energy_temp);
                     printf("Acceptance ratio: %lf\n", (double)Base::acceptedMoves/Base::totalMoves);
                     printf("Acceptance ratio for the last %i steps: %lf\n", outFreq, (double)prevAccepted/outFreq);
-                    /*if(std::abs(energy_temp - Base::eCummulative)/std::abs(energy_temp) > std::pow(10, -10)){
+                    if(std::abs(energy_temp - Base::eCummulative)/std::abs(energy_temp) > 1E-9){
                         printf("Error is too large!\n");
                         printf("Error: %.12lf\n", std::abs(energy_temp - Base::eCummulative)/std::abs(energy_temp));
                         exit(1);
-                    }*/
-
+                    }
+                    printf("Error: %.12lf\n", std::abs(energy_temp - Base::eCummulative)/std::abs(energy_temp));
                     printf("Trans mv: %d, %.1lf  Rot mv: %d, %.1lf  Vol mv: %d, %.1lf GC mv: %d, %.1lf pnum: %i  nnum: %i surfPot: %lf wpot %lf mpot %lf\n\n", 
                                                                                                             transAccepted, (double) transAccepted/transTot * 100.0,
                                                                                                             rotAccepted,   (double) rotAccepted/rotTot * 100.0, 

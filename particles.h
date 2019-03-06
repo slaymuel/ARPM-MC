@@ -31,9 +31,9 @@ class Particles{
 
     void initialize(){
         numOfParticles = particles.size();
-        distances.resize(numOfParticles);
+        //distances.resize(numOfParticles);
         for(int i = 0; i < numOfParticles; i++){
-            distances[i].resize(numOfParticles);
+            //distances[i].resize(numOfParticles);
 
             if(particles[i].q < 0){
                 numOfAnions++;
@@ -88,8 +88,7 @@ class Particles{
         temp->d = 5.0;
         temp->com[0] = pos[0];
         temp->com[1] = pos[1];
-        //particles[i]->com[2] = (double) rand()/RAND_MAX * (Base::zL - particles[i]->d - 2 * Base::wall) + particles[i]->d/2.0 + Base::wall;
-        temp->com[2] = pos[2]; // 25.0 - Base::zLBox / 2.0;//
+        temp->com[2] = pos[2]; 
         temp->pos = temp->com;
         temp->index = numOfParticles;
         //temp->index = numOfCations;
@@ -103,11 +102,7 @@ class Particles{
         cations.push_back(temp->index);
         numOfCations++;
             
-        this->distances.resize(numOfParticles);
-        std::for_each(distances.begin(), distances.end(), [=](std::vector<double> &row){ row.resize(numOfParticles); });
         particles.push_back(std::move(*temp));
-
-        update_distances(*temp);
         delete temp;
 
         if(cations.size() != numOfCations || anions.size() != numOfAnions){
@@ -120,13 +115,17 @@ class Particles{
     bool add(double q){
         Particle* temp = new Particle();
         temp->d = 5.0;
+        
         temp->com[0] = (double) rand()/RAND_MAX * (-Base::xL) + Base::xL / 2.0;
         temp->com[1] = (double) rand()/RAND_MAX * (-Base::yL) + Base::yL / 2.0;
-        //particles[i]->com[2] = (double) rand()/RAND_MAX * (Base::zL - particles[i]->d - 2 * Base::wall) + particles[i]->d/2.0 + Base::wall;
-        temp->com[2] = (double) rand()/RAND_MAX * -2.0 * (Base::zLBox / 2.0 - temp->d / 2.0) + Base::zLBox / 2.0 - temp->d / 2.0; // 25.0 - Base::zLBox / 2.0;//
+        if(q > 0.0){ 
+            temp->com[2] = (double) rand()/RAND_MAX * -2.0 * (Base::zLBox / 2.0 - temp->d / 2.0 + 2.0) + Base::zLBox / 2.0 - temp->d / 2.0 + 2.0;
+        }
+        else{
+            temp->com[2] = (double) rand()/RAND_MAX * -2.0 * (Base::zLBox / 2.0 - temp->d / 2.0) + Base::zLBox / 2.0 - temp->d / 2.0;
+        }
         temp->pos = temp->com;
         temp->index = numOfParticles;
-        //temp->index = numOfCations;
         std::vector<double> tempVec(numOfParticles);
         if(hard_sphere(*temp)){
             this->numOfParticles++;
@@ -143,25 +142,8 @@ class Particles{
                 anions.push_back(temp->index);
                 numOfAnions++;
             }
-            
 
-            /*
-            this->distances.resize(numOfParticles);
-            std::for_each(distances.begin(), distances.end(), [=](std::vector<double> &row){ row.resize(numOfParticles); });
-            */
-           /*
-            this->distances.reserve(numOfParticles);
-            std::for_each(distances.begin(), distances.end(), [=](std::vector<double> &row){ row.reserve(numOfParticles); });
-            */
-           
-            if(distances.size() < this->numOfParticles){
-                //printf("%lu\n", distances.size());
-                this->distances.push_back(std::vector<double>(numOfParticles - 1));
-                std::for_each(distances.begin(), distances.end(), [=](std::vector<double> &row){ row.push_back(0.0); });
-            }
             particles.push_back(std::move(*temp));
-          
-            update_distances(*temp);
             delete temp;
 
             if(cations.size() != numOfCations || anions.size() != numOfAnions){
@@ -241,10 +223,6 @@ class Particles{
         
 
         particles.erase(particles.begin() + ind);
-        distances.erase(distances.begin() + ind);
-        for(int i = 0; i < distances.size(); i++){
-            distances[i].erase(distances[i].begin() + ind);
-        }
         for(int i = ind; i < numOfParticles; i++){
             particles.at(i).index--;
         }
@@ -362,7 +340,7 @@ class Particles{
             }
 
             else{
-                particles[i].q = 2.0;
+                particles[i].q = 1.0;
                 particles[i].b = 0.0; //Length of charge displacement vector
                 strcpy(particles[i].name, "Na\0");
                 cations.push_back(i);
@@ -469,13 +447,14 @@ class Particles{
                 } // error
                 particles.push_back(new Particle());
                 //particles[j]->pos = (double*) malloc(3 * sizeof(double));
-                particles[j].d = 5;
+                particles[j].d = 5.0;
                 particles[j].pos[0] = x;
                 particles[j].pos[1] = y;
                 particles[j].pos[2] = z - Base::zLBox / 2.0;
                 particles[j].com = particles[j].pos;
 
-                particles[j].b = 0;
+                particles[j].b = 0.0;
+                particles[j].chargeDisp.setZero();
                 particles[j].index = j;
                 cations.push_back(j);
 
@@ -503,8 +482,9 @@ class Particles{
                 particles[j].pos[2] = z - Base::zLBox / 2.0;
                 particles[j].com = particles[j].pos;
 
-                particles[j].d = 5;
-                particles[j].b = 0;
+                particles[j].d = 5.0;
+                particles[j].b = 0.0;
+                particles[j].chargeDisp.setZero();
                 particles[j].index = j;
                 anions.push_back(j);
 

@@ -209,12 +209,12 @@ void MC::equilibrate(){
         // oldPos[1] = particles[p]->com[1];
         // oldPos[2] = particles[p]->com[2];
         particles[p].random_move(5);
-        particles.update_distances(particles[p]);
+        //particles.update_distances(particles[p]);
         if(!particles.hard_sphere(particles[p]) || particles[p].com[2] < -Base::zLBox / 2.0 + particles[p].d / 2.0 ||
                                                     particles[p].com[2] > Base::zLBox / 2.0 - particles[p].d / 2.0){
             particles[p].com = oldCom;
             particles[p].pos = oldPos;
-            particles.update_distances(particles[p]);
+            //particles.update_distances(particles[p]);
         }
 
         else if(particles[p].com[2] < -Base::zLBox / 2.0 + particles[p].d / 2.0 || particles[p].com[1] < -Base::yL / 2.0 || particles[p].com[0] < -Base::xL / 2.0){
