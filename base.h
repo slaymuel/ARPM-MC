@@ -17,9 +17,12 @@
 class Base{
     public:
         static double xL;
+        static double xLHalf;
         static double yL;
+        static double yLHalf;
         static double zL;
         static double zLBox;
+        static double zLBoxHalf;
         static double eCummulative;
         static double T;
         static double lB;

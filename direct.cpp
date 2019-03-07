@@ -103,7 +103,8 @@ double energy::direct::get_central(Particles &particles){
         }  
         //std::cout << particles[i].com << std::endl;
         //std::cout << particles[i].pos << std::endl;
-        if(i != particles[i].index){
+        
+        /*if(i != particles[i].index){
             printf("Index for particle %i is wrong, is has %i!!\n", i, particles[i].index);
         }
         if(particles[i].pos != particles[i].com){
@@ -117,7 +118,8 @@ double energy::direct::get_central(Particles &particles){
             std::cout << particles[i].com << std::endl;
             std::cout << particles[i].pos << std::endl;
             exit(1);
-        }
+        }*/
+
         //if(particles[i]->com != particles[i]->pos){
         //    printf("pos and com are not equal!\n");
         //    exit(1);
@@ -135,7 +137,7 @@ double energy::direct::get_central(Particles &particles, Particle &p){
     for(int i = 0; i < particles.numOfParticles; i++){
         if(p.index == i) continue;
         dist = p.distance_xy(particles[i]);
-        energy += particles[i].q * p.q * 1.0 / dist;
+        energy += particles[i].q * p.q / dist;
     }
 
     //energy += phiw(p.pos[2]);

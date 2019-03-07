@@ -11,7 +11,7 @@ int energy::valleau::numOfSamples;
 
 void energy::valleau::initialize(){
     energy::valleau::binWidth = 0.05;
-    numOfBins = (Base::zL - 2 * Base::wall)/energy::valleau::binWidth;
+    numOfBins = Base::zLBox / energy::valleau::binWidth;
     energy::valleau::pDensity.resize(numOfBins);
     energy::valleau::nDensity.resize(numOfBins);
     energy::valleau::ext.resize(numOfBins);
@@ -30,10 +30,10 @@ void energy::valleau::update_charge_vector(Particles &particles){
     
     for(int i = 0; i < particles.numOfParticles; i++){
         if(particles[i].q > 0){
-            pDensity[(int)((particles[i].pos[2] + Base::zLBox / 2.0)/binWidth)]++;
+            pDensity[(int)((particles[i].pos[2] + Base::zLBoxHalf)/binWidth)]++;
         }
         else{
-            nDensity[(int)((particles[i].pos[2] + Base::zLBox / 2.0)/binWidth)]++;
+            nDensity[(int)((particles[i].pos[2] + Base::zLBoxHalf)/binWidth)]++;
         }
     }
     numOfSamples++;
@@ -133,41 +133,41 @@ double energy::valleau::get_images(Particles &particles){
                 tempX = particles[i].pos[0];
                 tempY = particles[i].pos[1];
 
-                if(particles[i].pos[0] - particles[j].pos[0] < -1.0 * Base::xL / 2.0){
-                    tempX = particles[i].pos[0] + Base::xL;
+                if(particles[i].pos[0] - particles[j].pos[0] < -Base::xLHalf){
+                    tempX = tempX  + Base::xL;
                 }
-                if(particles[i].pos[0] - particles[j].pos[0] > Base::xL / 2.0){
-                    tempX = particles[i].pos[0] - Base::xL;
+                else if(particles[i].pos[0] - particles[j].pos[0] > Base::xLHalf){
+                    tempX = tempX  - Base::xL;
                 }
-                if(particles[i].pos[1] - particles[j].pos[1] < -1 * Base::yL / 2.0){
-                    tempY = particles[i].pos[1] + Base::yL;
+                if(particles[i].pos[1] - particles[j].pos[1] < -Base::yLHalf){
+                    tempY = tempY + Base::yL;
                 }
-                if(particles[i].pos[1] - particles[j].pos[1] > Base::yL / 2.0){
-                    tempY = particles[i].pos[1] - Base::yL;
+                else if(particles[i].pos[1] - particles[j].pos[1] > Base::yLHalf){
+                    tempY = tempY - Base::yL;
                 }
 
                 //Left reflections
                 disp << tempX - particles[j].pos[0],
                         tempY - particles[j].pos[1],
-                        (particles[i].pos[2] + Base::zLBox / 2.0) + (k - 1) * Base::zLBox + (particles[j].pos[2] + Base::zLBox / 2.0);
+                        (particles[i].pos[2] + Base::zLBoxHalf) + (k - 1) * Base::zLBox + (particles[j].pos[2] + Base::zLBoxHalf);
                 distance = disp.norm();
                 if(i == j){
-                    energy -= particles[i].q * particles[j].q * 1.0 /(distance * 2.0);
+                    energy -= particles[i].q * particles[j].q / (distance * 2.0);
                 }
                 else{
-                    energy -= particles[i].q * particles[j].q * 1.0 /distance;
+                    energy -= particles[i].q * particles[j].q / distance;
                 }
 
                 //Right reflections
                 disp << tempX - particles[j].pos[0],
                         tempY - particles[j].pos[1],
-                        (k + 1) * Base::zLBox - (particles[i].pos[2] + Base::zLBox / 2.0) - (particles[j].pos[2] + Base::zLBox / 2.0);
+                        (k + 1) * Base::zLBox - (particles[i].pos[2] + Base::zLBoxHalf) - (particles[j].pos[2] + Base::zLBoxHalf);
                 distance = disp.norm();
                 if(i == j){
-                    energy -= particles[i].q * particles[j].q * 1.0 / (distance * 2.0);
+                    energy -= particles[i].q * particles[j].q / (distance * 2.0);
                 }
                 else{
-                    energy -= particles[i].q * particles[j].q * 1.0 / distance;
+                    energy -= particles[i].q * particles[j].q / distance;
                 }
             }
         }
@@ -179,40 +179,40 @@ double energy::valleau::get_images(Particles &particles){
                 tempX = particles[i].pos[0];
                 tempY = particles[i].pos[1];
 
-                if(particles[i].pos[0] - particles[j].pos[0] < -1.0 * Base::xL/2.0){
-                    tempX = particles[i].pos[0] + Base::xL;
+                if(particles[i].pos[0] - particles[j].pos[0] < -Base::xLHalf){
+                    tempX = tempX + Base::xL;
                 }
-                if(particles[i].pos[0] - particles[j].pos[0] > Base::xL / 2.0){
-                    tempX = particles[i].pos[0] - Base::xL;
+                else if(particles[i].pos[0] - particles[j].pos[0] > Base::xLHalf){
+                    tempX = tempX - Base::xL;
                 }
-                if(particles[i].pos[1] - particles[j].pos[1] < -1.0 * Base::yL / 2.0){
-                    tempY = particles[i].pos[1] + Base::yL;
+                if(particles[i].pos[1] - particles[j].pos[1] < -Base::yLHalf){
+                    tempY = tempY + Base::yL;
                 }
-                if(particles[i].pos[1] - particles[j].pos[1] > Base::yL / 2.0){
-                    tempY = particles[i].pos[1] - Base::yL;
+                else if(particles[i].pos[1] - particles[j].pos[1] > Base::yLHalf){
+                    tempY = tempY - Base::yL;
                 }
                 //Left reflections
                 disp << tempX - particles[j].pos[0],
                         tempY - particles[j].pos[1],
-                        m * Base::zLBox + (particles[i].pos[2] + Base::zLBox / 2.0) - (particles[j].pos[2] + Base::zLBox / 2.0);
+                        m * Base::zLBox + (particles[i].pos[2] + Base::zLBoxHalf) - (particles[j].pos[2] + Base::zLBoxHalf);
                 distance = disp.norm();
                 if(i == j){
-                    energy += particles[i].q * particles[j].q * 1.0 / (distance * 2.0);
+                    energy += particles[i].q * particles[j].q / (distance * 2.0);
                 }
                 else{
-                    energy += particles[i].q * particles[j].q * 1.0 / distance;
+                    energy += particles[i].q * particles[j].q / distance;
                 }
 
                 //Right reflections
                 disp << tempX - particles[j].pos[0],
                         tempY - particles[j].pos[1],
-                        m * Base::zL + (particles[j].pos[2] + Base::zLBox / 2.0) - (particles[i].pos[2] + Base::zLBox / 2.0);
+                        m * Base::zLBox + (particles[j].pos[2] + Base::zLBoxHalf) - (particles[i].pos[2] + Base::zLBoxHalf);
                 distance = disp.norm();
                 if(i == j){
-                    energy += particles[i].q * particles[j].q * 1.0 / (distance * 2.0);
+                    energy += particles[i].q * particles[j].q / (distance * 2.0);
                 }
                 else{
-                    energy += particles[i].q * particles[j].q * 1.0 / distance;
+                    energy += particles[i].q * particles[j].q / distance;
                 }
             }
         }
@@ -234,41 +234,41 @@ double energy::valleau::get_particle_images(Particles &particles, Particle &p){
             tempX = p.pos[0];
             tempY = p.pos[1];
 
-            if(p.pos[0] - particles[j].pos[0] < -1.0 * Base::xL / 2.0){
-                tempX = p.pos[0] + Base::xL;
+            if(p.pos[0] - particles[j].pos[0] < -Base::xLHalf){
+                tempX = tempX + Base::xL;
             }
-            if(p.pos[0] - particles[j].pos[0] > Base::xL / 2.0){
-                tempX = p.pos[0] - Base::xL;
+            else if(p.pos[0] - particles[j].pos[0] > Base::xLHalf){
+                tempX = tempX - Base::xL;
             }
-            if(p.pos[1] - particles[j].pos[1] < -1.0 * Base::yL / 2.0){
-                tempY = p.pos[1] + Base::yL;
+            if(p.pos[1] - particles[j].pos[1] < -Base::yLHalf){
+                tempY = tempY + Base::yL;
             }
-            if(p.pos[1] - particles[j].pos[1] > Base::yL / 2.0){
-                tempY = p.pos[1] - Base::yL;
+            else if(p.pos[1] - particles[j].pos[1] > Base::yLHalf){
+                tempY = tempY - Base::yL;
             }
 
             //Left reflections
             disp << tempX - particles[j].pos[0],
                     tempY - particles[j].pos[1],
-                    (p.pos[2] + Base::zLBox / 2.0) + (k - 1) * (Base::zLBox) + (particles[j].pos[2] + Base::zLBox / 2.0);
+                    (p.pos[2] + Base::zLBoxHalf) + (k - 1) * (Base::zLBox) + (particles[j].pos[2] + Base::zLBoxHalf);
             distance = disp.norm();
             if(p.index == j){
-                energy -= p.q * particles[j].q * 1.0 / (distance * 2.0);
+                energy -= p.q * particles[j].q / (distance * 2.0);
             }
             else{
-                energy -= p.q * particles[j].q * 1.0 / distance;
+                energy -= p.q * particles[j].q / distance;
             }
 
             //Right reflections
             disp << tempX - particles[j].pos[0],
                     tempY - particles[j].pos[1],
-                    (k + 1) * Base::zLBox - (p.pos[2] + Base::zLBox / 2.0) - (particles[j].pos[2] + Base::zLBox / 2.0);
+                    (k + 1) * Base::zLBox - (p.pos[2] + Base::zLBoxHalf) - (particles[j].pos[2] + Base::zLBoxHalf);
             distance = disp.norm();
             if(p.index == j){
-                energy -= p.q * particles[j].q * 1.0 / (distance * 2.0);
+                energy -= p.q * particles[j].q / (distance * 2.0);
             }
             else{
-                energy -= p.q * particles[j].q * 1.0 / distance;
+                energy -= p.q * particles[j].q / distance;
             }
         }
     }
@@ -278,41 +278,41 @@ double energy::valleau::get_particle_images(Particles &particles, Particle &p){
             tempX = p.pos[0];
             tempY = p.pos[1];
 
-            if(p.pos[0] - particles[j].pos[0] < -1.0 * Base::xL / 2.0){
-                tempX = p.pos[0] + Base::xL;
+            if(p.pos[0] - particles[j].pos[0] < -Base::xLHalf){
+                tempX = tempX + Base::xL;
             }
-            if(p.pos[0] - particles[j].pos[0] > Base::xL / 2.0){
-                tempX = p.pos[0] - Base::xL;
+            else if(p.pos[0] - particles[j].pos[0] > Base::xLHalf){
+                tempX = tempX - Base::xL;
             }
-            if(p.pos[1] - particles[j].pos[1] < -1.0 * Base::yL / 2.0){
-                tempY = p.pos[1] + Base::yL;
+            if(p.pos[1] - particles[j].pos[1] < -Base::yLHalf){
+                tempY = tempY + Base::yL;
             }
-            if(p.pos[1] - particles[j].pos[1] > Base::yL / 2.0){
-                tempY = p.pos[1] - Base::yL;
+            else if(p.pos[1] - particles[j].pos[1] > Base::yLHalf){
+                tempY = tempY - Base::yL;
             }
             //Left reflections
             disp << tempX - particles[j].pos[0],
                     tempY - particles[j].pos[1],
-                    m * Base::zLBox + (p.pos[2] + Base::zLBox / 2.0) - (particles[j].pos[2] + Base::zLBox / 2.0);
+                    m * Base::zLBox + (p.pos[2] + Base::zLBoxHalf) - (particles[j].pos[2] + Base::zLBoxHalf);
 
             distance = disp.norm();
             if(p.index == j){
-                energy += p.q * particles[j].q * 1.0 / (distance * 2.0);
+                energy += p.q * particles[j].q / (distance * 2.0);
             }
             else{
-                energy += p.q * particles[j].q * 1.0 / distance;
+                energy += p.q * particles[j].q / distance;
             }
 
             //Right reflections
             disp << tempX - particles[j].pos[0],
                     tempY - particles[j].pos[1],
-                    m * Base::zLBox + (particles[j].pos[2] + Base::zLBox / 2.0) - (p.pos[2] + Base::zLBox / 2.0);
+                    m * Base::zLBox + (particles[j].pos[2] + Base::zLBoxHalf) - (p.pos[2] + Base::zLBoxHalf);
             distance = disp.norm();
             if(p.index == j){
-                energy += p.q * particles[j].q * 1.0 / (distance * 2.0);
+                energy += p.q * particles[j].q / (distance * 2.0);
             }
             else{
-                energy += p.q * particles[j].q * 1.0 / distance;
+                energy += p.q * particles[j].q / distance;
             }
         }
     }
@@ -328,15 +328,15 @@ double energy::valleau::get_energy(Particles &particles){
     
     for(int i = 0; i < particles.numOfParticles; i++){
         //Linear interpolation
-        x0 = (int)(particles[i].pos[2] + Base::zLBox / 2.0) / dz;
-        x1 = (int)(particles[i].pos[2] + Base::zLBox / 2.0) / dz + 1;
-        y0 = ext[(int)(particles[i].pos[2] + Base::zLBox / 2.0) / dz];
-        y1 = ext[(int)(particles[i].pos[2] + Base::zLBox / 2.0) / dz + 1];
+        x0 = (int)(particles[i].pos[2] + Base::zLBoxHalf) / dz;
+        x1 = (int)(particles[i].pos[2] + Base::zLBoxHalf) / dz + 1;
+        y0 = ext[(int)(particles[i].pos[2] + Base::zLBoxHalf) / dz];
+        y1 = ext[(int)(particles[i].pos[2] + Base::zLBoxHalf) / dz + 1];
         if(particles[i].q > 0){
-            energy += y0 + ((particles[i].pos[2] + Base::zLBox / 2.0) / dz - x0) * (y1 - y0) / (x1 - x0);
+            energy += y0 + ((particles[i].pos[2] + Base::zLBoxHalf) / dz - x0) * (y1 - y0) / (x1 - x0);
         }
         else{
-            energy -= y0 + ((particles[i].pos[2] + Base::zLBox / 2.0) / dz - x0) * (y1 - y0) / (x1 - x0);
+            energy -= y0 + ((particles[i].pos[2] + Base::zLBoxHalf) / dz - x0) * (y1 - y0) / (x1 - x0);
         }
     }*/
     //printf("Valleau dir: %lf    pol: %lf\n", energy::direct::get_energy(particles), get_images(particles));
@@ -353,15 +353,15 @@ double energy::valleau::get_particle_energy(Particles &particles, Particle &p){
     double dz = 0.05;
     
     //Linear interpolation
-    x0 = (int)(p.pos[2] + Base::zLBox / 2.0) / dz;
-    x1 = (int)(p.pos[2] + Base::zLBox / 2.0) / dz + 1;
-    y0 = ext[(int)(p.pos[2] + Base::zLBox / 2.0) / dz];
-    y1 = ext[(int)(p.pos[2] + Base::zLBox / 2.0) / dz + 1];
+    x0 = (int)(p.pos[2] + Base::zLBoxHalf) / dz;
+    x1 = (int)(p.pos[2] + Base::zLBoxHalf) / dz + 1;
+    y0 = ext[(int)(p.pos[2] + Base::zLBoxHalf) / dz];
+    y1 = ext[(int)(p.pos[2] + Base::zLBoxHalf) / dz + 1];
     if(p.q > 0){
-        energy += y0 + ((p.pos[2] + Base::zLBox / 2.0) / dz - x0) * (y1 - y0) / (x1 - x0);
+        energy += y0 + ((p.pos[2] + Base::zLBoxHalf) / dz - x0) * (y1 - y0) / (x1 - x0);
     }
     else{
-        energy -= y0 + ((p.pos[2] + Base::zLBox / 2.0) / dz - x0) * (y1 - y0) / (x1 - x0);
+        energy -= y0 + ((p.pos[2] + Base::zLBoxHalf) / dz - x0) * (y1 - y0) / (x1 - x0);
     }*/
     //printf("dir: %lf    pol: %lf\n", energy::direct::get_particle_energy(particles, p), get_particle_images(particles, p));
     energy += energy::direct::get_particle_energy(particles, p);
@@ -391,20 +391,20 @@ double energy::valleau::get_particle_images_pot(Particles &particles, Particle &
             if(p.pos[0] - particles[j].pos[0] < -1.0 * Base::xL/2.0){
                 tempX = p.pos[0] + Base::xL;
             }
-            if(p.pos[0] - particles[j].pos[0] > Base::xL / 2.0){
+            if(p.pos[0] - particles[j].pos[0] > Base::xLHalf){
                 tempX = p.pos[0] - Base::xL;
             }
-            if(p.pos[1] - particles[j].pos[1] < -1.0 * Base::yL / 2.0){
+            if(p.pos[1] - particles[j].pos[1] < -1.0 * Base::yLHalf){
                 tempY = p.pos[1] + Base::yL;
             }
-            if(p.pos[1] - particles[j].pos[1] > Base::yL / 2.0){
+            if(p.pos[1] - particles[j].pos[1] > Base::yLHalf){
                 tempY = p.pos[1] - Base::yL;
             }
 
             //Left reflections
             disp << tempX - particles[j].pos[0],
                     tempY - particles[j].pos[1],
-                    (p.pos[2] + Base::zLBox / 2.0) + (k - 1) * (Base::zLBox) + (particles[j].pos[2] + Base::zLBox / 2.0);
+                    (p.pos[2] + Base::zLBoxHalf) + (k - 1) * (Base::zLBox) + (particles[j].pos[2] + Base::zLBoxHalf);
             distance = disp.norm();
 
 
@@ -418,7 +418,7 @@ double energy::valleau::get_particle_images_pot(Particles &particles, Particle &
             //Right reflections
             disp << tempX - particles[j].pos[0],
                     tempY - particles[j].pos[1],
-                    (k + 1) * Base::zLBox - (p.pos[2] + Base::zLBox / 2.0) - (particles[j].pos[2] + Base::zLBox / 2.0);
+                    (k + 1) * Base::zLBox - (p.pos[2] + Base::zLBoxHalf) - (particles[j].pos[2] + Base::zLBoxHalf);
             distance = disp.norm();
 
 
@@ -437,23 +437,23 @@ double energy::valleau::get_particle_images_pot(Particles &particles, Particle &
             tempX = p.pos[0];
             tempY = p.pos[1];
 
-            if(p.pos[0] - particles[j].pos[0] < -1.0 * Base::xL / 2.0){
+            if(p.pos[0] - particles[j].pos[0] < -1.0 * Base::xLHalf){
                 tempX = p.pos[0] + Base::xL;
             }
-            if(p.pos[0] - particles[j].pos[0] > Base::xL / 2.0){
+            if(p.pos[0] - particles[j].pos[0] > Base::xLHalf){
                 tempX = p.pos[0] - Base::xL;
             }
-            if(p.pos[1] - particles[j].pos[1] < -1.0 * Base::yL / 2.0){
+            if(p.pos[1] - particles[j].pos[1] < -1.0 * Base::yLHalf){
                 tempY = p.pos[1] + Base::yL;
             }
-            if(p.pos[1] - particles[j].pos[1] > Base::yL / 2.0){
+            if(p.pos[1] - particles[j].pos[1] > Base::yLHalf){
                 tempY = p.pos[1] - Base::yL;
             }
 
             //Left reflections
             disp << tempX - particles[j].pos[0],
                     tempY - particles[j].pos[1],
-                    m * Base::zLBox + (p.pos[2] + Base::zLBox / 2.0) - (particles[j].pos[2] + Base::zLBox / 2.0);
+                    m * Base::zLBox + (p.pos[2] + Base::zLBoxHalf) - (particles[j].pos[2] + Base::zLBoxHalf);
 
             distance = disp.norm();
             if(p.index == j){
@@ -466,7 +466,7 @@ double energy::valleau::get_particle_images_pot(Particles &particles, Particle &
             //Right reflections
             disp << tempX - particles[j].pos[0],
                     tempY - particles[j].pos[1],
-                    m * Base::zLBox + (particles[j].pos[2] + Base::zLBox / 2.0) - (p.pos[2] + Base::zLBox / 2.0);
+                    m * Base::zLBox + (particles[j].pos[2] + Base::zLBoxHalf) - (p.pos[2] + Base::zLBoxHalf);
 
             distance = disp.norm();
             if(p.index == j){

@@ -24,18 +24,24 @@ class MC{
             int accept = 0, r;
             double newEnergy, prob;
             double chemPot = -16.0;//-10.7;
-            double Donnan = 1200.0;//-22.5;
+            double Donnan = -2000.0;//-22.5;
             double volumeP = (Base::zLBox - 1.0) * Base::xL * Base::yL;
             double volumeN = (Base::zLBox - 5.0) * Base::xL * Base::yL;
             
-            if(ran2::get_random() <= 0.5){
+
+            if(ran2::get_random() <= 0.5){  //Delete particle
+
                 if(ran2::get_random() <= 0.5){  //Delete cation
                     r = ran2::get_random() * particles.numOfCations;
                     r = particles.cations[r];
                     if(r >= particles.numOfParticles){
                         printf("out of bounds cations\n");
+                        printf("particles: %i\n", particles.numOfParticles);
+                        printf("cations: %lu should be equal to %i\n", particles.cations.size(), particles.numOfCations);
+                        printf("r: %i\n", r);
                         exit(1);
                     }
+
                     newEnergy = particle_energy_function(particles, particles[r]);
                     prob = particles.numOfCations / volumeP * std::exp(Donnan * particles[r].q - chemPot + newEnergy);
                 }
@@ -64,8 +70,8 @@ class MC{
             }
 
 
-            //Add particle
-            else{
+            
+            else{   //Add particle
                 double q;
                 if(ran2::get_random() <= 0.5){
                     q = -1.0;
@@ -324,16 +330,21 @@ class MC{
             double ewald3DEnergy = 0.0;
             double ewald2DEnergy = 0.0;
             double directEnergy = 0.0;
-            Particle _old;
 
+            //Particle _old;
+
+            Eigen::Vector3d com;
+            Eigen::Vector3d pos;
             int p =  random * particles.numOfParticles;
             //printf("random: %i\n", p);
 
             eOld = energy_function(particles, particles[p]);
-            _old.pos = particles[p].pos;
-            _old.com = particles[p].com;
-            _old.q = particles[p].q;
-            _old.index = particles[p].index;
+            //_old.pos = particles[p].pos;
+            //_old.com = particles[p].com;
+            //_old.q = particles[p].q;
+            //_old.index = particles[p].index;
+            com = particles[p].com;
+            pos = particles[p].pos;
 
             //Generate new trial coordinates
             particles[p].random_move(dr);
@@ -365,14 +376,14 @@ class MC{
                     //energy::imgrep::update_position(particles, _old);
                     //energy::ewald3D::update_reciprocal(particles[p], _old);
                     //energy::levin::update_f(particles[p], _old);
-                    particles[p].pos = _old.pos;
-                    particles[p].com = _old.com;
+                    particles[p].pos = pos;
+                    particles[p].com = com;
                 }
             }
 
             else{   //Reject move
-                particles[p].pos = _old.pos;
-                particles[p].com = _old.com;
+                particles[p].pos = pos;
+                particles[p].com = com;
                 //energy::imgrep::update_position(particles, particles[p]);
             }
 
@@ -493,9 +504,13 @@ class MC{
             int outFreq = 10000;
             int k = 0;
             int catCreated = 0;
+            int catCreTot = 0;
             int catDestroyed = 0;
+            int catDesTot = 0;
             int anCreated = 0;
+            int anCreTot = 0;
             int anDestroyed = 0;
+            int anDesTot = 0;
             double random = 0;
             double rN = 1.0 / particles.numOfParticles;
             double rE = 1.0 / (particles.numOfElectrons);
@@ -516,7 +531,7 @@ class MC{
             printf("\nRunning MC-loop at temperature: %lf, Bjerrum length is %lf\n\n", Base::T, Base::lB);
             for(int i = 0; i <= iter; i++){
 
-                if(i % 100 == 0 && i >= 10000 && sample){
+                if(i % 100 == 0 && i >= 100000 && sample){
                     //rdf->sample_rdf(particles, histo, binWidth);
                     xHist->sampleHisto(particles, 0);
                     yHist->sampleHisto(particles, 1);
@@ -628,12 +643,8 @@ class MC{
                     printf("Energy: %lf\n", energy_temp);
                     printf("Acceptance ratio: %lf\n", (double)Base::acceptedMoves/Base::totalMoves);
                     printf("Acceptance ratio for the last %i steps: %lf\n", outFreq, (double)prevAccepted/outFreq);
-                    if(std::abs(energy_temp - Base::eCummulative)/std::abs(energy_temp) > 1E-9){
-                        printf("Error is too large!\n");
-                        printf("Error: %.12lf\n", std::abs(energy_temp - Base::eCummulative)/std::abs(energy_temp));
-                        exit(1);
-                    }
-                    printf("Error: %.12lf\n", std::abs(energy_temp - Base::eCummulative)/std::abs(energy_temp));
+
+                    printf("Error: %.12lf\n", std::fabs(energy_temp - Base::eCummulative) / std::fabs(energy_temp));
                     printf("Trans mv: %d, %.1lf  Rot mv: %d, %.1lf  Vol mv: %d, %.1lf GC mv: %d, %.1lf pnum: %i  nnum: %i surfPot: %lf wpot %lf mpot %lf\n\n", 
                                                                                                             transAccepted, (double) transAccepted/transTot * 100.0,
                                                                                                             rotAccepted,   (double) rotAccepted/rotTot * 100.0, 
@@ -643,7 +654,11 @@ class MC{
                                                                                                            (_surfpot[1] / ((double) wallSamp) - _surfpot[0] / ((double) midSamp) ),
                                                                                                            _surfpot[1] / ((double) wallSamp),
                                                                                                            _surfpot[0] / ((double) midSamp));
-                    
+                    if(std::fabs(energy_temp - Base::eCummulative) / std::fabs(energy_temp) > 1E-9){
+                        printf("Error is too large!\n");
+                        printf("Error: %.12lf\n", (energy_temp - Base::eCummulative) / energy_temp);
+                        exit(1);
+                    }
                     prevAccepted = 0;
                     //printf("size: %lu\n", Base::volumes.size());
                     /*

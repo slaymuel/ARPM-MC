@@ -30,6 +30,10 @@ double Base::xL = 114.862525361502; //172
 double Base::yL = 114.862525361502; //45
 double Base::zL = 45;
 double Base::zLBox = 45;
+double Base::xLHalf = 0.0;
+double Base::yLHalf = 0.0;
+double Base::zLBoxHalf = 22.5;
+
 std::vector<double> Base::box;
 double Base::T = 298;
 double Base::lB;
@@ -141,6 +145,10 @@ int main(int argc, char *argv[])
         Base::yL = box[1];
         Base::zL = box[2];
         Base::zLBox = Base::zL;
+
+        Base::xLHalf = Base::xL * 0.5;
+        Base::yLHalf = Base::yL * 0.5;
+        Base::zLBoxHalf = Base::zLBox * 0.5;
         Base::box.push_back(Base::xL);
         Base::box.push_back(Base::yL);
         Base::box.push_back(Base::zLBox);

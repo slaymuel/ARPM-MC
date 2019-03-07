@@ -96,8 +96,6 @@ class Particles{
 
         numOfParticles++;
         temp->q = 1.0;
-        temp->b = 0.0;
-        temp->chargeDisp.setZero();
         strcpy(temp->name, "Na\0");
         cations.push_back(temp->index);
         numOfCations++;
@@ -116,22 +114,20 @@ class Particles{
         Particle* temp = new Particle();
         temp->d = 5.0;
         
-        temp->com[0] = (double) rand()/RAND_MAX * (-Base::xL) + Base::xL / 2.0;
-        temp->com[1] = (double) rand()/RAND_MAX * (-Base::yL) + Base::yL / 2.0;
+        temp->com[0] = (double) rand()/RAND_MAX * (-Base::xL) + Base::xLHalf;
+        temp->com[1] = (double) rand()/RAND_MAX * (-Base::yL) + Base::yLHalf;
         if(q > 0.0){ 
-            temp->com[2] = (double) rand()/RAND_MAX * -2.0 * (Base::zLBox / 2.0 - temp->d / 2.0 + 2.0) + Base::zLBox / 2.0 - temp->d / 2.0 + 2.0;
+            temp->com[2] = (double) rand()/RAND_MAX * -2.0 * (Base::zLBoxHalf - temp->d / 2.0 + 2.0) + Base::zLBoxHalf - temp->d / 2.0 + 2.0;
         }
         else{
-            temp->com[2] = (double) rand()/RAND_MAX * -2.0 * (Base::zLBox / 2.0 - temp->d / 2.0) + Base::zLBox / 2.0 - temp->d / 2.0;
+            temp->com[2] = (double) rand()/RAND_MAX * -2.0 * (Base::zLBoxHalf - temp->d / 2.0) + Base::zLBoxHalf - temp->d / 2.0;
         }
         temp->pos = temp->com;
         temp->index = numOfParticles;
-        std::vector<double> tempVec(numOfParticles);
+
         if(hard_sphere(*temp)){
             this->numOfParticles++;
             temp->q = q;
-            temp->b = 0.0;
-            temp->chargeDisp.setZero();
             if(q > 0){
                 strcpy(temp->name, "Na\0");
                 cations.push_back(temp->index);
@@ -165,60 +161,60 @@ class Particles{
 
 
     void remove(std::size_t ind){
-        numOfParticles--;
+        this->numOfParticles--;
         int i;
         //printf("%lu\n", ind);
 
         if(particles.at(ind).q > 0){
 
-            for(i = 0; i < cations.size(); i++){
-                if(cations[i] == ind){
+            for(i = 0; i < this->cations.size(); i++){
+                if(this->cations[i] == ind){
                     break;
                 }
             }
-            if(i == cations.size()){
+            if(i == cations.size() || this->cations[i] != ind){
                 printf("cant find in cations...\n");
                 exit(1);   
             }
-            cations.erase(cations.begin() + i);
+            this->cations.erase(this->cations.begin() + i);
             
-            for( ; i < cations.size(); i++){
-                cations[i]--;
+            for( ; i < this->cations.size(); i++){
+                this->cations[i]--;
             }  
 
             for(i = 0 ; i < anions.size(); i++){
-                if(anions[i] > ind){
-                    anions[i]--;
+                if(this->anions[i] > ind){
+                    this->anions[i]--;
                 }
             } 
 
-            numOfCations--; 
+            this->numOfCations--; 
         }
 
         else{
-            for(i = 0; i < anions.size(); i++){
-                if(anions[i] == ind){
+            for(i = 0; i < this->anions.size(); i++){
+                if(this->anions[i] == ind){
                     break;
                 }
             }
 
-            if(i == anions.size()){
+            if(i == this->anions.size() || this->anions[i] != ind){
                 printf("cant find in anions...\n");
                 exit(1);   
             }
 
-            anions.erase(anions.begin() + i);
+            this->anions.erase(this->anions.begin() + i);
 
-            for( ; i < anions.size(); i++){
-                anions[i]--;
+            for( ; i < this->anions.size(); i++){
+                this->anions[i]--;
             }  
-            for( ; i < cations.size(); i++){
-                if(cations[i] > ind){
-                    cations[i]--;
+            for(i = 0 ; i < this->cations.size(); i++){
+                if(this->cations[i] > ind){
+                    this->cations[i]--;
                 }
             }  
 
-            numOfAnions--;
+            this->numOfAnions--;
         }
         
 
@@ -227,8 +223,9 @@ class Particles{
             particles.at(i).index--;
         }
 
-        if(cations.size() != numOfCations || anions.size() != numOfAnions){
+        if(cations.size() != numOfCations || anions.size() != numOfAnions || numOfCations + numOfAnions != numOfParticles){
             printf("Sizes are wrong, cat in remove: vec %lu, int %i an: vec %lu, int %i!\n", cations.size(), numOfCations, anions.size(), numOfAnions);
+            printf("particles: %i\n", numOfParticles);
             exit(1);
         }
     }
@@ -271,9 +268,9 @@ class Particles{
                 particles[j].d = 5.0;
 
                 particles[j].index = j;
-                particles[j].com[0] = x * 10.0 - Base::xL / 2.0;
-                particles[j].com[1] = y * 10.0 - Base::yL / 2.0;
-                particles[j].com[2] = z * 10.0 - Base::zLBox / 2.0;    
+                particles[j].com[0] = x * 10.0 - Base::xLHalf;
+                particles[j].com[1] = y * 10.0 - Base::yLHalf;
+                particles[j].com[2] = z * 10.0 - Base::zLBoxHalf;    
 
                 //Get random charge displacement vector
                 particles[j].chargeDisp[0] = (double) rand()/RAND_MAX * 2.0 - 1.0;
@@ -348,10 +345,10 @@ class Particles{
             
 
             //Get random center of mass coordinates
-            particles[i].com[0] = (double) rand()/RAND_MAX * (-Base::xL) + Base::xL / 2.0;
-            particles[i].com[1] = (double) rand()/RAND_MAX * (-Base::yL) + Base::yL / 2.0;
+            particles[i].com[0] = (double) rand()/RAND_MAX * (-Base::xL) + Base::xLHalf;
+            particles[i].com[1] = (double) rand()/RAND_MAX * (-Base::yL) + Base::yLHalf;
             //particles[i]->com[2] = (double) rand()/RAND_MAX * (Base::zL - particles[i]->d - 2 * Base::wall) + particles[i]->d/2.0 + Base::wall;
-            particles[i].com[2] = (double) rand()/RAND_MAX * -2.0 * (Base::zLBox / 2.0 - particles[i].d / 2.0) + Base::zLBox / 2.0 - particles[i].d / 2.0;
+            particles[i].com[2] = (double) rand()/RAND_MAX * -2.0 * (Base::zLBoxHalf - particles[i].d / 2.0) + Base::zLBoxHalf - particles[i].d / 2.0;
 
             //Get random charge displacement vector
             particles[i].chargeDisp[0] = (double) rand()/RAND_MAX * 2 - 1;
@@ -362,7 +359,7 @@ class Particles{
             //Calculate position of the charge
             particles[i].pos = particles[i].com + particles[i].chargeDisp;
             
-            if(particles[i].com[2] < -Base::zLBox / 2.0 + particles[i].d/2 || particles[i].com[2] > Base::zLBox / 2.0 - particles[i].d/2){
+            if(particles[i].com[2] < -Base::zLBoxHalf + particles[i].d/2 || particles[i].com[2] > Base::zLBoxHalf - particles[i].d/2){
                 printf("%lf %lf %lf Particle in forbidden area...\n", particles[i].com[0], particles[i].com[1], particles[i].com[2]);
                 exit(1);
             }
@@ -450,7 +447,7 @@ class Particles{
                 particles[j].d = 5.0;
                 particles[j].pos[0] = x;
                 particles[j].pos[1] = y;
-                particles[j].pos[2] = z - Base::zLBox / 2.0;
+                particles[j].pos[2] = z - Base::zLBoxHalf;
                 particles[j].com = particles[j].pos;
 
                 particles[j].b = 0.0;
@@ -479,7 +476,7 @@ class Particles{
 
                 particles[j].pos[0] = x;
                 particles[j].pos[1] = y;
-                particles[j].pos[2] = z - Base::zLBox / 2.0;
+                particles[j].pos[2] = z - Base::zLBoxHalf;
                 particles[j].com = particles[j].pos;
 
                 particles[j].d = 5.0;
@@ -515,7 +512,7 @@ class Particles{
         fprintf(f, "Generated by Slaymulator.\n");
         fprintf(f, "%d\n", numOfParticles + numOfElectrons);
         for(i = 0; i < numOfParticles + numOfElectrons; i++){
-            fprintf(f, "%5d%-5s%5s%5d %.10lf %.10lf %.10lf\n", 1, "ion", particles[i].name, i, (particles[i].com[0] + Base::xL / 2.0)/10.0, (particles[i].com[1] + Base::yL / 2.0)/10.0, (particles[i].com[2] + Base::zLBox / 2.0)/10.0);
+            fprintf(f, "%5d%-5s%5s%5d %.10lf %.10lf %.10lf\n", 1, "ion", particles[i].name, i, (particles[i].com[0] + Base::xLHalf)/10.0, (particles[i].com[1] + Base::yLHalf)/10.0, (particles[i].com[2] + Base::zLBoxHalf)/10.0);
         }
         fprintf(f, "%lf    %lf     %lf\n", Base::xL/10.0, Base::yL/10.0, Base::zL/10.0);
         fclose(f);
@@ -538,7 +535,7 @@ class Particles{
         fprintf(f, "Generated by Slaymulator.\n");
         fprintf(f, "%d\n", numOfParticles);
         for(i = 0; i < numOfParticles; i++){
-            fprintf(f, "%5d%-5s%5s%5d%8.3f%8.3f%8.3f\n", 1, "cha", "H", i, (particles[i].pos[0] + Base::xL / 2.0) / 10.0, (particles[i].pos[1] + Base::yL / 2.0) / 10.0, (particles[i].pos[2] + Base::zLBox / 2.0) / 10.0);
+            fprintf(f, "%5d%-5s%5s%5d%8.3f%8.3f%8.3f\n", 1, "cha", "H", i, (particles[i].pos[0] + Base::xLHalf) / 10.0, (particles[i].pos[1] + Base::yLHalf) / 10.0, (particles[i].pos[2] + Base::zLBoxHalf) / 10.0);
         }
         fprintf(f, "%lf    %lf     %lf\n", Base::xL/10.0, Base::yL/10.0, Base::zL/10.0);
         fclose(f);

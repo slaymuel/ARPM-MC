@@ -222,7 +222,7 @@ void MC::equilibrate(){
             exit(1);
         }
 
-        if(i % 50000 == 0){
+        if(i % 5000 == 0){
             overlaps = particles.get_overlaps();
             //stepSize = log(abs(prevOverlaps - overlaps) + 3.0);
             //prevOverlaps = overlaps;
@@ -230,6 +230,9 @@ void MC::equilibrate(){
             fflush(stdout);
         }
         i++;
+        if(i > 1E9){
+            i = 0;
+        }
     }
     printf("\n\033[32mEquilibration done\033[30m\n\n");
 }
