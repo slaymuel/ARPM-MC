@@ -16,6 +16,7 @@ namespace energy{ namespace valleau{
     extern Eigen::VectorXd nDensity;
     extern int numOfSamples;
     extern double binWidth;
+    extern double wallCharge;
     void update_charge_vector(Particles &particles);
     void update_potential();
     double get_images(Particles &particles);
@@ -24,8 +25,9 @@ namespace energy{ namespace valleau{
     double get_energy(Particles &particles);
     double get_particle_energy(Particles &particles, Particle &p);
     double get_particle_pot(Particles &particles, Particle &p);
+    double wall_charge(double z);
     double phiw(double z);
-    void initialize();
+    void initialize(double charge);
 } }
 
 #endif

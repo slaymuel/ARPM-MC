@@ -1,5 +1,6 @@
 #include "valleau.h"
 double energy::valleau::binWidth; //Angstrom
+double energy::valleau::wallCharge;
 int numOfBins; //number of bins
 Eigen::VectorXd energy::valleau::pDensity;
 Eigen::VectorXd energy::valleau::nDensity;
@@ -9,7 +10,7 @@ Eigen::VectorXd energy::valleau::imgExt;
 int energy::valleau::numOfSamples;
 
 
-void energy::valleau::initialize(){
+void energy::valleau::initialize(double charge){
     energy::valleau::binWidth = 0.05;
     numOfBins = Base::zLBox / energy::valleau::binWidth;
     energy::valleau::pDensity.resize(numOfBins);
@@ -21,6 +22,7 @@ void energy::valleau::initialize(){
     ext.setZero();
     imgExt.setZero();
     energy::valleau::numOfSamples = 0;   
+    wallCharge = -charge / (Base::xL * Base::yL);
 }
 
 
@@ -342,7 +344,13 @@ double energy::valleau::get_energy(Particles &particles){
     //printf("Valleau dir: %lf    pol: %lf\n", energy::direct::get_energy(particles), get_images(particles));
     energy += energy::direct::get_energy(particles);
     //energy += energy::ewald3D::get_energy(particles);
+
     energy += get_images(particles);
+
+    /*for(int i = 0; i < particles.numOfParticles; i++){
+        energy += wall_charge(particles[i].pos[2]);
+    }*/
+    
     return energy;
 }
 
@@ -367,7 +375,8 @@ double energy::valleau::get_particle_energy(Particles &particles, Particle &p){
     energy += energy::direct::get_particle_energy(particles, p);
     //energy += energy::ewald3D::get_particle_energy(particles, p);
     energy += get_particle_images(particles, p);
-    
+    //energy += wall_charge(p.pos[2]);
+
     return energy;
 }
 
@@ -480,6 +489,33 @@ double energy::valleau::get_particle_images_pot(Particles &particles, Particle &
 
     energy *= Base::lB;
     return energy;
+}
+
+
+
+double energy::valleau::wall_charge(double z){
+    double wall1 = 0.0;
+    double wall2 = 0.0;
+    double a = Base::xLHalf;
+    double asq = a * a;
+    //z = std::fabs(z - Base::zL);
+    //z -= Base::zL / 2.0;
+    //printf("z: %lf\n", z);
+
+    // Right wall
+    double zDiff = z - Base::zLBoxHalf;
+    double zsq = zDiff * zDiff;
+    //wall1 = 8.0 * a * std::log((std::sqrt(2.0 * asq + zsq) + a) / std::sqrt(asq + zsq)) - 
+    //              2.0 * std::fabs(zDiff) * (std::asin((asq * asq - zsq * zsq - 2.0 * asq * zsq) / std::pow(asq + zsq, 2.0)) + PI/2.0);
+
+    // Left wall
+    zDiff = z + Base::zLBoxHalf;
+    zsq = zDiff * zDiff;
+    wall2 = 8.0 * a * std::log((std::sqrt(2.0 * asq + zsq) + a) / std::sqrt(asq + zsq)) - 
+                  2.0 * std::fabs(zDiff) * (std::asin((asq * asq - zsq * zsq - 2.0 * asq * zsq) / std::pow(asq + zsq, 2.0)) + PI/2.0);
+    
+    //printf("wall1: %lf, wall2: %lf\n", wall1, wall2);
+    return wallCharge * (wall1 + wall2);
 }
 
 

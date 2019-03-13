@@ -287,7 +287,7 @@ class Particles{
                 else if(atom == "Na"){
                     strcpy(particles[j].name, "Na\0");
                     particles[j].b = 0;
-                    particles[j].q = 2.0;      
+                    particles[j].q = 1.0;      
                     cations.push_back(j);      
                 }
 
@@ -375,8 +375,13 @@ class Particles{
 
 
     void create_electrons(int num){
-        int i, j = 0;
+        int i, j = 0, k = 0, l = 0;
         i = numOfParticles;
+        int gridX = std::sqrt(num);
+        int gridY = std::sqrt(num);
+        double binX = Base::xL / gridX;
+        double binY = Base::yL / gridY;
+
 
         for(j = 0; j < num; j++){
 
@@ -385,15 +390,24 @@ class Particles{
             particles[i].d = 0;    //Diameter of particles
             particles[i].b = 0; //Length of charge displacement vector
 
+
+
             //Get random center of mass coordinates
-            particles[i].com[0] = (double) rand()/RAND_MAX * Base::xL;
-            particles[i].com[1] = (double) rand()/RAND_MAX * Base::yL;
-            if(j < num / 2){
-                particles[i].com[2] = Base::zL;//(double) rand()/RAND_MAX * (Base::zL - 2 * Base::wall) + Base::wall + Base::zL;
+            particles[i].com[0] = (double) rand()/RAND_MAX * (-Base::xL) + Base::xLHalf;
+            particles[i].com[1] = (double) rand()/RAND_MAX * (-Base::yL) + Base::yLHalf;
+            /*if(l % gridX == 0 && j > 0){
+                l = 0;
+                k++;
             }
+            particles[i].com[0] = l * binX + binX * 0.5 - Base::xLHalf;
+            particles[i].com[1] = k * binY + binY * 0.5 - Base::yLHalf;*/
+
+            //if(j < num * 0.5){
+                particles[i].com[2] = -Base::zLBoxHalf;//(double) rand()/RAND_MAX * (Base::zL - 2 * Base::wall) + Base::wall + Base::zL;
+            /*}
             else{
-                particles[i].com[2] = 0;//(double) rand()/RAND_MAX * (Base::zL - 2 * Base::wall) + Base::wall - Base::zL;
-            }
+                particles[i].com[2] = Base::zLBox * 0.5;//(double) rand()/RAND_MAX * (Base::zL - 2 * Base::wall) + Base::wall - Base::zL;
+            }*/
 
             //Get random charge displacement vector
             particles[i].chargeDisp << 0, 0, 0;
@@ -407,8 +421,17 @@ class Particles{
             particles[i].q = -1.0;
             strcpy(particles[i].name, "e\0");
             i++;
+            l++;
         }
+/*
+        for(int i = 0; i < gridX; i++){
+            particles[i].com[0] = i * binX + binX * 0.5;
 
+            for(int j = 0; j < gridY; j++){
+                particles[i].com[1] = j * binY + binY * 0.5;
+            }
+        }
+*/
         printf("\033[34mCreated %d electrons.\033[30m\n", j);
     }
 

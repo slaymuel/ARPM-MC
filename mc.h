@@ -9,6 +9,7 @@
 #include "ewald2D.h"
 #include "analysis.h"
 #include "valleau.h"
+#include "imagitron.h"
 //#include "img_rep.h"
 //#include "direct.h"
 #include "levin.h"
@@ -23,8 +24,8 @@ class MC{
         int grand_move(P particle_energy_function){
             int accept = 0, r;
             double newEnergy, prob;
-            double chemPot = -16.0;//-10.7;
-            double Donnan = -2000.0;//-22.5;
+            double chemPot =  -16.0; //-10.7;
+            double Donnan = -50.0;
             double volumeP = (Base::zLBox - 1.0) * Base::xL * Base::yL;
             double volumeN = (Base::zLBox - 5.0) * Base::xL * Base::yL;
             
@@ -399,7 +400,7 @@ class MC{
 
 
 
-/*
+
         template<typename E>
         int trans_electron_move(double dr, E energy_function){
             double eOld = 0.0;
@@ -415,53 +416,90 @@ class MC{
             p += particles.numOfParticles;
 
             //Calculate old energy
-            eOld = energy_function(particles.particles, particles[p]);
+            eOld = energy_function(particles, particles[p]);
             _old.pos = particles[p].pos;
             _old.com = particles[p].com;
             _old.q = particles[p].q;
             _old.index = particles[p].index;
 
-            //Generate new trial coordinates
-            //particles[p].random_move(dr);
-            particles[p].com[0] += (ran2::get_random() * 2.0 - 1.0) * dr;
-            particles[p].com[1] += (ran2::get_random() * 2.0 - 1.0) * dr;
-            Particle::pbc_xy(particles[p].com);
-            particles[p].pos = particles[p].com;
-            Particle::pbc_xy(particles[p].pos);
-            Particle::update_distances(particles, particles[p]);
+            particles[p].random_move_xy(dr);
 
-            //If there is no overlap in new position and it's inside the box
-            //if((particles[p].com[2] > Base::wall + Base::zL && particles[p].com[2] < 2 * Base::zL - Base::wall) || 
-            //    (particles[p].com[2] > Base::wall - Base::zL && particles[p].com[2] < Base::wall)){
+            //Get new energy
+            eNew = energy_function(particles, particles[p]);
 
-                //Get new energy
-                eNew = energy_function(particles.particles, particles[p]);
+            //Accept move?
+            dE = eNew - eOld;
 
-                //Accept move?
-                dE = eNew - eOld;
-                //acceptProp = exp(-1*dE);
-                //if(acceptProp > 1 || eNew < eOld){
-                //    acceptProp = 1;
-                //}
+            double rand = ran2::get_random();
 
-                double rand = ran2::get_random();
-
-                if(dE < 0){//(rand <= acceptProp){  //Accept move
-                    Base::eCummulative += dE; //Update cummulative energy
-                    accepted = 1;
-                    Base::acceptedMoves++;
-                }
-                else{   //Reject move
-                    particles[p].pos = _old.pos;
-                    particles[p].com = _old.com;
-                    Particle::update_distances(particles, particles[p]);
-                }
+            if(dE < 0){//(rand <= acceptProp){  //Accept move
+                Base::eCummulative += dE; //Update cummulative energy
+                accepted = 1;
+                Base::acceptedMoves++;
+            }
+            else{   //Reject move
+                particles[p].pos = _old.pos;
+                particles[p].com = _old.com;
+            }
 
 
             //delete _old;
             return accepted;
         }
-*/
+
+        template<typename E>
+        int charge_electron_move(double dr, E energy_function){
+            double eOld = 0.0;
+            double eNew = 0.0;
+            double acceptProp = 0.0;
+            double random = ran2::get_random();
+            double oldnCharge;
+            double oldpCharge;
+            double dE = 0.0;
+            int accepted= 0;
+            int n;
+
+            int p =  random * particles.numOfElectrons;
+            do{
+                n = ran2::get_random() * particles.numOfElectrons;
+            } while(p == n);
+
+            p += particles.numOfParticles;
+            n += particles.numOfParticles;
+            oldnCharge = particles[n].q;
+            oldpCharge = particles[p].q;
+
+            //Calculate old energy
+            eOld = energy_function(particles, particles[p]);
+            eOld += energy_function(particles, particles[n]);
+
+            double ranCharge = (ran2::get_random() * 2.0 - 1.0) * dr;
+            particles[p].q -= ranCharge;
+            particles[n].q += ranCharge;
+            
+            //Get new energy
+            eNew = energy_function(particles, particles[p]);
+            eNew += energy_function(particles, particles[n]);
+
+            //Accept move?
+            dE = eNew - eOld;
+
+            double rand = ran2::get_random();
+
+            if(dE < 0){//(rand <= acceptProp){  //Accept move
+                Base::eCummulative += dE; //Update cummulative energy
+                accepted = 1;
+                Base::acceptedMoves++;
+            }
+            else{   //Reject move
+                particles[n].q = oldnCharge;
+                particles[p].q = oldpCharge;
+            }
+
+
+            //delete _old;
+            return accepted;
+        }
 
 
         double sampleSurfPot(double z){
@@ -501,6 +539,8 @@ class MC{
             int gcAcc = 0;
             int elAcc = 0;
             int elTot = 0;
+            int elChAcc = 0;
+            int elChTot = 0;
             int outFreq = 10000;
             int k = 0;
             int catCreated = 0;
@@ -536,7 +576,7 @@ class MC{
                     xHist->sampleHisto(particles, 0);
                     yHist->sampleHisto(particles, 1);
                     zHist->sampleHisto(particles, 2);
-                    
+                    /*
                     if(ran2::get_random() <= 0.5){  //Sample middle of box
                         z = 0.0;
                         _surfpot[0] += sampleSurfPot(z);
@@ -552,27 +592,7 @@ class MC{
                         _surfpot[1] += sampleSurfPot(z);
                         wallSamp++;
                     }
-                    
-
-/*
-                    double random = ran2::get_random();
-                    bool success;
-                    if(random < 0.25){
-                        //Add to right wall
-                        success = particles.add(Base::zLBox / 2.0);
-                    }
-                    else if(random < 0.5){
-                        //Add to left wall
-                        success = particles.add(-1.0 * Base::zLBox / 2.0);
-                    }
-                    else{
-                        //Add to middle
-                        success = particles.add(0.0);
-                    }
-                    if(success){
-                        surfpot->sampleSurfPot(particle_energy_function(particles, particles[particles.numOfParticles]), random < 0.5);
-                        particles.remove(particles.numOfParticles - 1);
-                    }*/
+                    */
                 }
                 
                 /*random = ran2::get_random();
@@ -587,35 +607,51 @@ class MC{
                 
                     random = ran2::get_random();
                     //if(random <= partRatio){
-                    if(random <= 0.7){
+                    //if(random <= 0.7){
                         //random = ran2::get_random();
-                        //if(random <= rE){
+                        if(random >= rN){
                             if(trans_move(dr, particle_energy_function)){
                                 prevAccepted++; 
                                 transAccepted++;
                             }
                             transTot++;
-                        //}
+                        }
                         /*else{
                             if(trans_move(particles, Base::zL, particle_energy_function)){
                                 prevAccepted++; 
                                 transAccepted++;
                             }
                         }*/
-                    }
+                    /*}
                     else{
                         if(grand_move(particle_energy_function)){
                             gcAcc++;
                         }
                         gcTot++;
-                    }
-                    /*else{
-                        if(trans_electron_move(particles, 0.05, particle_energy_function)){
-                            prevAccepted++;
-                            elAcc++;
-                        }
-                        elTot++;
                     }*/
+
+                    else{
+                        for(int i = 0; i < particles.numOfElectrons * 10; i++){
+                            if(ran2::get_random() > 0.1){
+                                if(trans_electron_move(0.1, particle_energy_function)){
+                                    prevAccepted++;
+                                    elAcc++;
+                                }
+                            }
+                            else{
+                                if(trans_electron_move(10.0, particle_energy_function)){
+                                    prevAccepted++;
+                                    elAcc++;
+                                }
+                            }
+                            elTot++;
+
+                            /*if(charge_electron_move(0.1, particle_energy_function)){
+                                elChAcc++;
+                            }
+                            elChTot++;*/
+                        }
+                    }
                 /*}
                 else{
                     if(charge_rot_move(particle_energy_function)){
@@ -645,8 +681,9 @@ class MC{
                     printf("Acceptance ratio for the last %i steps: %lf\n", outFreq, (double)prevAccepted/outFreq);
 
                     printf("Error: %.12lf\n", std::fabs(energy_temp - Base::eCummulative) / std::fabs(energy_temp));
-                    printf("Trans mv: %d, %.1lf  Rot mv: %d, %.1lf  Vol mv: %d, %.1lf GC mv: %d, %.1lf pnum: %i  nnum: %i surfPot: %lf wpot %lf mpot %lf\n\n", 
+                    printf("Trans mv: %d, %.1lf ET: %d (%d), %.1lf (%.1lf)  Rot mv: %d, %.1lf  Vol mv: %d, %.1lf GC mv: %d, %.1lf pnum: %i  nnum: %i surfPot: %lf wpot %lf mpot %lf\n\n", 
                                                                                                             transAccepted, (double) transAccepted/transTot * 100.0,
+                                                                                                            elAcc, elChAcc, (double) elAcc/elTot * 100.0, (double) elChAcc/elChTot * 100.0,
                                                                                                             rotAccepted,   (double) rotAccepted/rotTot * 100.0, 
                                                                                                             volAccepted,   (double) volAccepted/volTot * 100.0,
                                                                                                             gcAcc,   (double) gcAcc/gcTot * 100.0,

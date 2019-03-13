@@ -17,7 +17,7 @@
 #include "ewald3D.h"
 #include "ewald2D.h"
 //#include "hard_sphere.h"
-//#include "imagitron.h"
+#include "imagitron.h"
 //#include "img_rep.h"
 //Initializers
 //Ewald3D MC::ewald3D;
@@ -188,7 +188,7 @@ int main(int argc, char *argv[])
     }
 
     if(vm.count("f_jan")){
-        particles.read_jan("coordp_large_test", "coordn_large_test");
+        particles.read_jan("coordc", "coordn");
     }
 
     if(vm.count("f_arpm_jan")){
@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
     }
 
     if(vm.count("electrons")){
-        //Particle::numOfElectrons = vm["electrons"].as<int>();
+        particles.numOfElectrons = vm["electrons"].as<int>();
     }
 
     if(vm.count("np") && vm["imgrep"].as<bool>()){
@@ -275,6 +275,7 @@ int main(int argc, char *argv[])
     printf("\033[34mDensity is: %lf\033[30m\n", density);
     
     particles.initialize();
+    particles.create_electrons(particles.numOfElectrons);
     printf("num of particles including images: %d\n", particles.numOfParticles);
     //particles.update_distances();
 
@@ -310,10 +311,10 @@ int main(int argc, char *argv[])
     FILE *f = fopen(volOut, "w");
     fprintf(f, "");
     fclose(f);
-    std::string energyFunction = "valleau";
+    std::string energyFunction = "electron";
 
     if(energyFunction == "valleau"){
-        //energy::valleau::initialize();
+        energy::valleau::initialize(particles.numOfCations - particles.numOfAnions);
                             //MC::run(&energy::hs::get_energy, &energy::hs::get_particle_energy, particles, dr, iter, false);
         //mc.run(&energy::direct::get_energy, &energy::direct::get_particle_energy, dr, 1000000, false, outputFile);
                             //mc.run(&energy::valleau::get_energy, &energy::valleau::get_particle_energy, 0.1, 1000000, false, outputFile);
@@ -355,8 +356,8 @@ int main(int argc, char *argv[])
     }
 
     if(energyFunction == "electron"){
-        //energy::imagitron::initialize();
-        //MC::run(&energy::imagitron::get_energy, &energy::imagitron::get_particle_energy, particles, dr, iter, true, outputFile);
+        energy::imagitron::initialize(particles);
+        mc.run(&energy::imagitron::get_energy, &energy::imagitron::get_particle_energy, dr, iter, true, outputFile);
     }
     if(energyFunction == "direct"){
         mc.run(&energy::direct::get_energy, &energy::direct::get_particle_energy, dr, iter, true, outputFile);

@@ -154,6 +154,16 @@ void Particle::random_move(double stepSize){
 
 
 
+void Particle::random_move_xy(double stepSize){
+    
+    this->com[0] += (ran2::get_random() * 2.0 - 1.0) * stepSize;
+    this->com[1] += (ran2::get_random() * 2.0 - 1.0) * stepSize; 
+    pbc_xy(this->com);
+    this->pos = this->com;   
+}
+
+
+
 
 
 void Particle::random_charge_rot(){
@@ -589,13 +599,13 @@ bool Particle::wall_2d(){
     
     bool inside;
 
-    if(this->q < 0){
+    //if(this->q < 0){
         (this->com[2] > -Base::zLBox / 2.0 +       this->d / 2.0 && this->com[2] < Base::zLBox / 2.0 - this->d / 2.0) ?      inside = true : inside = false;
-    }
+    /*}
 
     else{
         (this->com[2] > -Base::zLBox / 2.0 - 2.0 + this->d / 2.0 && this->com[2] < Base::zLBox / 2.0 - this->d / 2.0 + 2.0) ? inside = true : inside = false;
-    }
+    }*/
 
     return inside;
 }

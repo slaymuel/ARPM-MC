@@ -28,7 +28,7 @@ class Particle: public Base{
 
         void random_move(double stepSize);
         void random_charge_rot();
-        void randomMove_xy(double stepSize);
+        void random_move_xy(double stepSize);
 
         
         double com_distance(Particle &p);
