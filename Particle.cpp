@@ -129,17 +129,9 @@ void Particle::random_move(double stepSize){
     this->com[0] += (ran2::get_random() * 2.0 - 1.0) * stepSize;
     this->com[1] += (ran2::get_random() * 2.0 - 1.0) * stepSize;
     this->com[2] += (ran2::get_random() * 2.0 - 1.0) * stepSize;
-    //Eigen::Vector3d temp = this->com;
-    // this->pos[0] = this->com[0] + this->chargeDisp[0];
-    // this->pos[1] = this->com[1] + this->chargeDisp[1];
-    // this->pos[2] = this->com[2] + this->chargeDisp[2];
-    if(Base::wall > 0 || Base::d2){
-        
+
+    if(Base::wall > 0 || Base::d2){   
         pbc_xy(this->com);
-        /*if(temp != this->com){
-            std::cout << "Before: " << temp << std::endl;
-            std::cout << "After: " << this->com << std::endl;
-        }*/
         this->pos = this->com + this->chargeDisp;
         pbc_xy(this->pos);
         
@@ -154,6 +146,8 @@ void Particle::random_move(double stepSize){
 
 
 
+
+
 void Particle::random_move_xy(double stepSize){
     
     this->com[0] += (ran2::get_random() * 2.0 - 1.0) * stepSize;
@@ -161,6 +155,20 @@ void Particle::random_move_xy(double stepSize){
     pbc_xy(this->com);
     this->pos = this->com;   
 }
+
+
+
+
+
+
+void Particle::random_move_xy(double stepSize, Eigen::Vector3d dir){
+    
+    this->com += dir;
+    pbc_xy(this->com);
+    this->pos = this->com;   
+}
+
+
 
 
 

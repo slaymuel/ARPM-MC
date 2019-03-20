@@ -202,7 +202,8 @@ int main(int argc, char *argv[])
     if(vm.count("np") && vm["imgrep"].as<bool>()){
         numOfParticles = vm["np"].as<int>() * 5;
         if(numOfParticles % 2 != 0){
-            printf("\033[31mIgnoring bad choice of number of particles.\033[30m\n");
+            //printf("\033[31mIgnoring bad choice of number of particles.\033[30m\n");
+            printf("\nIgnoring bad choice of number of particles.\n");
             numOfParticles += 5;
         }
         printf("%d particles will be created\n", numOfParticles);
@@ -215,7 +216,8 @@ int main(int argc, char *argv[])
     else if(vm.count("np")){
         numOfParticles = vm["np"].as<int>();
         if(numOfParticles % 2 != 0){
-            printf("\033[31mIgnoring bad choice of number of particles.\033[30m\n");
+            //printf("\033[31mIgnoring bad choice of number of particles.\033[30m\n");
+            printf("\nIgnoring bad choice of number of particles.\n");
             numOfParticles += 1;
         }
         printf("%d particles will be created\n", numOfParticles);
@@ -264,7 +266,8 @@ int main(int argc, char *argv[])
         //density = (double)Particle::numOfParticles/(Base::xL * Base::yL * Base::zL) * pow(diameter, 3);
     }
 
-    printf("\033[34mBox dimensions are x: %lf y: %lf z: %lf\033[30m\n", Base::xL, Base::yL, Base::zL);
+    //printf("\033[34mBox dimensions are x: %lf y: %lf z: %lf\033[30m\n", Base::xL, Base::yL, Base::zL);
+    printf("\nBox dimensions are x: %lf y: %lf z: %lf\n", Base::xL, Base::yL, Base::zL);
     
     //Seed
     srand(time(NULL));
@@ -272,7 +275,8 @@ int main(int argc, char *argv[])
     if(density == 0){
         density = (double)numOfParticles/(Base::xL * Base::yL * (Base::zL - 2 * Base::wall)) * pow(diameter, 3);
     }
-    printf("\033[34mDensity is: %lf\033[30m\n", density);
+    //printf("\033[34mDensity is: %lf\033[30m\n", density);
+    printf("\nDensity is: %lf\n", density);
     
     particles.initialize();
     particles.create_electrons(particles.numOfElectrons);

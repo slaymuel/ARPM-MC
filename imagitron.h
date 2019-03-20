@@ -10,6 +10,7 @@ namespace energy { namespace imagitron{
 
     void initialize(Particles &particles);
     double get_particle_energy(Particles &particles, Particle &p);
+    Eigen::Vector3d get_particle_force(Particles &particles, Particle &p);
     double get_energy(Particles &particles);
     double wall_charge(double z);
 } }

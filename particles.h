@@ -10,10 +10,12 @@ class Particles{
     std::vector< std::vector<double> > distances;
     double oldEnergy;
 
+
+
     Particle& operator[] (int x) {
         return particles[x];
     }
-    
+
 
 
 
@@ -364,7 +366,7 @@ class Particles{
                 exit(1);
             }
         }
-        printf("\033[34mCreated %d particles.\033[30m\n", num);
+        printf("Created %d particles.\n", num);
     }
 
 
@@ -393,8 +395,8 @@ class Particles{
 
 
             //Get random center of mass coordinates
-            particles[i].com[0] = (double) rand()/RAND_MAX * (-Base::xL) + Base::xLHalf;
-            particles[i].com[1] = (double) rand()/RAND_MAX * (-Base::yL) + Base::yLHalf;
+            particles[i].com[0] = (double) rand() / RAND_MAX * (-Base::xL) + Base::xLHalf;
+            particles[i].com[1] = (double) rand() / RAND_MAX * (-Base::yL) + Base::yLHalf;
             /*if(l % gridX == 0 && j > 0){
                 l = 0;
                 k++;
@@ -402,12 +404,12 @@ class Particles{
             particles[i].com[0] = l * binX + binX * 0.5 - Base::xLHalf;
             particles[i].com[1] = k * binY + binY * 0.5 - Base::yLHalf;*/
 
-            //if(j < num * 0.5){
+            if(j < num * 0.5){
                 particles[i].com[2] = -Base::zLBoxHalf;//(double) rand()/RAND_MAX * (Base::zL - 2 * Base::wall) + Base::wall + Base::zL;
-            /*}
+            }
             else{
-                particles[i].com[2] = Base::zLBox * 0.5;//(double) rand()/RAND_MAX * (Base::zL - 2 * Base::wall) + Base::wall - Base::zL;
-            }*/
+                particles[i].com[2] = Base::zLBoxHalf;//(double) rand()/RAND_MAX * (Base::zL - 2 * Base::wall) + Base::wall - Base::zL;
+            }
 
             //Get random charge displacement vector
             particles[i].chargeDisp << 0, 0, 0;
@@ -417,8 +419,12 @@ class Particles{
                 printf("%lf %lf %lf Electron in forbidden area...\n", particles[i].com[0], particles[i].com[1], particles[i].com[2]);
                 exit(1);
             }
-
-            particles[i].q = -1.0;
+            //if(j % 2 == 0){
+                particles[i].q = -1.0;
+            /*}
+            else{
+                particles[i].q = 1.0;
+            }*/
             strcpy(particles[i].name, "e\0");
             i++;
             l++;
@@ -432,7 +438,7 @@ class Particles{
             }
         }
 */
-        printf("\033[34mCreated %d electrons.\033[30m\n", j);
+        printf("Created %d electrons.\n", j);
     }
 
 

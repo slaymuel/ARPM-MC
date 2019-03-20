@@ -3,43 +3,41 @@
 double energy::imagitron::wallCharge;
 
 void energy::imagitron::initialize(Particles &particles){
-    wallCharge = (-particles.numOfCations + particles.numOfAnions + particles.numOfElectrons) / (Base::xL * Base::yL);
+    double charge = 0.0;
+    for(int i = particles.numOfParticles; i < particles.numOfParticles + particles.numOfElectrons; i++){//
+        charge += particles[i].q;
+    }
+    wallCharge = (-particles.numOfCations - charge + particles.numOfAnions) / (Base::xL * Base::yL);
 }
+
+
 
 double energy::imagitron::get_particle_energy(Particles &particles, Particle &p){
     int numOfReflections = 1;
     double energy = 0;
     Eigen::Vector3d disp;
     double dist = 0;
-
-
-    for(int i = 0; i < particles.numOfParticles + particles.numOfElectrons; i++){
-        if(p.index == i) continue;
-        energy += particles[i].q * p.q / p.distance_xy(particles[i]);
-    }
-/*
-    for(int i = 0; i < p.index; i++){
-        energy += particles[i].q * p.q * 1.0/Particle::distances[i][p.index];
-    }
-
-    for(int i = p.index + 1; i < particles.numOfParticles + particles.numOfElectrons; i++){
-        energy += particles[i].q * p.q * 1.0/Particle::distances[p.index][i];
-    }
-*/
-    if(p.index < particles.numOfParticles){
-        /*if(p.q < 0){
-            printf("Negative particle\n");
+    /*if(p.index >= particles.numOfParticles){
+        for(int i = 0; i < particles.numOfParticles; i++){
+            if(p.index == i) continue;
+            energy += particles[i].q * p.q / p.distance_xy(particles[i]);
         }
-        else{
-            printf("Positive particle\n");
-        }*/
+    }
+    else{*/
+        for(int i = 0; i < particles.numOfParticles + particles.numOfElectrons; i++){
+            if(p.index == i) continue;
+            energy += particles[i].q * p.q / p.distance_xy(particles[i]);
+        }
+    //}
+
+    /*if(p.index < particles.numOfParticles){
         energy += p.q * wall_charge(p.pos[2]);
         //printf("Total: %lf\n", p.q * wall_charge(p.pos[2]));
         if(strcmp(p.name, "e") == 0){
             printf("Error, electron is affected by wall. Name %s\n", p.name);
             exit(1);
         }
-    }
+    }*/
 /*
     for(int k = 1; k <= numOfReflections; k += 2){
 
@@ -105,6 +103,53 @@ double energy::imagitron::get_particle_energy(Particles &particles, Particle &p)
 
 
 
+Eigen::Vector3d energy::imagitron::get_particle_force(Particles &particles, Particle &p){
+    double magnitude;
+    Eigen::Vector3d disp;
+    Eigen::Vector3d force;
+    force.setZero();
+
+    for(int i = 0; i < particles.numOfParticles + particles.numOfElectrons; i++){
+        if(p.index == i) continue;
+
+        disp = p.pos - particles[i].pos;
+
+        if(disp[0] > Base::xLHalf){
+            disp[0] -= Base::xL;
+        }
+
+        else if(disp[0] < -Base::xLHalf){
+            disp[0] += Base::xL;
+        }
+
+        if(disp[1] > Base::yLHalf){
+            disp[1] -= Base::yL;
+        }
+
+        else if(disp[1] < -Base::yLHalf){
+            disp[1] += Base::yL;
+        }
+
+        magnitude = p.q * particles[i].q / disp.squaredNorm();
+        disp.normalize();
+
+        //particles.atoms[i]->force += magnitude * disp;
+        //particles.atoms[j]->force -= magnitude * disp;
+        force += magnitude * disp;
+    }
+
+    force.normalize();
+    return force;
+}
+
+
+
+
+
+
+
+
+
 double energy::imagitron::get_energy(Particles &particles){
     int numOfReflections = 1;
     double energy = 0;
@@ -112,9 +157,9 @@ double energy::imagitron::get_energy(Particles &particles){
     double distance = 0;
 
     for(int i = 0; i < particles.numOfParticles + particles.numOfElectrons; i++){
-        if(i < particles.numOfParticles){
+        /*if(i < particles.numOfParticles){
             energy += particles[i].q * wall_charge(particles[i].pos[2]);
-        }
+        }*/
         for(int j = i + 1; j < particles.numOfParticles + particles.numOfElectrons; j++){
             energy += particles[i].q * particles[j].q * 1.0 / particles[i].distance_xy(particles[j]);
         }

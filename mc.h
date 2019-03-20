@@ -409,8 +409,7 @@ class MC{
             double random = ran2::get_random();
             double dE = 0.0;
             int accepted= 0;
-
-            Particle _old = new Particle(true);
+            Particle _old;
 
             int p =  random * particles.numOfElectrons;
             p += particles.numOfParticles;
@@ -421,7 +420,10 @@ class MC{
             _old.com = particles[p].com;
             _old.q = particles[p].q;
             _old.index = particles[p].index;
-
+            //Eigen::Vector3d dir = energy::imagitron::get_particle_force(particles, particles[p]);
+            //dir *= dr;
+            //dir[2] = 0.0;
+            //particles[p].random_move_xy(dr, dir);
             particles[p].random_move_xy(dr);
 
             //Get new energy
@@ -430,9 +432,7 @@ class MC{
             //Accept move?
             dE = eNew - eOld;
 
-            double rand = ran2::get_random();
-
-            if(dE < 0){//(rand <= acceptProp){  //Accept move
+            if(dE <= 0){//(rand <= acceptProp){  //Accept move
                 Base::eCummulative += dE; //Update cummulative energy
                 accepted = 1;
                 Base::acceptedMoves++;
@@ -442,10 +442,13 @@ class MC{
                 particles[p].com = _old.com;
             }
 
-
-            //delete _old;
             return accepted;
         }
+
+
+
+
+
 
         template<typename E>
         int charge_electron_move(double dr, E energy_function){
@@ -468,34 +471,61 @@ class MC{
             n += particles.numOfParticles;
             oldnCharge = particles[n].q;
             oldpCharge = particles[p].q;
-
+            if(strcmp(particles[n].name, "e") != 0){
+                printf("Error, particle changed charge. Name %s\n", particles[n].name);
+                exit(1);
+            }
+            if(strcmp(particles[p].name, "e") != 0){
+                printf("Error, particle changed charge. Name %s\n", particles[n].name);
+                exit(1);
+            }
             //Calculate old energy
-            eOld = energy_function(particles, particles[p]);
-            eOld += energy_function(particles, particles[n]);
+            //eOld = energy_function(particles, particles[p]);
+            //eOld += energy_function(particles, particles[n]);
 
             double ranCharge = (ran2::get_random() * 2.0 - 1.0) * dr;
-            particles[p].q -= ranCharge;
-            particles[n].q += ranCharge;
-            
-            //Get new energy
-            eNew = energy_function(particles, particles[p]);
-            eNew += energy_function(particles, particles[n]);
 
-            //Accept move?
-            dE = eNew - eOld;
+            if(!(particles[p].q - ranCharge < -1.0 || particles[n].q + ranCharge > 1.0)){
+                /*for(int i = 0; i < particles.numOfParticles + particles.numOfElectrons; i++){
+                    if(i == n || i == p) continue;
+                    eOld += particles[i].q * particles[n].q / particles[n].distance_xy(particles[i]);
+                    eOld += particles[i].q * particles[p].q / particles[p].distance_xy(particles[i]);
+                }*/
+                eOld = energy_function(particles, particles[p]);
+                eOld += energy_function(particles, particles[n]);
+                //eOld += particles[p].q * particles[n].q / particles[n].distance_xy(particles[p]);
+                //eOld *= Base::lB;
+                particles[p].q -= ranCharge;
+                particles[n].q += ranCharge;
+                //Get new energy
+                //eNew = energy_function(particles, particles[p]);
+                //eNew += energy_function(particles, particles[n]);
 
-            double rand = ran2::get_random();
+                /*for(int i = 0; i < particles.numOfParticles + particles.numOfElectrons; i++){
+                    if(i == n || i == p) continue;
+                    eNew += particles[i].q * particles[n].q / particles[n].distance_xy(particles[i]);
+                    eNew += particles[i].q * particles[p].q / particles[p].distance_xy(particles[i]);
+                }*/
+                eNew = energy_function(particles, particles[p]);
+                eNew += energy_function(particles, particles[n]);
+                //eNew += particles[p].q * particles[n].q / particles[n].distance_xy(particles[p]);
+                //eNew *= Base::lB;
 
-            if(dE < 0){//(rand <= acceptProp){  //Accept move
-                Base::eCummulative += dE; //Update cummulative energy
-                accepted = 1;
-                Base::acceptedMoves++;
+                //Accept move?
+                dE = eNew - eOld;
+
+                double rand = ran2::get_random();
+
+                if(dE < 0){//(rand <= acceptProp){  //Accept move
+                    Base::eCummulative += dE; //Update cummulative energy
+                    accepted = 1;
+                    Base::acceptedMoves++;
+                }
+                else{   //Reject move
+                    particles[n].q = oldnCharge;
+                    particles[p].q = oldpCharge;
+                }
             }
-            else{   //Reject move
-                particles[n].q = oldnCharge;
-                particles[p].q = oldpCharge;
-            }
-
 
             //delete _old;
             return accepted;
@@ -551,6 +581,7 @@ class MC{
             int anCreTot = 0;
             int anDestroyed = 0;
             int anDesTot = 0;
+            double charge = 0.0;
             double random = 0;
             double rN = 1.0 / particles.numOfParticles;
             double rE = 1.0 / (particles.numOfElectrons);
@@ -631,9 +662,9 @@ class MC{
                     }*/
 
                     else{
-                        for(int i = 0; i < particles.numOfElectrons * 10; i++){
+                        for(int i = 0; i < particles.numOfElectrons * 20; i++){
                             if(ran2::get_random() > 0.1){
-                                if(trans_electron_move(0.1, particle_energy_function)){
+                                if(trans_electron_move(0.2, particle_energy_function)){
                                     prevAccepted++;
                                     elAcc++;
                                 }
@@ -669,6 +700,11 @@ class MC{
                 }
 
                 if(i % outFreq == 0){
+                    charge = 0.0;
+                    for(int i = particles.numOfParticles; i < particles.numOfParticles + particles.numOfElectrons; i++){
+                        charge += particles[i].q;
+                    }
+                    printf("Total charge: %lf\n", charge + particles.numOfCations - particles.numOfAnions);
                     //Base::volumes.push_back(Base::volume);
                     //Base::volumes[k] = Base::volume;
                     //k++;

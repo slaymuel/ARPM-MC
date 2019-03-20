@@ -29,6 +29,7 @@ class Particle: public Base{
         void random_move(double stepSize);
         void random_charge_rot();
         void random_move_xy(double stepSize);
+        void random_move_xy(double stepSize, Eigen::Vector3d dir);
 
         
         double com_distance(Particle &p);
@@ -38,7 +39,7 @@ class Particle: public Base{
         bool wall_2d();
 
         static void place_particles(Particle **particles);
-        static void create_electrons(std::vector<Particle> &particles, int num);
+        static void create_electrons(std::vector< Particle > &particles, int num);
         static Particle** create_dummies(Particle **particles);
 
 

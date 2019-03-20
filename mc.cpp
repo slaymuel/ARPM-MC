@@ -234,7 +234,7 @@ void MC::equilibrate(){
             i = 0;
         }
     }
-    printf("\n\033[32mEquilibration done\033[30m\n\n");
+    printf("\nEquilibration done\n\n");
 }
 /*
 void MC::disperse(Particle **particles) {
