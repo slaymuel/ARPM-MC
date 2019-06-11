@@ -25,7 +25,7 @@ class MC{
             int accept = 0, r;
             double newEnergy, prob;
             double chemPot =  -16.0; //-10.7;
-            double Donnan = -50.0;
+            double Donnan = 50.0;
             double volumeP = (Base::zLBox - 1.0) * Base::xL * Base::yL;
             double volumeN = (Base::zLBox - 5.0) * Base::xL * Base::yL;
             
@@ -63,6 +63,7 @@ class MC{
                     Base::eCummulative -= newEnergy;
                     Base::acceptedMoves++;
                     accept = 1;
+                    energy::valleau::set_charge(particles.numOfCations - particles.numOfAnions);
                 }
 
                 else{
@@ -93,6 +94,7 @@ class MC{
                         Base::eCummulative += newEnergy;
                         Base::acceptedMoves++;
                         accept = 1;
+                        energy::valleau::set_charge(particles.numOfCations - particles.numOfAnions);
                     }
 
                     else{ //Reject
@@ -222,7 +224,7 @@ class MC{
             eOld = energy_function(particles, particles[r]);
 
             particles[r].random_charge_rot();
-            particles.update_distances(particles[r]);
+            //particles.update_distances(particles[r]);
             //energy::ewald3D::update_reciprocal(_old, particles[r]);
 
             eNew = energy_function(particles, particles[r]);
@@ -241,7 +243,7 @@ class MC{
                 //energy::ewald3D::update_reciprocal(particles[r], _old);
                 particles[r].chargeDisp = _old.chargeDisp;
                 particles[r].pos = _old.pos;
-                particles.update_distances(particles[r]);
+                //particles.update_distances(particles[r]);
             }
             //delete _old;
             return accepted;
@@ -332,7 +334,7 @@ class MC{
             double ewald2DEnergy = 0.0;
             double directEnergy = 0.0;
 
-            //Particle _old;
+            Particle _old;
 
             Eigen::Vector3d com;
             Eigen::Vector3d pos;
@@ -340,28 +342,31 @@ class MC{
             //printf("random: %i\n", p);
 
             eOld = energy_function(particles, particles[p]);
-            //_old.pos = particles[p].pos;
-            //_old.com = particles[p].com;
-            //_old.q = particles[p].q;
-            //_old.index = particles[p].index;
+            _old.pos = particles[p].pos;
+            _old.com = particles[p].com;
+            _old.q = particles[p].q;
+            _old.index = particles[p].index;
             com = particles[p].com;
             pos = particles[p].pos;
 
             //Generate new trial coordinates
             particles[p].random_move(dr);
+            //particles[p].random_move_no_pbc(dr);
+
             //energy::imgrep::update_position(particles, particles[p]);
 
             //If there is no overlap in new position and it's inside the box
             if(particles.hard_sphere(particles[p]) && particles[p].wall_2d()){
+            //if(particles.hard_sphere(particles[p]) && particles[p].sphere()){
 
                 //Get new energy
-                //energy::ewald3D::update_reciprocal(_old, particles[p]);
+                energy::ewald3D::update_reciprocal(_old, particles[p]);
                 //energy::levin::update_f(_old, particles[p]);
                 eNew = energy_function(particles, particles[p]);
 
                 //Accept move?
                 dE = eNew - eOld;
-                acceptProp = exp(-1.0 * dE);
+                acceptProp = std::exp(-1.0 * dE);
                 if(acceptProp > 1.0 || eNew < eOld){
                     acceptProp = 1.0;
                 }
@@ -375,7 +380,7 @@ class MC{
                 }
                 else{   //Reject move
                     //energy::imgrep::update_position(particles, _old);
-                    //energy::ewald3D::update_reciprocal(particles[p], _old);
+                    energy::ewald3D::update_reciprocal(particles[p], _old);
                     //energy::levin::update_f(particles[p], _old);
                     particles[p].pos = pos;
                     particles[p].com = com;
@@ -393,6 +398,90 @@ class MC{
         }
 
 
+
+
+
+
+        template<typename E>
+        int cluster_move(double dr, E energy_function){
+            double eOld = 0.0;
+            double eNew = 0.0;
+            double dist = 0.0;
+            double acceptProp = 0.0;
+            double random = ran2::get_random();
+            std::vector<int> atoms;
+            double dE = 0.0;
+            int accepted= 0.0;
+            double ewald3DEnergy = 0.0;
+            double ewald2DEnergy = 0.0;
+            double directEnergy = 0.0;
+            bool overlap = false;
+
+            Eigen::Vector3d com;
+            Eigen::Vector3d pos;
+            int p =  random * particles.numOfParticles;
+            atoms.push_back(p);
+            //Find closest electron neighbour
+            for(int i = particles.numOfParticles; i < particles.numOfParticles + particles.numOfElectrons; i++){
+                if((particles[p].pos - particles[i].pos).norm() < 0.6){
+                    //add i to list
+                    atoms.push_back(i);
+                }
+            }
+
+            for(auto atom : atoms){
+                eOld += energy_function(particles, particles[atom]);
+            }
+
+            com = particles[p].com;
+            pos = particles[p].pos;
+
+            //Generate new trial coordinates
+            for(auto atom : atoms){
+                //particles[atom].random_move_xy(dr, dir);
+                if(!particles.hard_sphere(particles[atom])){
+                    overlap = true;
+                }
+            }
+
+            //If there is no overlap in new position and it's inside the box
+            if(!overlap){
+
+                //Get new energy
+                //energy::ewald3D::update_reciprocal(_old, particles[p]);
+                //energy::levin::update_f(_old, particles[p]);
+                for(auto atom : atoms){
+                    eNew += energy_function(particles, particles[atom]);
+                }
+
+                //Accept move?
+                dE = eNew - eOld;
+                acceptProp = std::exp(-1.0 * dE);
+                if(acceptProp > 1.0 || eNew < eOld){
+                    acceptProp = 1.0;
+                }
+
+                double rand = ran2::get_random();
+
+                if(rand <= acceptProp){  //Accept move
+                    Base::eCummulative += dE; //Update cummulative energy
+                    accepted = 1;
+                    Base::acceptedMoves++;
+                }
+                else{   //Reject move
+                    particles[p].pos = pos;
+                    particles[p].com = com;
+                }
+            }
+
+            else{   //Reject move
+                particles[p].pos = pos;
+                particles[p].com = com;
+            }
+
+            //delete _old;
+            return accepted;
+        }
 
 
 
@@ -552,12 +641,14 @@ class MC{
 
         template<typename F, typename FP>
         void run(F&& energy_function, FP&& particle_energy_function, double dr, int iter, bool sample, std::string outputFile){
+            printf("Starting simulation...\n");
             double energy_temp, z;
             std::vector<double> _surfpot(2);
             _surfpot[0] = 0.0;
             _surfpot[1] = 0.0;
             double partRatio = (double)particles.numOfParticles/(particles.numOfParticles + particles.numOfElectrons);
-            std::vector< std::pair<double, double> > surfPotential;
+            std::vector<Eigen::Vector3d> positions_cations(iter / 100 * particles.numOfCations - 999 * particles.numOfCations);
+            std::vector<Eigen::Vector3d> positions_anions(iter / 100 * particles.numOfAnions - 999 * particles.numOfAnions);
             int prevAccepted = 0, wallSamp = 0, midSamp = 0;
             int rotAccepted = 0;
             int rotTot = 0;
@@ -600,6 +691,9 @@ class MC{
             Base::eCummulative = energy_function(particles);
             particles.oldEnergy = Base::eCummulative;
             printf("\nRunning MC-loop at temperature: %lf, Bjerrum length is %lf\n\n", Base::T, Base::lB);
+
+            int positions_c_counter = 0;
+            int positions_a_counter = 0;
             for(int i = 0; i <= iter; i++){
 
                 if(i % 100 == 0 && i >= 100000 && sample){
@@ -607,7 +701,16 @@ class MC{
                     xHist->sampleHisto(particles, 0);
                     yHist->sampleHisto(particles, 1);
                     zHist->sampleHisto(particles, 2);
-                    /*
+                    for(int ij = 0; ij < particles.numOfCations; ij++){
+                        positions_cations.at(positions_c_counter) = particles[particles.cations[ij]].pos;
+                        positions_c_counter++;
+                    }
+                    for(int ij = 0; ij < particles.numOfAnions; ij++){
+                        positions_anions.at(positions_a_counter) = particles[particles.anions[ij]].pos;
+                        positions_a_counter++;
+                    }
+                    
+
                     if(ran2::get_random() <= 0.5){  //Sample middle of box
                         z = 0.0;
                         _surfpot[0] += sampleSurfPot(z);
@@ -623,7 +726,7 @@ class MC{
                         _surfpot[1] += sampleSurfPot(z);
                         wallSamp++;
                     }
-                    */
+                    
                 }
                 
                 /*random = ran2::get_random();
@@ -636,17 +739,17 @@ class MC{
                 }
                 else if(random < 0.5 + rN){*/
                 
-                    random = ran2::get_random();
+                    //random = ran2::get_random();
                     //if(random <= partRatio){
                     //if(random <= 0.7){
                         //random = ran2::get_random();
-                        if(random >= rN){
+                        //if(random >= rN){
                             if(trans_move(dr, particle_energy_function)){
                                 prevAccepted++; 
                                 transAccepted++;
                             }
                             transTot++;
-                        }
+                    //    }
                         /*else{
                             if(trans_move(particles, Base::zL, particle_energy_function)){
                                 prevAccepted++; 
@@ -661,7 +764,7 @@ class MC{
                         gcTot++;
                     }*/
 
-                    else{
+                    /*else{
                         for(int i = 0; i < particles.numOfElectrons * 20; i++){
                             if(ran2::get_random() > 0.1){
                                 if(trans_electron_move(0.2, particle_energy_function)){
@@ -677,14 +780,16 @@ class MC{
                             }
                             elTot++;
 
-                            /*if(charge_electron_move(0.1, particle_energy_function)){
+                            if(charge_electron_move(0.1, particle_energy_function)){
                                 elChAcc++;
                             }
-                            elChTot++;*/
+                            elChTot++;
                         }
-                    }
+                    }*/
                 /*}
-                else{
+                */
+
+                /*else{
                     if(charge_rot_move(particle_energy_function)){
                         prevAccepted++;
                         rotAccepted++;
@@ -758,6 +863,36 @@ class MC{
                 yHist->saveHisto(histOut, particles);
                 zHist->saveHisto(histOut, particles);
                 surfpot->saveSurfPot(histOut);
+
+                FILE *f = fopen("positions_cations.txt", "w");
+                if(f == NULL){
+                    printf("Can't open file!\n");
+                    exit(1);
+                }
+                int k = 0;
+                for(int i = 0; i < positions_cations.size(); i++){
+                    if(i % particles.numOfCations == 0){
+                        k++;
+                    }
+                    fprintf(f, "%i     %.15lf   %.15lf  %.15lf\n", k, positions_cations[i][0], positions_cations[i][1], positions_cations[i][2]);
+
+                }
+                fclose(f);
+
+                FILE *fv = fopen("positions_anions.txt", "w");
+                if(f == NULL){
+                    printf("Can't open file!\n");
+                    exit(1);
+                }
+                k = 0;
+                for(int i = 0; i < positions_anions.size(); i++){
+                    if(i % particles.numOfAnions == 0){
+                        k++;
+                    }
+                    fprintf(fv, "%i     %.15lf   %.15lf  %.15lf\n", k, positions_anions[i][0], positions_anions[i][1], positions_anions[i][2]);
+
+                }
+                fclose(fv);
             }
 
             delete xHist;

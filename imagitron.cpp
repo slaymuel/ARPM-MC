@@ -7,7 +7,7 @@ void energy::imagitron::initialize(Particles &particles){
     for(int i = particles.numOfParticles; i < particles.numOfParticles + particles.numOfElectrons; i++){//
         charge += particles[i].q;
     }
-    wallCharge = (-particles.numOfCations - charge + particles.numOfAnions) / (Base::xL * Base::yL);
+    wallCharge = (-particles.numOfCations - charge + particles.numOfAnions) / (Base::xL * Base::yL * 2.0);
 }
 
 
@@ -38,6 +38,7 @@ double energy::imagitron::get_particle_energy(Particles &particles, Particle &p)
             exit(1);
         }
     }*/
+
 /*
     for(int k = 1; k <= numOfReflections; k += 2){
 
@@ -245,8 +246,8 @@ double energy::imagitron::wall_charge(double z){
     // Right wall
     double zDiff = z - Base::zLBoxHalf;
     double zsq = zDiff * zDiff;
-    //wall1 = 8.0 * a * std::log((std::sqrt(2.0 * asq + zsq) + a) / std::sqrt(asq + zsq)) - 
-    //              2.0 * std::fabs(zDiff) * (std::asin((asq * asq - zsq * zsq - 2.0 * asq * zsq) / std::pow(asq + zsq, 2.0)) + PI/2.0);
+    wall1 = 8.0 * a * std::log((std::sqrt(2.0 * asq + zsq) + a) / std::sqrt(asq + zsq)) - 
+                  2.0 * std::fabs(zDiff) * (std::asin((asq * asq - zsq * zsq - 2.0 * asq * zsq) / std::pow(asq + zsq, 2.0)) + PI/2.0);
 
     // Left wall
     zDiff = z + Base::zLBoxHalf;

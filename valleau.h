@@ -28,6 +28,7 @@ namespace energy{ namespace valleau{
     double wall_charge(double z);
     double phiw(double z);
     void initialize(double charge);
+    void set_charge(double charge);
 } }
 
 #endif

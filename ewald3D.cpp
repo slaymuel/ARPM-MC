@@ -64,7 +64,7 @@ double energy::ewald3D::norm(T x){
 
 
 void energy::ewald3D::set_alpha(){
-    alpha = 5.0 / Base::xL; //8.0 / alpha
+    alpha = 8.0 / Base::xL; //8.0 / alpha
 }
 
 
@@ -95,7 +95,7 @@ void energy::ewald3D::initialize(Particles &particles){
     int kMax = 6;//8/Base::xL;
     int zMax = (int) (Base::zL / Base::xL * kMax);
 
-    if(zMax < kMax){
+    if(zMax <= kMax){
         printf("\n\nOops, zMax < kMax, is this really what you want?\n\n");
     }
     
@@ -142,7 +142,7 @@ void energy::ewald3D::initialize(Particles &particles){
     std::complex<double> rho;
     std::complex<double> rk;
     std::complex<double> charge;
-    
+    printf("Setting up ewald\n");
     for(int k = 0; k < kNum; k++){
         rho = 0;
         for(int i = 0; i < particles.numOfParticles; i++){
@@ -159,6 +159,7 @@ void energy::ewald3D::initialize(Particles &particles){
         selfTerm += get_self_correction(particles[i]);
     }
     selfTerm = alpha/sqrt(PI) * selfTerm * Base::lB;
+    printf("Complete\n\n");
 }
 
 
@@ -229,7 +230,8 @@ double energy::ewald3D::get_energy(Particles &particles){
 
         for(int i = 0; i < particles.numOfParticles; i++){
                 for(int j = i + 1; j < particles.numOfParticles; j++){
-                    distance = particles.distances[i][j];
+                    //distance = particles.distances[i][j];
+                    distance = particles[i].distance_xy(particles[j]);
 
                     //if(distance <= 80){
                         energy = erfc_x(distance * alpha) / distance;
@@ -283,7 +285,8 @@ double energy::ewald3D::get_particle_energy(Particles &particles, Particle &p){
     reciprocal = get_reciprocal();
 
     for(int i = p.index + 1; i < particles.numOfParticles; i++){
-        distance = particles.distances[p.index][i];
+        //distance = particles.distances[p.index][i];
+        distance = p.distance_xy(particles[i]);
 
         //if(distance <= 80){
             energy = erfc_x(distance * alpha) / distance;
@@ -293,8 +296,8 @@ double energy::ewald3D::get_particle_energy(Particles &particles, Particle &p){
         dipoleMoment2 += particles[i].q * particles[i].pos[2] * particles[i].pos[2];
     }
     for(int i = 0; i < p.index; i++){
-        distance = particles.distances[i][p.index];
-        
+        //distance = particles.distances[i][p.index];
+        distance = p.distance_xy(particles[i]);
         //if(distance <= 80){
             energy = erfc_x(distance * alpha) / distance;
             real += particles[i].q * p.q * energy;

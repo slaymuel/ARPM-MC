@@ -315,7 +315,7 @@ int main(int argc, char *argv[])
     FILE *f = fopen(volOut, "w");
     fprintf(f, "");
     fclose(f);
-    std::string energyFunction = "electron";
+    std::string energyFunction = "ewald";
 
     if(energyFunction == "valleau"){
         energy::valleau::initialize(particles.numOfCations - particles.numOfAnions);

@@ -16,7 +16,7 @@ double energy::direct::norm(T vec){
 
 double energy::direct::get_energy(Particles &particles){
     double central = get_central(particles);
-    double replicates = 1.0/2.0 * get_replicates(particles);
+    double replicates = 0.5 * get_replicates(particles);
 
     //printf("Central box: %lf Replicates: %lf\n", central, replicates);
     //printf("Energy: %lf\n", central + replicates);
@@ -26,7 +26,7 @@ double energy::direct::get_energy(Particles &particles){
 
 double energy::direct::get_particle_energy(Particles &particles, Particle &p){
     double central = get_central(particles, p);
-    double replicates = 1.0/2.0 * get_replicates(particles);
+    double replicates = 0.5 * get_replicates(particles);
 
     //printf("Central box: %lf Replicates: %lf\n", central, replicates);
     return Base::lB * (central);
@@ -98,7 +98,8 @@ double energy::direct::get_central(Particles &particles){
             //dist = disp.norm();
             //dist = particles.distances[i][k];
 
-            dist = particles[i].distance_xy(particles[k]);
+            //dist = particles[i].distance_xy(particles[k]);
+            dist = particles[i].distance_no_pbc(particles[k]);
             energy += particles[i].q * particles[k].q / dist;
         }  
         //std::cout << particles[i].com << std::endl;
@@ -136,7 +137,8 @@ double energy::direct::get_central(Particles &particles, Particle &p){
     double dist = 0;
     for(int i = 0; i < particles.numOfParticles; i++){
         if(p.index == i) continue;
-        dist = p.distance_xy(particles[i]);
+        //dist = p.distance_xy(particles[i]);
+        dist = p.distance_no_pbc(particles[i]);
         energy += particles[i].q * p.q / dist;
     }
 
@@ -156,6 +158,7 @@ double energy::direct::get_central_pot(Particles &particles, Particle &p){
         if(p.index == i) continue;
 
         dist = p.distance_xy(particles[i]);
+        //dist = p.distance_no_pbc(particles[i]);
         if(dist <= 1.0){
             dist = 1.0;
         }

@@ -329,7 +329,7 @@ class Particles{
         for(i = 0; i < num; i++){
             particles.push_back(new Particle());
             particles[i].index = i;
-            particles[i].d = 5.0;    //Diameter of particles
+            particles[i].d = 4.0;    //Diameter of particles
 
             if(i < nNum){
                 particles[i].q = -1.0;

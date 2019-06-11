@@ -30,13 +30,16 @@ class Particle: public Base{
         void random_charge_rot();
         void random_move_xy(double stepSize);
         void random_move_xy(double stepSize, Eigen::Vector3d dir);
+        void random_move_no_pbc(double stepSize);
 
         
         double com_distance(Particle &p);
         double com_distance_xy(Particle &p);
         double distance_xy(Particle &p);
         double distance_z(Particle *p);
+        double distance_no_pbc(Particle &p);
         bool wall_2d();
+        bool sphere();
 
         static void place_particles(Particle **particles);
         static void create_electrons(std::vector< Particle > &particles, int num);

@@ -25,6 +25,9 @@ void energy::valleau::initialize(double charge){
     wallCharge = -charge / (Base::xL * Base::yL);
 }
 
+void energy::valleau::set_charge(double charge){
+    wallCharge = -charge / (Base::xL * Base::yL);
+}
 
 void energy::valleau::update_charge_vector(Particles &particles){
     //Eigen::VectorXd pDensity(numOfBins);
@@ -397,13 +400,13 @@ double energy::valleau::get_particle_images_pot(Particles &particles, Particle &
             tempX = p.pos[0];
             tempY = p.pos[1];
 
-            if(p.pos[0] - particles[j].pos[0] < -1.0 * Base::xL/2.0){
+            if(p.pos[0] - particles[j].pos[0] < -Base::xLHalf){
                 tempX = p.pos[0] + Base::xL;
             }
             if(p.pos[0] - particles[j].pos[0] > Base::xLHalf){
                 tempX = p.pos[0] - Base::xL;
             }
-            if(p.pos[1] - particles[j].pos[1] < -1.0 * Base::yLHalf){
+            if(p.pos[1] - particles[j].pos[1] < -Base::yLHalf){
                 tempY = p.pos[1] + Base::yL;
             }
             if(p.pos[1] - particles[j].pos[1] > Base::yLHalf){
@@ -493,32 +496,6 @@ double energy::valleau::get_particle_images_pot(Particles &particles, Particle &
 
 
 
-/*double energy::valleau::wall_charge(double z){
-    double wall1 = 0.0;
-    double wall2 = 0.0;
-    double a = Base::xLHalf;
-    double asq = a * a;
-    //z = std::fabs(z - Base::zL);
-    //z -= Base::zL / 2.0;
-    //printf("z: %lf\n", z);
-
-    // Right wall
-    double zDiff = z - Base::zLBoxHalf;
-    double zsq = zDiff * zDiff;
-    //wall1 = 8.0 * a * std::log((std::sqrt(2.0 * asq + zsq) + a) / std::sqrt(asq + zsq)) - 
-    //              2.0 * std::fabs(zDiff) * (std::asin((asq * asq - zsq * zsq - 2.0 * asq * zsq) / std::pow(asq + zsq, 2.0)) + PI/2.0);
-
-    // Left wall
-    zDiff = z + Base::zLBoxHalf;
-    zsq = zDiff * zDiff;
-    wall2 = 8.0 * a * std::log((std::sqrt(2.0 * asq + zsq) + a) / std::sqrt(asq + zsq)) - 
-                  2.0 * std::fabs(zDiff) * (std::asin((asq * asq - zsq * zsq - 2.0 * asq * zsq) / std::pow(asq + zsq, 2.0)) + PI/2.0);
-    
-    //printf("wall1: %lf, wall2: %lf\n", wall1, wall2);
-    return wallCharge * (wall1 + wall2);
-}*/
-
-
 double energy::valleau::wall_charge(double z){
     double wall1 = 0.0;
     double wall2 = 0.0;
@@ -545,12 +522,39 @@ double energy::valleau::wall_charge(double z){
 }
 
 
+/*double energy::valleau::wall_charge(double z){
+    double wall1 = 0.0;
+    double wall2 = 0.0;
+    double a = Base::xLHalf;
+    double asq = a * a;
+    //z = std::fabs(z - Base::zL);
+    //z -= Base::zL / 2.0;
+    //printf("z: %lf\n", z);
+
+    // Right wall
+    double zDiff = z - Base::zLBoxHalf;
+    double zsq = zDiff * zDiff;
+    //wall1 = 8.0 * a * std::log((std::sqrt(2.0 * asq + zsq) + a) / std::sqrt(asq + zsq)) - 
+    //              2.0 * std::fabs(zDiff) * (std::asin((asq * asq - zsq * zsq - 2.0 * asq * zsq) / std::pow(asq + zsq, 2.0)) + PI/2.0);
+
+    // Left wall
+    zDiff = z + Base::zLBoxHalf;
+    zsq = zDiff * zDiff;
+    wall2 = 8.0 * a * std::log((std::sqrt(2.0 * asq + zsq) + a) / std::sqrt(asq + zsq)) - 
+                  2.0 * std::fabs(zDiff) * (std::asin((asq * asq - zsq * zsq - 2.0 * asq * zsq) / std::pow(asq + zsq, 2.0)) + PI / 2.0);
+    
+    //printf("wall1: %lf, wall2: %lf\n", wall1, wall2);
+    return wallCharge * (wall1 + wall2) * Base::lB;
+}*/
+
+
 
 double energy::valleau::get_particle_pot(Particles &particles, Particle &p){
     double energy = 0;
 
     energy += energy::direct::get_particle_pot(particles, p);
     energy += get_particle_images_pot(particles, p);
-    
+    //energy += p.q * wall_charge(p.pos[2]);
+
     return energy;
 }

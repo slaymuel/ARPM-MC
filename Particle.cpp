@@ -134,8 +134,8 @@ void Particle::random_move(double stepSize){
         pbc_xy(this->com);
         this->pos = this->com + this->chargeDisp;
         pbc_xy(this->pos);
-        
     }
+
     else{
         pbc(this->com);
         this->pos = this->com + this->chargeDisp;
@@ -145,9 +145,18 @@ void Particle::random_move(double stepSize){
 
 
 
+void Particle::random_move_no_pbc(double stepSize){
+    
+    this->com[0] += (ran2::get_random() * 2.0 - 1.0) * stepSize;
+    this->com[1] += (ran2::get_random() * 2.0 - 1.0) * stepSize;
+    this->com[2] += (ran2::get_random() * 2.0 - 1.0) * stepSize;
+    this->pos = this->com + this->chargeDisp;
+}
 
 
 
+
+// Used by electron move
 void Particle::random_move_xy(double stepSize){
     
     this->com[0] += (ran2::get_random() * 2.0 - 1.0) * stepSize;
@@ -187,9 +196,10 @@ void Particle::random_charge_rot(){
         this->chargeDisp[1] = ran2::get_random() * 2.0 - 1.0;
         this->chargeDisp[2] = ran2::get_random() * 2.0 - 1.0;        
     }
+
     this->chargeDisp = this->b * this->chargeDisp.normalized();
     this->pos = this->com + this->chargeDisp;
-    pbc(this->pos);
+    //pbc(this->pos);
 }
 
 
@@ -270,6 +280,15 @@ double Particle::distance_xy(Particle &p){
     return disp.norm();
 }
 
+
+
+
+double Particle::distance_no_pbc(Particle &p){
+    Eigen::Vector3d disp;
+    disp = p.pos - this->pos;
+
+    return disp.norm();
+}
 
 
 
@@ -614,6 +633,15 @@ bool Particle::wall_2d(){
     else{
         (this->com[2] > -Base::zLBox / 2.0 - 2.0 + this->d / 2.0 && this->com[2] < Base::zLBox / 2.0 - this->d / 2.0 + 2.0) ? inside = true : inside = false;
     }*/
+
+    return inside;
+}
+
+
+bool Particle::sphere(){
+    bool inside;
+
+    (this->com.norm() < std::sqrt(2.0) * Base::zLBoxHalf) ? inside = true : inside = false;
 
     return inside;
 }
